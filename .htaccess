@@ -1,0 +1,36 @@
+Options -Indexes
+DirectoryIndex index.php
+
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^data(/|$) - [F,L]
+RewriteRule ^uploads/serve/ - [F,L]
+RewriteRule ^(includes|lib)(/|$) - [F,L]
+RewriteRule ^(\.env|\.git) - [F,L]
+
+<FilesMatch "\.(json|lock|log|cache|md)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^config\.php$">
+  Require all denied
+</FilesMatch>
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^$ index.php [L,QSA]
+RewriteRule ^courses/?$ courses.php [L,QSA]
+RewriteRule ^camp/?$ camp.php [L,QSA]
+RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
+RewriteRule ^login/?$ login.php [L,QSA]
+RewriteRule ^join/?$ join.php [L,QSA]
+RewriteRule ^course/([^/]+)/?$ course.php?slug=$1 [L,QSA]
+RewriteRule ^learn/([^/]+)/?$ learn.php?slug=$1 [L,QSA]
+RewriteRule ^quiz/([^/]+)/?$ quiz.php?slug=$1 [L,QSA]
+RewriteRule ^certificate/([^/]+)/?$ certificate.php?no=$1 [L,QSA]
+RewriteRule ^certificate/?$ certificate.php [L,QSA]
+
+RewriteRule ^admin/?$ admin/index.php [L,QSA]
+RewriteRule ^admin/([a-z0-9-]+)/?$ admin/$1.php [L,QSA]

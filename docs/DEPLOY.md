@@ -37,17 +37,26 @@ rsync -az --delete -e "ssh -p 28766" \
 ## 四、目录结构约定
 
 ```
-PayFlow Dev/            # 本地 Dev 根（= git 仓库根）
-├── README.md           # 定位 + 能力域 + 状态
-├── docs/
-│   ├── POSITIONING.md  # 定位 brief（与矩阵文档同步）
-│   ├── ROADMAP.md      # H1/H2 路线图
-│   ├── DESIGN-SYSTEM.md
-│   ├── CLOUDFLARE.md
-│   ├── AI-DEEPSEEK.md
-│   ├── secrets-local.md   # gitignored，真实密钥放这里
-│   └── assets-reference/  # tokens.css / modules.css 快照
-└── learnflow/            # 未来代码目录（PHP）
+LearnFlow Dev/           # 本地 Dev 根（= git 仓库根 = 应用根）
+├── README.md
+├── .htaccess            # 伪静态路由 + data/lib/includes 拒绝直连
+├── index.php            # 前台：首页
+├── courses.php course.php learn.php quiz.php camp.php
+├── certificate.php login.php dashboard.php join.php logout.php
+├── admin/               # 讲师后台（login/index/courses/course-edit/quizzes/quiz-edit/students/invites/certificates/settings）
+├── api/                 # courses.php progress.php payflow-webhook.php
+├── lib/                 # 领域层：CourseLibrary/Enrollment/Progress/Quiz/Certificate/Student/PayFlow/View/Auth
+├── includes/            # bootstrap.php + site-head/nav/footer.php
+├── assets/              # tokens.css / modules.css（同步自 OpenFlow）+ app.css / app.js / fonts/
+├── bin/                 # seed.php（种子数据）、router.php（本地预览路由）
+├── tests/               # domain.php（领域层回归）
+└── docs/
+    ├── POSITIONING.md ROADMAP.md DESIGN-SYSTEM.md
+    ├── CLOUDFLARE.md AI-DEEPSEEK.md
+    ├── secrets-local.md   # gitignored
+    └── assets-reference/  # tokens.css / modules.css 快照
 ```
 
-服务器对应 `/www/wwwroot/learnflow/`；rsync 源 = 本地 Dev 根。
+服务器对应 `/www/wwwroot/learnflow/`；rsync 源 = 本地 Dev 根（应用文件直接位于根，与 OpenFlow 一致）。
+`data/`、`uploads/` 为运行时目录（服务器为源），部署永不删除。
+
