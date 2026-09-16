@@ -1,13 +1,16 @@
 # LearnFlow · Cloudflare 配置（同步自 OpenFlow）
 
+> 部署形态为**子路径** `nownexts.com/learnflow`（非独立子域名），因此与 OpenFlow 共用同一个
+> DNS 记录与 SSL 配置，无需为 LearnFlow 单独做任何边缘配置。
+
 ## 已为本项目做好的配置
 
 | 项 | 值 |
 |---|---|
-| DNS | `A learnflow.nownexts.com → 172.96.253.73`（已代理 proxied: true） |
-| 边缘证书 | Universal SSL 自动覆盖 `*.nownexts.com`（无需单独申请） |
+| 域名 | 复用 `nownexts.com`（A 记录 → 172.96.253.73，已代理 proxied: true） |
+| 边缘证书 | `nownexts.com` 的 Universal SSL（`*.nownexts.com` 通配符无需单独申请） |
 | SSL 模式 | 继承 zone 配置 `full`（非 strict——源站证书主机名不匹配也可接受） |
-| 回源 | 443 → Apache vhost `learnflow.nownexts.com`（现有证书即可） |
+| 回源 | `nownexts.com/learnflow/*` → Apache docroot 下 `learnflow/` 子目录（沿用 OpenFlow vhost） |
 
 ## Zone 信息（与 OpenFlow 同 zone）
 
@@ -20,7 +23,7 @@
 # 清理指定 URL 缓存
 curl -s -X POST -H "Authorization: Bearer $CF_TOKEN" \
   -H "Content-Type: application/json" \
-  --data '{"files":["https://learnflow.nownexts.com/","https://learnflow.nownexts.com/assets/xxx.css"]}' \
+  --data '{"files":["https://nownexts.com/learnflow/","https://nownexts.com/learnflow/assets/xxx.css"]}' \
   "https://api.cloudflare.com/client/v4/zones/$ZONE/purge_cache"
 
 # 全站清缓存（慎用）

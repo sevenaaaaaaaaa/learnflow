@@ -13,15 +13,15 @@ if (!function_exists('lf_footer')) {
       <div><strong><?= lf_e($siteName) ?></strong><span><?= lf_e($slogan) ?></span></div>
     </div>
     <nav class="lf-foot-links">
-      <a href="/courses">课程</a>
-      <a href="/camp">训练营</a>
-      <a href="/certificate">证书验证</a>
-      <a href="/admin/">讲师后台</a>
+      <a href="<?= lf_url('/courses') ?>">课程</a>
+      <a href="<?= lf_url('/camp') ?>">训练营</a>
+      <a href="<?= lf_url('/certificate') ?>">证书验证</a>
+      <a href="<?= lf_url('/admin/') ?>">讲师后台</a>
     </nav>
     <p class="lf-foot-copy">© <?= date('Y') ?> 芭乐派 · LearnFlow</p>
   </div>
 </footer>
-<script src="/assets/app.js?v=<?= LF_SHELL_VER ?>" defer></script>
+<script src="<?= lf_url('/assets/app.js') ?>?v=<?= LF_SHELL_VER ?>" defer></script>
 <?php
     }
 }

@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             lf_flash('ok', '邀请码已删除。');
         }
     }
-    header('Location: /admin/invites.php');
+    header('Location: ' . lf_url('/admin/invites.php'));
     exit;
 }
 

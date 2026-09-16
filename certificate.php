@@ -10,7 +10,7 @@ $query = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cert_no'])) {
     $query = trim((string)$_POST['cert_no']);
-    header('Location: /certificate/' . rawurlencode($query));
+    header('Location: ' . lf_url('/certificate/' . rawurlencode($query)));
     exit;
 }
 
@@ -50,11 +50,11 @@ lf_page_start([
       </div>
       <div style="margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn ghost sm" type="button" data-lf-copy="<?= lf_e(cert_share_url((string)$cert['cert_no'])) ?>">复制分享链接</button>
-        <a class="btn subtle sm" href="/certificate/<?= rawurlencode((string)$cert['cert_no']) ?>">证书详情页</a>
+        <a class="btn subtle sm" href="<?= lf_url('/certificate/') ?><?= rawurlencode((string)$cert['cert_no']) ?>">证书详情页</a>
       </div>
     </div>
     <?php if ($student !== null && $courseId !== ''): ?>
-      <p style="text-align:center;margin-top:18px"><a class="btn primary sm" href="/dashboard">返回我的学习</a></p>
+      <p style="text-align:center;margin-top:18px"><a class="btn primary sm" href="<?= lf_url('/dashboard') ?>">返回我的学习</a></p>
     <?php endif; ?>
 
   <?php else: ?>
@@ -76,7 +76,7 @@ lf_page_start([
       <div class="lf-sec-head" style="margin-top:40px"><h2 class="lf-sec-title" style="font-size:22px">我的证书</h2></div>
       <div class="lf-grid">
         <?php foreach ($certs as $c): ?>
-          <a class="lf-stat" href="/certificate/<?= rawurlencode((string)$c['cert_no']) ?>">
+          <a class="lf-stat" href="<?= lf_url('/certificate/') ?><?= rawurlencode((string)$c['cert_no']) ?>">
             <b style="font-size:16px"><?= lf_e((string)$c['course_title']) ?></b>
             <span class="lf-cert-no"><?= lf_e((string)$c['cert_no']) ?></span><br>
             <span><?= lf_e(substr((string)$c['issued_at'], 0, 10)) ?></span>

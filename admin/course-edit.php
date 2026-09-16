@@ -34,7 +34,7 @@ $course = $id !== '' ? course_find($id) : null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!lf_csrf_check()) {
         lf_flash('danger', '请求已失效。');
-        header('Location: /admin/courses.php');
+        header('Location: ' . lf_url('/admin/courses.php'));
         exit;
     }
     $raw = [
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $saved = course_save(course_normalize($raw));
     lf_flash('ok', '课程已保存。');
-    header('Location: /admin/course-edit.php?id=' . urlencode((string)$saved['id']));
+    header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)$saved['id'])));
     exit;
 }
 
@@ -96,8 +96,8 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
 <div class="lf-admin-head">
   <h1><?= $isNew ? '新建课程' : '编辑课程' ?></h1>
   <div class="lf-row" style="flex:0 0 auto">
-    <a class="btn subtle sm" href="/admin/courses.php">返回列表</a>
-    <?php if (!$isNew): ?><a class="btn ghost sm" href="/course/<?= rawurlencode((string)($course['slug'] ?? $course['id'])) ?>" target="_blank">预览</a><?php endif; ?>
+    <a class="btn subtle sm" href="<?= lf_url('/admin/courses.php') ?>">返回列表</a>
+    <?php if (!$isNew): ?><a class="btn ghost sm" href="<?= lf_url('/course/') ?><?= rawurlencode((string)($course['slug'] ?? $course['id'])) ?>" target="_blank">预览</a><?php endif; ?>
   </div>
 </div>
 

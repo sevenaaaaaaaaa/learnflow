@@ -18,11 +18,11 @@ lf_page_start([
   <h1>上课 → 进度 → 测验 → 证书<br>一条交付闭环</h1>
   <p>给讲师、教练、训练营主理人的交付工具：章节课时的图文与视频、报名与名单、断点续播、章节与结业测验、可验证的结业证书。不给增长 OS，只给交付。</p>
   <div class="lf-hero-cta">
-    <a class="btn primary" href="/courses">浏览课程</a>
+    <a class="btn primary" href="<?= lf_url('/courses') ?>">浏览课程</a>
     <?php if ($student): ?>
-      <a class="btn ghost" href="/dashboard">继续学习</a>
+      <a class="btn ghost" href="<?= lf_url('/dashboard') ?>">继续学习</a>
     <?php else: ?>
-      <a class="btn ghost" href="/login">学员登录</a>
+      <a class="btn ghost" href="<?= lf_url('/login') ?>">学员登录</a>
     <?php endif; ?>
   </div>
   <div class="lf-stats">
@@ -38,10 +38,10 @@ lf_page_start([
       <span class="lf-kicker">Courses</span>
       <h2 class="lf-sec-title">在架课程</h2>
     </div>
-    <a class="btn subtle sm" href="/courses">查看全部</a>
+    <a class="btn subtle sm" href="<?= lf_url('/courses') ?>">查看全部</a>
   </div>
   <?php if (!$featured): ?>
-    <div class="lf-empty">还没有上架课程。进入 <a href="/admin/">讲师后台</a> 创建第一门课程。</div>
+    <div class="lf-empty">还没有上架课程。进入 <a href="<?= lf_url('/admin/') ?>">讲师后台</a> 创建第一门课程。</div>
   <?php else: ?>
     <div class="lf-grid">
       <?php foreach ($featured as $course) echo lf_course_card($course); ?>

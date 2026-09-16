@@ -8,11 +8,12 @@
 |---|---|
 | 主机 | root@172.96.253.73，SSH 端口 28766 |
 | 面板 | 宝塔（Apache） |
-| 本项目目录 | `/www/wwwroot/learnflow` |
-| Apache vhost | `/www/server/panel/vhost/apache/learnflow.nownexts.com.conf`（:80 + :443） |
-| 证书 | 复用 `/www/server/panel/vhost/cert/nownexts.com/`（CF full 模式容忍；边缘由 CF Universal SSL 通配符覆盖） |
+| 访问地址 | `https://nownexts.com/learnflow`（**子路径部署，非子域名**） |
+| 本项目目录 | `/www/wwwroot/nownexts.com/learnflow`（即 OpenFlow 站点 docroot 下的 `learnflow/` 子目录） |
+| Apache vhost | 沿用 OpenFlow 的 `nownexts.com.conf`（:80 + :443）；本目录自带 `.htaccess`（`RewriteBase /learnflow/`） |
+| 证书 | OpenFlow/nownexts.com 现用证书即可（CF full 模式容忍；边缘由 CF Universal SSL 覆盖） |
 | PHP CLI | `/www/server/php/83/bin/php`（生产 CLI 报 zip 重复加载警告是已知问题） |
-| SQLite | 服务器 3.7.17（无 FTS5/UPSERT，代码需兼容降级） |
+| 基础路径 | 代码自动探测（应用目录相对 docroot 的路径）；如用 Alias 等无法探测的情形，设置环境变量 `LF_BASE=/learnflow` |
 
 ## 二、代码同步（rsync）
 
@@ -22,11 +23,15 @@ rsync -az --delete -e "ssh -p 28766" \
   --exclude='.git/' --exclude='data/' --exclude='uploads/' \
   --exclude='vendor/' --exclude='.env' --exclude='.user.ini' \
   --exclude='.DS_Store' --exclude='*.bak*' \
-  ./ "root@172.96.253.73:/www/wwwroot/learnflow/"
+  ./ "root@172.96.253.73:/www/wwwroot/nownexts.com/learnflow/"
 ```
 
 约定：`data/` 是运行时数据（服务器为源），部署永不删除；缓存清理
-`rm -f /www/wwwroot/learnflow/data/cache/*.cache`。
+`rm -f /www/wwwroot/nownexts.com/learnflow/data/cache/*.cache`。
+
+> 站点级要求：请求 `/learnflow/*` 必须落到本目录（目录存在即可，Apache 按子目录处理）。
+> OpenFlow 根 `.htaccess` 对已存在的真实文件/目录放行，因此本子目录的 `.htaccess` 会正常接管伪静态。
+
 
 ## 三、GitHub
 
@@ -57,6 +62,7 @@ LearnFlow Dev/           # 本地 Dev 根（= git 仓库根 = 应用根）
     └── assets-reference/  # tokens.css / modules.css 快照
 ```
 
-服务器对应 `/www/wwwroot/learnflow/`；rsync 源 = 本地 Dev 根（应用文件直接位于根，与 OpenFlow 一致）。
+服务器对应 `/www/wwwroot/nownexts.com/learnflow/`；rsync 源 = 本地 Dev 根（应用文件直接位于根，与 OpenFlow 一致）。
 `data/`、`uploads/` 为运行时目录（服务器为源），部署永不删除。
+所有站内链接经 `lf_url()` 生成，自动带 `/learnflow` 前缀，无硬编码子域名。
 

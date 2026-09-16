@@ -6,14 +6,14 @@ $id = (string)($_GET['id'] ?? '');
 $quiz = $id !== '' ? quiz_find($id) : null;
 if ($quiz === null) {
     lf_flash('danger', '测验不存在。');
-    header('Location: /admin/quizzes.php');
+    header('Location: ' . lf_url('/admin/quizzes.php'));
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!lf_csrf_check()) {
         lf_flash('danger', '请求已失效。');
-        header('Location: /admin/quiz-edit.php?id=' . urlencode($id));
+        header('Location: ' . lf_url('/admin/quiz-edit.php?id=' . urlencode($id)));
         exit;
     }
     $questions = [];
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'questions' => $questions,
     ]);
     lf_flash('ok', '测验已保存。');
-    header('Location: /admin/quiz-edit.php?id=' . urlencode((string)$saved['id']));
+    header('Location: ' . lf_url('/admin/quiz-edit.php?id=' . urlencode((string)$saved['id'])));
     exit;
 }
 
@@ -55,7 +55,7 @@ $questions = (array)($quiz['questions'] ?? []);
 
 lf_admin_page_start(['title' => '编辑测验 · LearnFlow 讲师后台', 'active' => 'courses']);
 ?>
-<div class="lf-admin-head"><h1>编辑测验</h1><a class="btn subtle sm" href="/admin/quizzes.php">返回列表</a></div>
+<div class="lf-admin-head"><h1>编辑测验</h1><a class="btn subtle sm" href="<?= lf_url('/admin/quizzes.php') ?>">返回列表</a></div>
 
 <form method="post">
   <?= lf_csrf_field() ?>

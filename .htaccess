@@ -2,10 +2,9 @@ Options -Indexes
 DirectoryIndex index.php
 
 RewriteEngine On
-RewriteBase /
+RewriteBase /learnflow/
 
 RewriteRule ^data(/|$) - [F,L]
-RewriteRule ^uploads/serve/ - [F,L]
 RewriteRule ^(includes|lib)(/|$) - [F,L]
 RewriteRule ^(\.env|\.git) - [F,L]
 

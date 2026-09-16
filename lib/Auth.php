@@ -60,7 +60,7 @@ function lf_admin_required(): string
     $u = lf_admin_current();
     if ($u === null) {
         $next = urlencode((string)($_SERVER['REQUEST_URI'] ?? '/admin/'));
-        if (!headers_sent()) header('Location: /admin/login.php?next=' . $next);
+        if (!headers_sent()) header('Location: ' . lf_url('/admin/login.php?next=' . $next));
         exit;
     }
     return $u;
@@ -90,7 +90,7 @@ function lf_student_required(): array
     $s = lf_student_current();
     if ($s === null) {
         $next = urlencode((string)($_SERVER['REQUEST_URI'] ?? '/dashboard'));
-        if (!headers_sent()) header('Location: /login?next=' . $next);
+        if (!headers_sent()) header('Location: ' . lf_url('/login?next=' . $next));
         exit;
     }
     return $s;

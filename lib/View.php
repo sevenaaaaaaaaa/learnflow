@@ -83,7 +83,7 @@ function lf_progress_bar(int $percent, string $label = ''): string
 
 function lf_course_card(array $course, array $opts = []): string
 {
-    $href = '/course/' . rawurlencode((string)($course['slug'] ?? $course['id'] ?? ''));
+    $href = lf_url('/course/' . rawurlencode((string)($course['slug'] ?? $course['id'] ?? '')));
     $lessons = course_lesson_count($course);
     $chapters = count((array)($course['chapters'] ?? []));
     $progress = $opts['progress'] ?? null;
@@ -122,13 +122,13 @@ function lf_admin_page_start(array $opts = []): void
     require_once LF_ROOT . '/includes/site-head.php';
     $active = (string)($opts['active'] ?? '');
     $nav = [
-        'index' => ['/admin/', '看板', 'chart'],
-        'courses' => ['/admin/courses.php', '课程', 'article'],
-        'quizzes' => ['/admin/quizzes.php', '测验', 'quiz'],
-        'students' => ['/admin/students.php', '学员', 'user'],
-        'invites' => ['/admin/invites.php', '邀请码', 'share'],
-        'certificates' => ['/admin/certificates.php', '证书', 'cert'],
-        'settings' => ['/admin/settings.php', '设置', 'clock'],
+        'index' => [lf_url('/admin/'), '看板', 'chart'],
+        'courses' => [lf_url('/admin/courses.php'), '课程', 'article'],
+        'quizzes' => [lf_url('/admin/quizzes.php'), '测验', 'quiz'],
+        'students' => [lf_url('/admin/students.php'), '学员', 'user'],
+        'invites' => [lf_url('/admin/invites.php'), '邀请码', 'share'],
+        'certificates' => [lf_url('/admin/certificates.php'), '证书', 'cert'],
+        'settings' => [lf_url('/admin/settings.php'), '设置', 'clock'],
     ];
     echo '<!doctype html><html lang="zh-CN" data-theme="light"><head>';
     lf_head(array_merge([
@@ -136,13 +136,13 @@ function lf_admin_page_start(array $opts = []): void
         'description' => 'LearnFlow 讲师后台',
     ], $opts));
     echo '</head><body><div class="lf-admin"><aside class="lf-admin-side">';
-    echo '<a class="lf-brand" href="/"><span class="lf-brand-ic"><svg viewBox="0 0 32 32" fill="none"><path d="M16 5a11 11 0 1 1-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M11 8.5v15M11 13.6h8.4M11 18.6h8.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span class="lf-brand-tx">LearnFlow<small>讲师后台</small></span></a>';
+    echo '<a class="lf-brand" href="' . lf_url('/') . '"><span class="lf-brand-ic"><svg viewBox="0 0 32 32" fill="none"><path d="M16 5a11 11 0 1 1-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M11 8.5v15M11 13.6h8.4M11 18.6h8.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span class="lf-brand-tx">LearnFlow<small>讲师后台</small></span></a>';
     echo '<nav class="lf-admin-nav">';
     foreach ($nav as $key => [$href, $label, $icon]) {
         echo '<a class="' . ($active === $key ? 'on' : '') . '" href="' . $href . '">' . lf_icon($icon, 17) . lf_e($label) . '</a>';
     }
     echo '</nav>';
-    echo '<div style="margin-top:20px;padding:0 8px"><form method="post" action="/admin/logout.php">' . lf_csrf_field() . '<button class="btn subtle sm block" type="submit">退出后台</button></form></div>';
+    echo '<div style="margin-top:20px;padding:0 8px"><form method="post" action="' . lf_url('/admin/logout.php') . '">' . lf_csrf_field() . '<button class="btn subtle sm block" type="submit">退出后台</button></form></div>';
     echo '</aside><main class="lf-admin-body">';
     echo lf_flash_render();
 }
@@ -150,7 +150,7 @@ function lf_admin_page_start(array $opts = []): void
 function lf_admin_page_end(): void
 {
     echo '</main></div>';
-    echo '<script src="/assets/app.js?v=' . LF_SHELL_VER . '" defer></script>';
+    echo '<script src="' . lf_url('/assets/app.js') . '?v=' . LF_SHELL_VER . '" defer></script>';
     echo '</body></html>';
 }
 

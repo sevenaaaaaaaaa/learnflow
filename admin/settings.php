@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         lf_cache_flush();
         lf_flash('ok', '设置已保存。');
     }
-    header('Location: /admin/settings.php');
+    header('Location: ' . lf_url('/admin/settings.php'));
     exit;
 }
 

@@ -14,7 +14,7 @@ if ($course === null) {
 $student = lf_student_current();
 $isAdmin = lf_admin_current() !== null;
 if ($student === null && !$isAdmin) {
-    header('Location: /login?next=' . urlencode('/quiz/' . (string)$course['slug']));
+    header('Location: ' . lf_url('/login?next=' . urlencode('/quiz/' . (string)$course['slug'])));
     exit;
 }
 $studentId = $student ? (string)$student['id'] : '';
@@ -38,7 +38,7 @@ if ($quiz === null) {
 
 if (!$hasAccess && !$isAdmin) {
     lf_flash('warn', '请先报名课程后再参加测验。');
-    header('Location: /course/' . rawurlencode((string)$course['slug']));
+    header('Location: ' . lf_url('/course/' . rawurlencode((string)$course['slug'])));
     exit;
 }
 
@@ -77,7 +77,7 @@ lf_page_start([
 ]);
 ?>
 <section class="lf-sec" style="padding-top:34px;max-width:820px;margin:0 auto">
-  <a class="lf-faint" href="/learn/<?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)($quiz['lesson_id'] ?? '')) ?>">← 返回课程</a>
+  <a class="lf-faint" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)($quiz['lesson_id'] ?? '')) ?>">← 返回课程</a>
   <span class="lf-kicker" style="margin-top:12px;display:inline-flex"><?= ($quiz['kind'] ?? 'chapter') === 'final' ? '结业测验' : '章节测验' ?></span>
   <h1 class="lf-sec-title" style="font-size:30px"><?= lf_e((string)($quiz['title'] ?? '测验')) ?></h1>
   <p class="lf-faint">共 <?= count($questions) ?> 题 · 满分 <?= (int)$total ?> 分 · 及格 <?= (int)($quiz['pass_score'] ?? ceil($total * 0.6)) ?> 分<?= $best ? ' · 最高分 ' . (int)$best['score'] . '（' . (!empty($best['passed']) ? '已通过' : '未通过') . '）' : '' ?></p>
@@ -137,7 +137,7 @@ lf_page_start([
     <?php if ($result === null): ?>
       <button class="btn primary" type="submit">提交答案</button>
     <?php else: ?>
-      <a class="btn ghost" href="/quiz/<?= rawurlencode((string)$course['slug']) ?>?quiz=<?= rawurlencode((string)$quiz['id']) ?>">重新作答</a>
+      <a class="btn ghost" href="<?= lf_url('/quiz/') ?><?= rawurlencode((string)$course['slug']) ?>?quiz=<?= rawurlencode((string)$quiz['id']) ?>">重新作答</a>
     <?php endif; ?>
   </form>
 </section>

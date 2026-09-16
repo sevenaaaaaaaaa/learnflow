@@ -6,7 +6,7 @@ $course = course_find($slug);
 if ($course === null) {
     http_response_code(404);
     lf_page_start(['title' => '课程不存在 · LearnFlow', 'container' => true]);
-    echo '<div class="lf-empty" style="margin:60px auto">课程不存在。<a href="/courses">返回课程列表</a></div>';
+    echo '<div class="lf-empty" style="margin:60px auto">课程不存在。<a href="' . lf_url('/courses') . '">返回课程列表</a></div>';
     lf_page_end();
     exit;
 }
@@ -16,7 +16,7 @@ $isAdmin = lf_admin_current() !== null;
 $studentId = $student ? (string)$student['id'] : '';
 
 if ($student === null && !$isAdmin) {
-    header('Location: /login?next=' . urlencode('/learn/' . (string)$course['slug']));
+    header('Location: ' . lf_url('/login?next=' . urlencode('/learn/' . (string)$course['slug'])));
     exit;
 }
 
@@ -41,7 +41,7 @@ if ($lesson === null) {
 $isFreePreview = !empty($lesson['free']);
 if (!$hasAccess && !$isFreePreview && !$isAdmin) {
     lf_flash('warn', '请先报名该课程后继续学习。');
-    header('Location: /course/' . rawurlencode((string)$course['slug']));
+    header('Location: ' . lf_url('/course/' . rawurlencode((string)$course['slug'])));
     exit;
 }
 
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'done'
         cert_maybe_issue($studentId, $course, (string)($student['name'] ?? ''));
         lf_flash('ok', '已标记完成。');
     }
-    header('Location: /learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$lesson['id']));
+    header('Location: ' . lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$lesson['id'])));
     exit;
 }
 
@@ -70,7 +70,7 @@ lf_page_start([
 ?>
 <div class="lf-layout">
   <div>
-    <div class="lf-player-wrap" data-lf-player data-endpoint="/api/progress.php" data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
+    <div class="lf-player-wrap" data-lf-player data-endpoint="<?= lf_url('/api/progress.php') ?>" data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
       <?php if ($lessonType === 'video' && !empty($lesson['video'])): ?>
         <video class="lf-player-video" controls playsinline preload="metadata" src="<?= lf_e((string)$lesson['video']) ?><?= $resumePosition > 2 ? '#t=' . (int)$resumePosition : '' ?>"></video>
       <?php elseif ($lessonType === 'quiz'): ?>
@@ -78,7 +78,7 @@ lf_page_start([
           <span class="lf-kicker">测验</span>
           <h1 style="font-family:var(--font-display);margin:10px 0"><?= lf_e((string)$lesson['title']) ?></h1>
           <p class="lf-muted">本课时为测验，请在独立页面完成。通过后回到此处继续。</p>
-          <a class="btn primary" style="margin-top:12px" href="/quiz/<?= rawurlencode((string)$course['slug']) ?>?quiz=<?= rawurlencode((string)$lesson['quiz_id']) ?>">开始测验</a>
+          <a class="btn primary" style="margin-top:12px" href="<?= lf_url('/quiz/') ?><?= rawurlencode((string)$course['slug']) ?>?quiz=<?= rawurlencode((string)$lesson['quiz_id']) ?>">开始测验</a>
         </div>
       <?php else: ?>
         <div class="lf-player-art">
@@ -108,8 +108,8 @@ lf_page_start([
             <button class="btn ghost sm" type="submit"><?= !empty($state['done']) ? '标记为未完成' : '标记完成' ?></button>
           </form>
         <?php endif; ?>
-        <?php if ($neighbors['prev']): ?><a class="btn subtle sm" href="/learn/<?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['prev']['id']) ?>"><?= lf_icon('arrow-left', 16) ?> 上一节</a><?php endif; ?>
-        <?php if ($neighbors['next']): ?><a class="btn primary sm" href="/learn/<?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['next']['id']) ?>">下一节 <?= lf_icon('arrow-right', 16) ?></a><?php endif; ?>
+        <?php if ($neighbors['prev']): ?><a class="btn subtle sm" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['prev']['id']) ?>"><?= lf_icon('arrow-left', 16) ?> 上一节</a><?php endif; ?>
+        <?php if ($neighbors['next']): ?><a class="btn primary sm" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['next']['id']) ?>">下一节 <?= lf_icon('arrow-right', 16) ?></a><?php endif; ?>
       </div>
     </div>
     <?php endif; ?>
@@ -117,7 +117,7 @@ lf_page_start([
 
   <aside class="lf-sidebar">
     <div class="lf-sidebar-head">
-      <a class="lf-faint" href="/course/<?= rawurlencode((string)$course['slug']) ?>">← <?= lf_e((string)$course['title']) ?></a>
+      <a class="lf-faint" href="<?= lf_url('/course/') ?><?= rawurlencode((string)$course['slug']) ?>">← <?= lf_e((string)$course['title']) ?></a>
       <?php if ($summary): ?>
         <?= lf_progress_bar((int)$summary['percent'], '进度 ' . (int)$summary['done'] . '/' . (int)$summary['total'] . ' 课时') ?>
       <?php endif; ?>
@@ -129,7 +129,7 @@ lf_page_start([
             $isOn = (string)$l['id'] === (string)$lesson['id'];
             $lDone = $studentId !== '' ? !empty(progress_lesson_state($studentId, (string)$course['id'], (string)$l['id'])['done']) : false;
         ?>
-          <a class="lf-lesson-row<?= $isOn ? ' on' : '' ?>" href="/learn/<?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$l['id']) ?>">
+          <a class="lf-lesson-row<?= $isOn ? ' on' : '' ?>" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$l['id']) ?>">
             <?= lf_icon((string)($l['type'] ?? 'article')) ?>
             <span><?= lf_e((string)($l['title'] ?? '')) ?></span>
             <?php if ($lDone): ?><span class="lf-lesson-state"><?= lf_icon('check', 15) ?></span><?php endif; ?>
@@ -141,7 +141,7 @@ lf_page_start([
       <div class="lf-sidebar-head">
         <span class="lf-chip ok">已学完全部课时</span>
         <?php if (!empty($course['certificate'])): ?>
-          <a class="btn primary sm block" href="/certificate?course=<?= rawurlencode((string)$course['id']) ?>">查看结业证书</a>
+          <a class="btn primary sm block" href="<?= lf_url('/certificate?course=') ?><?= rawurlencode((string)$course['id']) ?>">查看结业证书</a>
         <?php endif; ?>
       </div>
     <?php endif; ?>

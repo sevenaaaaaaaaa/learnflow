@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         cert_revoke((string)($_POST['cert_no'] ?? ''));
         lf_flash('ok', '证书已撤销。');
     }
-    header('Location: /admin/certificates.php');
+    header('Location: ' . lf_url('/admin/certificates.php'));
     exit;
 }
 
@@ -32,7 +32,7 @@ lf_admin_page_start(['title' => '证书 · LearnFlow 讲师后台', 'active' => 
           $stu = $students[(string)($c['student_id'] ?? '')] ?? null;
       ?>
         <tr>
-          <td><a class="lf-cert-no" href="/certificate/<?= rawurlencode((string)$no) ?>" target="_blank"><?= lf_e((string)$no) ?></a></td>
+          <td><a class="lf-cert-no" href="<?= lf_url('/certificate/') ?><?= rawurlencode((string)$no) ?>" target="_blank"><?= lf_e((string)$no) ?></a></td>
           <td><?= lf_e((string)($stu['name'] ?? $c['name'] ?? '')) ?><br><span class="lf-faint"><?= lf_e((string)($c['student_id'] ?? '')) ?></span></td>
           <td><?= lf_e((string)($c['course_title'] ?? '')) ?></td>
           <td class="lf-faint"><?= lf_e(substr((string)($c['issued_at'] ?? ''), 0, 16)) ?></td>

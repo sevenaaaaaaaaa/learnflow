@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'questions' => [],
             ]);
             lf_flash('ok', '测验已创建，继续添加题目。');
-            header('Location: /admin/quiz-edit.php?id=' . urlencode((string)$quiz['id']));
+            header('Location: ' . lf_url('/admin/quiz-edit.php?id=' . urlencode((string)$quiz['id'])));
             exit;
         }
         if ($action === 'delete') {
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             lf_flash('ok', '测验已删除。');
         }
     }
-    header('Location: /admin/quizzes.php');
+    header('Location: ' . lf_url('/admin/quizzes.php'));
     exit;
 }
 
@@ -62,7 +62,7 @@ lf_admin_page_start(['title' => '测验 · LearnFlow 讲师后台', 'active' => 
           <td><?= count((array)($q['questions'] ?? [])) ?></td>
           <td><?= quiz_total_score($q) ?></td>
           <td class="lf-row" style="flex-wrap:nowrap">
-            <a class="btn subtle sm" href="/admin/quiz-edit.php?id=<?= urlencode((string)$qid) ?>">编辑</a>
+            <a class="btn subtle sm" href="<?= lf_url('/admin/quiz-edit.php?id=') ?><?= urlencode((string)$qid) ?>">编辑</a>
             <form method="post" style="margin:0" onsubmit="return confirm('确认删除？')"><?= lf_csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= lf_e((string)$qid) ?>"><button class="btn subtle sm" type="submit" style="color:var(--danger)">删除</button></form>
           </td>
         </tr>

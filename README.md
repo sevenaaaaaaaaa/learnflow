@@ -37,7 +37,7 @@
 - [x] 立项 + 定位（本文档）
 - [x] 产品页上线（nownexts.com/learnflow）
 - [x] 独立代码库搭建（H2，PayFlow 先行）——PHP 8.3 + JSON 数据层，零框架零 composer 运行时依赖
-- [ ] 部署上线（learnflow.nownexts.com）
+- [ ] 部署上线（nownexts.com/learnflow）
 - [ ] 首个训练营闭环验证（R.B.E 第 4 期）
 
 ## 本地开发
@@ -49,6 +49,7 @@ php -S 127.0.0.1:8080 bin/router.php          # 本地预览（模拟 .htaccess 
 ```
 
 - 管理员默认 `admin / learnflow123`；演示学员 `demo@learnflow.local / demo123`；邀请码 `RBECAMP4`
+- 生产为子路径部署（`nownexts.com/learnflow`）；本地验证前缀：`LF_BASE=/learnflow php -S 127.0.0.1:8080 bin/router.php`
 - 目录：前台页在仓库根（`index.php` / `course.php` / `learn.php` / `quiz.php` / `certificate.php`），
   领域层 `lib/`，API `api/`，后台 `admin/`；运行时数据在 `data/`（gitignored，服务器为源）
 

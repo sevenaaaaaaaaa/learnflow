@@ -6,7 +6,7 @@ $course = course_find($slug);
 if ($course === null || ($course['status'] ?? 'draft') !== 'published') {
     http_response_code(404);
     lf_page_start(['title' => '课程不存在 · LearnFlow', 'container' => true]);
-    echo '<div class="lf-empty" style="margin:60px auto">课程不存在或未上架。<a href="/courses">返回课程列表</a></div>';
+    echo '<div class="lf-empty" style="margin:60px auto">课程不存在或未上架。<a href="' . lf_url('/courses') . '">返回课程列表</a></div>';
     lf_page_end();
     exit;
 }
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $res = invite_redeem((string)($_POST['invite_code'] ?? ''), $studentId);
             if (!empty($res['ok'])) {
                 lf_flash('ok', '邀请码兑换成功，已加入课程。');
-                header('Location: /course/' . rawurlencode((string)$course['slug']));
+                header('Location: ' . lf_url('/course/' . rawurlencode((string)$course['slug'])));
                 exit;
             }
             lf_flash('danger', (string)($res['error'] ?? '邀请码无效'));
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             enroll_add((string)$course['id'], $studentId, ['source' => 'free']);
             lf_flash('ok', '报名成功，开始学习吧。');
-            header('Location: /learn/' . rawurlencode((string)$course['slug']));
+            header('Location: ' . lf_url('/learn/' . rawurlencode((string)$course['slug'])));
             exit;
         }
     }
@@ -90,9 +90,9 @@ lf_page_start([
         <div style="font-family:var(--font-display);font-size:26px;font-weight:700"><?= lf_e(course_price_label($course)) ?></div>
         <?php if ($hasAccess): ?>
           <?php if ($summary): ?><div style="margin:14px 0"><?= lf_progress_bar((int)$summary['percent'], '已完成 ' . (int)$summary['done'] . '/' . (int)$summary['total'] . ' 课时') ?></div><?php endif; ?>
-          <a class="btn primary block" href="/learn/<?= rawurlencode((string)$course['slug']) ?>"><?= $summary && $summary['percent'] > 0 ? '继续学习' : '开始学习' ?></a>
+          <a class="btn primary block" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>"><?= $summary && $summary['percent'] > 0 ? '继续学习' : '开始学习' ?></a>
         <?php elseif ($student === null): ?>
-          <a class="btn primary block" style="margin-top:14px" href="/login?next=<?= urlencode('/course/' . (string)$course['slug']) ?>">登录后报名</a>
+          <a class="btn primary block" style="margin-top:14px" href="<?= lf_url('/login?next=') ?><?= urlencode('/course/' . (string)$course['slug']) ?>">登录后报名</a>
         <?php elseif ($price > 0 && $payflowUrl !== ''): ?>
           <a class="btn primary block" style="margin-top:14px" href="<?= lf_e($payflowUrl) ?>">立即购买</a>
           <p class="lf-faint" style="margin-top:10px">由 PayFlow 收款，购买后自动入学。</p>
@@ -130,7 +130,7 @@ lf_page_start([
           <?php foreach ((array)($ch['lessons'] ?? []) as $li => $l):
               $done = $studentId !== '' ? !empty(progress_lesson_state($studentId, (string)$course['id'], (string)$l['id'])['done']) : false;
               $locked = !$hasAccess && empty($l['free']);
-              $href = $hasAccess ? '/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$l['id']) : '#';
+              $href = $hasAccess ? lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$l['id'])) : '#';
           ?>
             <a class="lf-lesson-row" href="<?= lf_e($href) ?>"<?= $locked ? ' onclick="return false" style="opacity:.72"' : '' ?>>
               <span class="lf-lesson-idx"><?= $ci + 1 ?>.<?= $li + 1 ?></span>

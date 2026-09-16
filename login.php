@@ -1,8 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
-$next = (string)($_GET['next'] ?? '/dashboard');
-if (!str_starts_with($next, '/') || str_starts_with($next, '//')) $next = '/dashboard';
+$next = lf_safe_next((string)($_GET['next'] ?? ''), '/dashboard');
 if (lf_student_current() !== null) {
     header('Location: ' . $next);
     exit;
@@ -57,10 +56,10 @@ lf_page_start([
 <section class="lf-sec" style="padding-top:56px">
   <div class="lf-form-card">
     <div class="lf-tabs">
-      <a class="lf-tab<?= $mode === 'login' ? ' on' : '' ?>" href="/login?next=<?= urlencode($next) ?>">登录</a>
-      <a class="lf-tab<?= $mode === 'register' ? ' on' : '' ?>" href="/login?mode=register&next=<?= urlencode($next) ?>">注册</a>
+      <a class="lf-tab<?= $mode === 'login' ? ' on' : '' ?>" href="<?= lf_url('/login?next=') ?><?= urlencode($next) ?>">登录</a>
+      <a class="lf-tab<?= $mode === 'register' ? ' on' : '' ?>" href="<?= lf_url('/login?mode=register&next=') ?><?= urlencode($next) ?>">注册</a>
     </div>
-    <form method="post" action="/login?mode=<?= lf_e($mode) ?>&next=<?= urlencode($next) ?>">
+    <form method="post" action="<?= lf_url('/login?mode=') ?><?= lf_e($mode) ?>&next=<?= urlencode($next) ?>">
       <?= lf_csrf_field() ?>
       <input type="hidden" name="action" value="<?= lf_e($mode) ?>">
       <?php if ($mode === 'register'): ?>

@@ -1,10 +1,44 @@
 <?php
+
+$base = getenv('LF_BASE') ?: '';
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-$root = __DIR__ . '/..';
+if ($base !== '') {
+    $base = '/' . trim($base, '/');
+    if ($uri === $base || str_starts_with($uri, $base . '/')) {
+        $uri = substr($uri, strlen($base));
+    }
+    if ($uri === '' || $uri === false) $uri = '/';
+}
+$root = dirname(__DIR__);
 $path = $root . $uri;
 
-if ($uri !== '/' && is_file($path)) {
-    return false;
+$mimes = [
+    'css' => 'text/css', 'js' => 'application/javascript', 'mjs' => 'application/javascript',
+    'json' => 'application/json', 'svg' => 'image/svg+xml', 'png' => 'image/png',
+    'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'webp' => 'image/webp', 'gif' => 'image/gif',
+    'woff2' => 'font/woff2', 'woff' => 'font/woff', 'ico' => 'image/x-icon',
+    'mp4' => 'video/mp4', 'webm' => 'video/webm', 'txt' => 'text/plain', 'md' => 'text/markdown',
+];
+
+if (is_file($path)) {
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    if ($ext === 'php') {
+        $_SERVER['SCRIPT_NAME'] = $uri;
+        $_SERVER['SCRIPT_FILENAME'] = $path;
+        require $path;
+        return true;
+    }
+    header('Content-Type: ' . ($mimes[$ext] ?? 'application/octet-stream'));
+    header('Content-Length: ' . filesize($path));
+    readfile($path);
+    return true;
+}
+
+if (is_dir($path) && is_file($path . '/index.php')) {
+    $_SERVER['SCRIPT_NAME'] = rtrim($uri, '/') . '/index.php';
+    $_SERVER['SCRIPT_FILENAME'] = $path . '/index.php';
+    require $path . '/index.php';
+    return true;
 }
 
 $routes = [

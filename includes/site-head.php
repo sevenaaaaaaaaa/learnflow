@@ -20,10 +20,10 @@ if (!function_exists('lf_head')) {
         echo '<meta property="og:type" content="website">' . "\n";
         echo '<link rel="icon" href="' . lf_e(lf_favicon_data_uri()) . '">' . "\n";
         echo '<script>try{var t=JSON.parse(localStorage.getItem("learnflow-theme")||"{}");if(t.theme)document.documentElement.dataset.theme=t.theme;else if(matchMedia("(prefers-color-scheme:dark)").matches)document.documentElement.dataset.theme="dark";}catch(e){}</script>' . "\n";
-        echo '<link rel="stylesheet" href="/assets/fonts/fonts.css?v=' . $v . '">' . "\n";
-        echo '<link rel="stylesheet" href="/assets/tokens.css?v=' . $v . '">' . "\n";
-        echo '<link rel="stylesheet" href="/assets/modules.css?v=' . $v . '">' . "\n";
-        echo '<link rel="stylesheet" href="/assets/app.css?v=' . $v . '">' . "\n";
+        echo '<link rel="stylesheet" href="' . lf_url('/assets/fonts/fonts.css') . '?v=' . $v . '">' . "\n";
+        echo '<link rel="stylesheet" href="' . lf_url('/assets/tokens.css') . '?v=' . $v . '">' . "\n";
+        echo '<link rel="stylesheet" href="' . lf_url('/assets/modules.css') . '?v=' . $v . '">' . "\n";
+        echo '<link rel="stylesheet" href="' . lf_url('/assets/app.css') . '?v=' . $v . '">' . "\n";
         if ($appcss !== '') echo $appcss . "\n";
     }
 }

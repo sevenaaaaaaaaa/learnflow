@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             lf_flash('ok', '已移除报名。');
         }
     }
-    header('Location: /admin/students.php');
+    header('Location: ' . lf_url('/admin/students.php'));
     exit;
 }
 

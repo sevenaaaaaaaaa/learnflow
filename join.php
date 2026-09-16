@@ -6,7 +6,7 @@ $student = lf_student_current();
 
 if ($student === null) {
     $target = '/join' . ($code !== '' ? '?code=' . urlencode($code) : '');
-    header('Location: /login?next=' . urlencode($target));
+    header('Location: ' . lf_url('/login?next=' . urlencode($target)));
     exit;
 }
 
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'redee
         if (!empty($res['ok'])) {
             $course = course_find((string)$res['course_id']);
             lf_flash('ok', !empty($res['already']) ? '你已在该课程中。' : '兑换成功，已加入课程。');
-            header('Location: ' . ($course ? '/learn/' . rawurlencode((string)$course['slug']) : '/dashboard'));
+            header('Location: ' . lf_url($course ? '/learn/' . rawurlencode((string)$course['slug']) : '/dashboard'));
             exit;
         }
         lf_flash('danger', (string)($res['error'] ?? '邀请码无效'));

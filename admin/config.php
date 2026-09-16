@@ -69,7 +69,7 @@ register_shutdown_function(function (): void {
 
 function lf_is_api_request(): bool
 {
-    return str_starts_with((string)($_SERVER['REQUEST_URI'] ?? ''), '/api/')
+    return str_starts_with((string)($_SERVER['REQUEST_URI'] ?? ''), lf_url('/api/'))
         || (($_SERVER['HTTP_ACCEPT'] ?? '') !== '' && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
 }
 
@@ -93,7 +93,7 @@ function lf_error_response(int $code, string $message, ?string $detail = null): 
         if ($detail !== null) {
             echo '<pre style="text-align:left;overflow:auto;font-size:12px;color:#c0392b">' . htmlspecialchars($detail) . '</pre>';
         }
-        echo '<a href="/" style="display:inline-block;margin-top:20px;padding:10px 22px;border-radius:999px;background:#2563eb;color:#fff;text-decoration:none">返回首页</a>'
+        echo '<a href="' . lf_url('/') . '" style="display:inline-block;margin-top:20px;padding:10px 22px;border-radius:999px;background:#2563eb;color:#fff;text-decoration:none">返回首页</a>'
             . '</div></body></html>';
     }
     exit;
@@ -190,6 +190,43 @@ function lf_e(?string $value): string
     return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function lf_base_path(): string
+{
+    static $base = null;
+    if ($base !== null) return $base;
+    $env = getenv('LF_BASE');
+    if ($env !== false && $env !== '') {
+        return $base = '/' . trim($env, '/');
+    }
+    if ($env === '') return $base = '';
+    $root = str_replace('\\', '/', realpath(LF_ROOT) ?: LF_ROOT);
+    $doc = (string)($_SERVER['DOCUMENT_ROOT'] ?? '');
+    $docReal = $doc !== '' ? str_replace('\\', '/', realpath($doc) ?: $doc) : '';
+    $docReal = rtrim($docReal, '/');
+    if ($docReal !== '' && $root !== $docReal && str_starts_with($root, $docReal . '/')) {
+        return $base = rtrim(substr($root, strlen($docReal)), '/');
+    }
+    return $base = '';
+}
+
+function lf_url(string $path = ''): string
+{
+    return lf_base_path() . ($path !== '' ? '/' . ltrim($path, '/') : '');
+}
+
+function lf_safe_next(string $candidate, string $default = '/'): string
+{
+    $candidate = trim($candidate);
+    if ($candidate === '' || $candidate[0] !== '/' || str_starts_with($candidate, '//')) {
+        return lf_url($default);
+    }
+    $base = lf_base_path();
+    if ($base !== '' && $candidate !== $base && !str_starts_with($candidate, $base . '/')) {
+        $candidate = $base . $candidate;
+    }
+    return $candidate;
+}
+
 function lf_abs_url(string $path = ''): string
 {
     $base = rtrim((string)(lf_setting_get('site_url') ?: ''), '/');
@@ -198,7 +235,7 @@ function lf_abs_url(string $path = ''): string
             || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
         $base = ($https ? 'https' : 'http') . '://' . (($_SERVER['HTTP_HOST'] ?? 'localhost'));
     }
-    return $base . ($path !== '' ? '/' . ltrim($path, '/') : '');
+    return $base . lf_url($path);
 }
 
 function lf_csrf_token(): string

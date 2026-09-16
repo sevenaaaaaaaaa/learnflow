@@ -32,5 +32,5 @@
 ## 技术约束
 
 - 与 PayFlow 同栈（PHP 8.3 / SQLite / 零依赖）
-- 域名：learnflow.nownexts.com（服务器 /www/wwwroot/learnflow）
+- 域名：nownexts.com/learnflow（子路径部署，服务器 `/www/wwwroot/nownexts.com/learnflow`）
 - 部署/CF/AI 配置见 `docs/` 同名文档（OpenFlow 同步副本）

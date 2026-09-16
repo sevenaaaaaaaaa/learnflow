@@ -3,7 +3,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $student = lf_student_current();
 if ($student === null) {
-    header('Location: /login?next=' . urlencode('/dashboard'));
+    header('Location: ' . lf_url('/login?next=' . urlencode('/dashboard')));
     exit;
 }
 $studentId = (string)$student['id'];
@@ -30,13 +30,13 @@ lf_page_start([
       <h2 class="lf-sec-title">你好，<?= lf_e((string)$student['name']) ?></h2>
     </div>
     <div class="lf-row" style="flex:0 0 auto">
-      <?php if ($certs): ?><a class="btn ghost sm" href="/certificate">我的证书 (<?= count($certs) ?>)</a><?php endif; ?>
-      <form method="post" action="/logout.php"><?= lf_csrf_field() ?><button class="btn subtle sm" type="submit">退出</button></form>
+      <?php if ($certs): ?><a class="btn ghost sm" href="<?= lf_url('/certificate') ?>">我的证书 (<?= count($certs) ?>)</a><?php endif; ?>
+      <form method="post" action="<?= lf_url('/logout.php') ?>"><?= lf_csrf_field() ?><button class="btn subtle sm" type="submit">退出</button></form>
     </div>
   </div>
 
   <?php if (!$courses): ?>
-    <div class="lf-empty">你还没有加入任何课程。<a href="/courses">去看看课程</a> 或使用邀请码 <a href="/join">兑换入学</a>。</div>
+    <div class="lf-empty">你还没有加入任何课程。<a href="<?= lf_url('/courses') ?>">去看看课程</a> 或使用邀请码 <a href="<?= lf_url('/join') ?>">兑换入学</a>。</div>
   <?php else: ?>
     <div class="lf-grid">
       <?php foreach ($courses as $item):
@@ -44,7 +44,7 @@ lf_page_start([
           $sum = progress_summary($studentId, (string)$course['id'], $course);
           $totalMinutes += $sum['minutes'];
           $resume = progress_resume($studentId, (string)$course['id'], $course);
-          $link = '/learn/' . rawurlencode((string)$course['slug']) . ($resume ? '?lesson=' . rawurlencode((string)$resume['lesson_id']) : '');
+          $link = lf_url('/learn/' . rawurlencode((string)$course['slug']) . ($resume ? '?lesson=' . rawurlencode((string)$resume['lesson_id']) : ''));
       ?>
         <article class="lf-course-card">
           <div class="lf-course-body">
@@ -57,7 +57,7 @@ lf_page_start([
             <div class="lf-player-actions" style="margin-top:6px">
               <a class="btn primary sm" href="<?= lf_e($link) ?>"><?= $sum['percent'] > 0 ? '继续学习' : '开始学习' ?></a>
               <?php if ($sum['total'] > 0 && $sum['done'] >= $sum['total'] && !empty($course['certificate'])): ?>
-                <a class="btn ghost sm" href="/certificate?course=<?= rawurlencode((string)$course['id']) ?>">领取证书</a>
+                <a class="btn ghost sm" href="<?= lf_url('/certificate?course=') ?><?= rawurlencode((string)$course['id']) ?>">领取证书</a>
               <?php endif; ?>
             </div>
           </div>

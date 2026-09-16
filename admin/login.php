@@ -2,7 +2,7 @@
 require_once dirname(__DIR__) . '/includes/bootstrap.php';
 
 if (lf_admin_current() !== null) {
-    header('Location: /admin/');
+    header('Location: ' . lf_url('/admin/'));
     exit;
 }
 
@@ -21,14 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 lf_admin_create($username, $password, (string)($_POST['name'] ?? ''));
                 lf_admin_login($username);
                 lf_flash('ok', '管理员创建成功。');
-                header('Location: /admin/');
+                header('Location: ' . lf_url('/admin/'));
                 exit;
             } catch (Throwable $e) {
                 lf_flash('danger', $e->getMessage());
             }
         } elseif (lf_admin_authenticate($username, $password)) {
             lf_admin_login($username);
-            header('Location: /admin/');
+            header('Location: ' . lf_url('/admin/'));
             exit;
         } else {
             lf_flash('danger', '账号或密码错误。');

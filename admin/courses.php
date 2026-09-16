@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $course = course_save(course_normalize(['title' => $title, 'status' => 'draft']));
                 lf_flash('ok', '课程已创建，继续完善大纲。');
-                header('Location: /admin/course-edit.php?id=' . urlencode((string)$course['id']));
+                header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)$course['id'])));
                 exit;
             }
         } elseif ($action === 'delete') {
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    header('Location: /admin/courses.php');
+    header('Location: ' . lf_url('/admin/courses.php'));
     exit;
 }
 
@@ -62,7 +62,7 @@ lf_admin_page_start(['title' => '课程 · LearnFlow 讲师后台', 'active' => 
           <td><?= lf_e(course_price_label($course)) ?></td>
           <td><span class="lf-chip <?= ($course['status'] ?? '') === 'published' ? 'ok' : 'soft' ?>"><?= ($course['status'] ?? 'draft') === 'published' ? '已上架' : '草稿' ?></span></td>
           <td class="lf-row" style="flex-wrap:nowrap">
-            <a class="btn subtle sm" href="/admin/course-edit.php?id=<?= urlencode((string)$course['id']) ?>">编辑</a>
+            <a class="btn subtle sm" href="<?= lf_url('/admin/course-edit.php?id=') ?><?= urlencode((string)$course['id']) ?>">编辑</a>
             <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= lf_e((string)$course['id']) ?>"><button class="btn ghost sm" type="submit"><?= ($course['status'] ?? '') === 'published' ? '下架' : '上架' ?></button></form>
             <form method="post" style="margin:0" onsubmit="return confirm('确认删除该课程？')"><?= lf_csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= lf_e((string)$course['id']) ?>"><button class="btn subtle sm" type="submit" style="color:var(--danger)">删除</button></form>
           </td>
