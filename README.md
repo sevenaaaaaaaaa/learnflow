@@ -37,7 +37,7 @@
 - [x] 立项 + 定位（本文档）
 - [x] 产品页上线（产品/能力页由主站 nownexts.com 承载，各自独立二级目录）
 - [x] 独立代码库搭建（H2，PayFlow 先行）——PHP 8.3 + JSON 数据层，零框架零 composer 运行时依赖
-- [ ] 部署上线（`nownexts.com/learnflow` = 后台入口；学员端在 `/learnflow/*`）
+- [x] 部署上线（`nownexts.com/learnflow` = 后台入口；学员端在 `/learnflow/*`）
 - [ ] 首个训练营闭环验证（R.B.E 第 4 期）
 
 ## 入口约定（子路径部署）

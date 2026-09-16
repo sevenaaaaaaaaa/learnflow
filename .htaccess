@@ -1,5 +1,5 @@
 Options -Indexes
-DirectoryIndex index.php
+DirectoryIndex admin/login.php index.php
 
 RewriteEngine On
 RewriteBase /learnflow/
