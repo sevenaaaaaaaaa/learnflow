@@ -14,7 +14,7 @@
 | 证书 | nownexts.com 现用证书即可（CF full 模式容忍；边缘由 CF Universal SSL 覆盖） |
 | PHP CLI | `/www/server/php/83/bin/php`（生产 CLI 报 zip 重复加载警告是已知问题） |
 | 基础路径 | 应用在 docroot 之外，自动探测无法推断，须在 `.env` 设置 `LF_BASE=/learnflow`（见下） |
-| 旧子域名 | `learnflow.nownexts.com` 已改为 301 → `https://nownexts.com/learnflow/` |
+| 旧子域名 | `learnflow.nownexts.com` 已下线（Cloudflare DNS A 记录删除 + vhost 移除 + 日志清理） |
 
 > 依赖注意：生产 PHP 禁用了 `putenv()`；`.env` 读取改为写 `$_ENV/$_SERVER` 并对 `getenv/putenv` 做存在性保护（勿改回裸调 `putenv`）。
 

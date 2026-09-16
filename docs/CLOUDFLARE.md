@@ -2,6 +2,7 @@
 
 > 部署形态为**子路径** `nownexts.com/learnflow`（非独立子域名），因此与 OpenFlow 共用同一个
 > DNS 记录与 SSL 配置，无需为 LearnFlow 单独做任何边缘配置。
+> 原先规划的 `learnflow.nownexts.com` 子域已下线（DNS 记录删除、vhost 移除），不做 301。
 
 ## 已为本项目做好的配置
 
