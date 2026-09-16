@@ -35,21 +35,32 @@
 ## 状态
 
 - [x] 立项 + 定位（本文档）
-- [x] 产品页上线（nownexts.com/learnflow）
+- [x] 产品页上线（产品/能力页由主站 nownexts.com 承载，各自独立二级目录）
 - [x] 独立代码库搭建（H2，PayFlow 先行）——PHP 8.3 + JSON 数据层，零框架零 composer 运行时依赖
-- [ ] 部署上线（nownexts.com/learnflow）
+- [ ] 部署上线（`nownexts.com/learnflow` = 后台入口；学员端在 `/learnflow/*`）
 - [ ] 首个训练营闭环验证（R.B.E 第 4 期）
+
+## 入口约定（子路径部署）
+
+| 路径 | 归属 |
+|---|---|
+| `nownexts.com/learnflow` | 讲师后台入口（直接渲染后台登录，独享根） |
+| `nownexts.com/learnflow/admin/*` | 讲师后台 |
+| `nownexts.com/learnflow/courses`、`/course/*`、`/learn/*`、`/quiz/*`、`/certificate`、`/dashboard` | 学员端 |
+| `nownexts.com/learnflow/api/*` | 接口（进度、PayFlow webhook、无头只读） |
+| 产品页 / 能力页 | 主站（OpenFlow）负责，不在本应用内 |
 
 ## 本地开发
 
 ```bash
 php bin/seed.php                              # 生成管理员/示例课程/学员/邀请码
 php tests/domain.php                          # 领域层回归测试（23 项）
-php -S 127.0.0.1:8080 bin/router.php          # 本地预览（模拟 .htaccess 路由）
+php -S 127.0.0.1:8080 bin/router.php          # 本地预览（模拟 .htaccess 路由，根=后台登录）
 ```
 
 - 管理员默认 `admin / learnflow123`；演示学员 `demo@learnflow.local / demo123`；邀请码 `RBECAMP4`
 - 生产为子路径部署（`nownexts.com/learnflow`）；本地验证前缀：`LF_BASE=/learnflow php -S 127.0.0.1:8080 bin/router.php`
-- 目录：前台页在仓库根（`index.php` / `course.php` / `learn.php` / `quiz.php` / `certificate.php`），
+- 目录：学员端页在仓库根（`courses.php` / `course.php` / `learn.php` / `quiz.php` / `certificate.php`），
   领域层 `lib/`，API `api/`，后台 `admin/`；运行时数据在 `data/`（gitignored，服务器为源）
+
 

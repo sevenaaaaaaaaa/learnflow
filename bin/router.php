@@ -34,7 +34,7 @@ if (is_file($path)) {
     return true;
 }
 
-if (is_dir($path) && is_file($path . '/index.php')) {
+if ($uri !== '/' && is_dir($path) && is_file($path . '/index.php')) {
     $_SERVER['SCRIPT_NAME'] = rtrim($uri, '/') . '/index.php';
     $_SERVER['SCRIPT_FILENAME'] = $path . '/index.php';
     require $path . '/index.php';
@@ -42,7 +42,7 @@ if (is_dir($path) && is_file($path . '/index.php')) {
 }
 
 $routes = [
-    '#^/$#' => '/index.php',
+    '#^/$#' => '/admin/login.php',
     '#^/courses/?$#' => '/courses.php',
     '#^/camp/?$#' => '/camp.php',
     '#^/dashboard/?$#' => '/dashboard.php',

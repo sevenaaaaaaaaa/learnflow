@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 lf_page_start([
     'title' => '讲师登录 · LearnFlow',
     'container' => true,
+    'bare' => true,
 ]);
 ?>
 <section class="lf-sec" style="padding-top:64px">

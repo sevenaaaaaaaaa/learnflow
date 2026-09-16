@@ -14,7 +14,7 @@ if (!function_exists('lf_nav')) {
         ?>
 <header class="lf-nav" data-od-id="site-nav">
   <div class="lf-nav-inner">
-    <a class="lf-brand" href="<?= lf_url('/') ?>">
+    <a class="lf-brand" href="<?= lf_url('/courses') ?>">
       <span class="lf-brand-ic"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 5a11 11 0 1 1-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M11 8.5v15M11 13.6h8.4M11 18.6h8.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
       <span class="lf-brand-tx"><?= lf_e($siteName) ?><small>课程交付引擎</small></span>
     </a>

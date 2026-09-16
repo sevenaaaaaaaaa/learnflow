@@ -8,7 +8,7 @@
 |---|---|
 | 主机 | root@172.96.253.73，SSH 端口 28766 |
 | 面板 | 宝塔（Apache） |
-| 访问地址 | `https://nownexts.com/learnflow`（**子路径部署，非子域名**） |
+| 访问地址 | `https://nownexts.com/learnflow`（**子路径部署**；根入口 = 讲师后台登录，学员端在 `/learnflow/*`） |
 | 本项目目录 | `/www/wwwroot/nownexts.com/learnflow`（即 OpenFlow 站点 docroot 下的 `learnflow/` 子目录） |
 | Apache vhost | 沿用 OpenFlow 的 `nownexts.com.conf`（:80 + :443）；本目录自带 `.htaccess`（`RewriteBase /learnflow/`） |
 | 证书 | OpenFlow/nownexts.com 现用证书即可（CF full 模式容忍；边缘由 CF Universal SSL 覆盖） |
@@ -31,6 +31,10 @@ rsync -az --delete -e "ssh -p 28766" \
 
 > 站点级要求：请求 `/learnflow/*` 必须落到本目录（目录存在即可，Apache 按子目录处理）。
 > OpenFlow 根 `.htaccess` 对已存在的真实文件/目录放行，因此本子目录的 `.htaccess` 会正常接管伪静态。
+>
+> 入口约定：`/learnflow` 根直接渲染后台登录（`.htaccess` 内 `^$ → admin/login.php`），
+> 后台独享根；学员端位于 `/learnflow/courses`、`/learnflow/learn/*` 等二级路径；
+> 产品页/能力页由主站（OpenFlow）承载，不在本应用内。
 
 
 ## 三、GitHub
@@ -45,7 +49,7 @@ rsync -az --delete -e "ssh -p 28766" \
 LearnFlow Dev/           # 本地 Dev 根（= git 仓库根 = 应用根）
 ├── README.md
 ├── .htaccess            # 伪静态路由 + data/lib/includes 拒绝直连
-├── index.php            # 前台：首页
+├── index.php            # 根目录请求兜底：跳转后台（正常由 .htaccess 直接渲染后台登录）
 ├── courses.php course.php learn.php quiz.php camp.php
 ├── certificate.php login.php dashboard.php join.php logout.php
 ├── admin/               # 讲师后台（login/index/courses/course-edit/quizzes/quiz-edit/students/invites/certificates/settings）
