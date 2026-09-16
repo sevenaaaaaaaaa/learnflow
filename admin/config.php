@@ -48,7 +48,11 @@ if (is_file($lfEnvFile)) {
         $lfLine = trim($lfLine);
         if ($lfLine === '' || $lfLine[0] === '#' || !str_contains($lfLine, '=')) continue;
         [$lfK, $lfV] = array_map('trim', explode('=', $lfLine, 2));
-        if (getenv($lfK) === false) putenv("$lfK=$lfV");
+        $lfHasEnv = function_exists('getenv') ? (getenv($lfK) !== false) : isset($_SERVER[$lfK]);
+        if ($lfHasEnv || isset($_SERVER[$lfK])) continue;
+        $_ENV[$lfK] = $lfV;
+        $_SERVER[$lfK] = $lfV;
+        if (function_exists('putenv')) @putenv("$lfK=$lfV");
     }
 }
 
@@ -194,14 +198,17 @@ function lf_base_path(): string
 {
     static $base = null;
     if ($base !== null) return $base;
-    $env = getenv('LF_BASE');
-    if ($env !== false && $env !== '') {
-        return $base = '/' . trim($env, '/');
+    $env = $_SERVER['LF_BASE'] ?? null;
+    if (($env === null || $env === false) && function_exists('getenv')) {
+        $env = getenv('LF_BASE');
+    }
+    if ($env !== false && $env !== null && $env !== '') {
+        return $base = '/' . trim((string)$env, '/');
     }
     if ($env === '') return $base = '';
-    $root = str_replace('\\', '/', realpath(LF_ROOT) ?: LF_ROOT);
+    $root = str_replace('\\', '/', function_exists('realpath') ? (realpath(LF_ROOT) ?: LF_ROOT) : LF_ROOT);
     $doc = (string)($_SERVER['DOCUMENT_ROOT'] ?? '');
-    $docReal = $doc !== '' ? str_replace('\\', '/', realpath($doc) ?: $doc) : '';
+    $docReal = $doc !== '' ? str_replace('\\', '/', function_exists('realpath') ? (realpath($doc) ?: $doc) : $doc) : '';
     $docReal = rtrim($docReal, '/');
     if ($docReal !== '' && $root !== $docReal && str_starts_with($root, $docReal . '/')) {
         return $base = rtrim(substr($root, strlen($docReal)), '/');

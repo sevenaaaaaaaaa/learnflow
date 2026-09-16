@@ -10,7 +10,7 @@
 | 域名 | 复用 `nownexts.com`（A 记录 → 172.96.253.73，已代理 proxied: true） |
 | 边缘证书 | `nownexts.com` 的 Universal SSL（`*.nownexts.com` 通配符无需单独申请） |
 | SSL 模式 | 继承 zone 配置 `full`（非 strict——源站证书主机名不匹配也可接受） |
-| 回源 | `nownexts.com/learnflow/*` → Apache docroot 下 `learnflow/` 子目录（沿用 OpenFlow vhost） |
+| 回源 | `nownexts.com/learnflow/*` → Apache `Alias /learnflow /www/wwwroot/learnflow`（应用在 docroot 之外） |
 
 ## Zone 信息（与 OpenFlow 同 zone）
 
