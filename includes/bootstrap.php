@@ -27,3 +27,5 @@ require_once LF_ROOT . '/lib/Ai.php';
 require_once LF_ROOT . '/lib/I18n.php';
 require_once LF_ROOT . '/lib/ApiKey.php';
 require_once LF_ROOT . '/lib/ApiActions.php';
+require_once LF_ROOT . '/lib/Coupon.php';
+require_once LF_ROOT . '/lib/Referral.php';

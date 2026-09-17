@@ -69,8 +69,8 @@ curl -s https://nownexts.com/learnflow/mcp \
 
 | 作用域 | 工具 |
 |---|---|
-| read | `course.list` `course.get` `quiz.list` `assignment.list` `enrollment.list` `student.list` `student.get` `analytics.course` `certificate.list` `community.list` |
-| write | `course.create` `course.update` `course.publish` `chapter.add` `lesson.add` `task.add` `quiz.create` `assignment.create` `assignment.grade` `enrollment.add` `enrollment.set_group` `student.upsert` `notification.send` |
+| read | `course.list` `course.get` `quiz.list` `assignment.list` `enrollment.list` `student.list` `student.get` `analytics.course` `certificate.list` `community.list` `coupon.list` `referral.list` |
+| write | `course.create` `course.update` `course.publish` `chapter.add` `lesson.add` `task.add` `quiz.create` `assignment.create` `assignment.grade` `enrollment.add` `enrollment.set_group` `student.upsert` `notification.send` `coupon.create` `coupon.delete` |
 | ai | `ai.generate_quiz` `ai.grade_assignment` `ai.weekly_report` |
 
 > `tools/list` 返回每个工具的 `inputSchema`（JSON Schema），Agent 可据此自动构造参数。

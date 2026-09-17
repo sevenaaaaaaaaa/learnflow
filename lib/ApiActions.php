@@ -242,6 +242,43 @@ function lf_api_tools(): array
                 return ['sent' => $sent, 'with_mail' => $withMail];
             },
         ],
+        'coupon.list' => [
+            'scope' => 'read', 'description' => '列出优惠券',
+            'schema' => $obj([]),
+            'handler' => function () {
+                $out = [];
+                foreach (coupon_all() as $c) $out[] = ['code' => $c['code'], 'name' => $c['name'] ?? '', 'type' => $c['type'], 'value' => (float)$c['value'], 'uses' => (int)$c['uses'], 'max_uses' => (int)$c['max_uses'], 'enabled' => !empty($c['enabled'])];
+                return ['coupons' => $out, 'count' => count($out)];
+            },
+        ],
+        'coupon.create' => [
+            'scope' => 'write', 'description' => '创建优惠券（收款仍由 PayFlow）',
+            'schema' => $obj(['code' => $str('券码，可空自动'), 'name' => $str(), 'type' => $str('fixed/percent'), 'value' => $num(), 'min_amount' => $num(), 'max_uses' => ['type' => 'integer'], 'expires_at' => $str('YYYY-MM-DD')], ['value']),
+            'handler' => function (array $p) {
+                $c = coupon_save(['code' => (string)($p['code'] ?? ''), 'name' => (string)($p['name'] ?? ''), 'type' => (string)($p['type'] ?? 'fixed'), 'value' => (float)$p['value'], 'min_amount' => (float)($p['min_amount'] ?? 0), 'max_uses' => (int)($p['max_uses'] ?? 0), 'expires_at' => (string)($p['expires_at'] ?? '')]);
+                return ['code' => $c['code']];
+            },
+        ],
+        'coupon.delete' => [
+            'scope' => 'write', 'description' => '删除优惠券',
+            'schema' => $obj(['code' => $str()], ['code']),
+            'handler' => function (array $p) {
+                coupon_delete((string)$p['code']);
+                return ['ok' => true];
+            },
+        ],
+        'referral.list' => [
+            'scope' => 'read', 'description' => '列出推荐码与推荐统计',
+            'schema' => $obj([]),
+            'handler' => function () {
+                $out = [];
+                foreach (referral_all() as $code => $r) {
+                    $stats = referral_stats((string)($r['owner_student_id'] ?? ''));
+                    $out[] = ['code' => (string)$code, 'owner_student_id' => $r['owner_student_id'] ?? '', 'uses' => (int)($r['uses'] ?? 0), 'buyers' => $stats['buyers'], 'amount' => $stats['amount']];
+                }
+                return ['referrals' => $out, 'count' => count($out)];
+            },
+        ],
         'analytics.course' => [
             'scope' => 'read', 'description' => '课程经营数据（完课率/学习曲线/风险学员/打卡）',
             'schema' => $obj(['course_id' => $str()], ['course_id']),

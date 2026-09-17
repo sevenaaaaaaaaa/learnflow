@@ -201,6 +201,35 @@ check('api key revoked', api_key_authenticate($created['token']) === null);
 
 check('mcp tool list has schemas', count(lf_api_tool_list()) >= 15 && isset(lf_api_tool_list()[0]['inputSchema']));
 
+$cp = coupon_save(['code' => 'SAVE20', 'type' => 'fixed', 'value' => 20, 'min_amount' => 50, 'max_uses' => 2]);
+$v1 = coupon_validate('SAVE20', (string)$course['id'], 100);
+check('coupon fixed discount', !empty($v1['ok']) && (float)$v1['discount'] === 20.0 && (float)$v1['final'] === 80.0);
+$v2 = coupon_validate('SAVE20', (string)$course['id'], 30);
+check('coupon min_amount enforced', empty($v2['ok']));
+$pct = coupon_save(['code' => 'HALF', 'type' => 'percent', 'value' => 50]);
+check('coupon percent discount', (float)coupon_validate('HALF', (string)$course['id'], 100)['discount'] === 50.0);
+$restricted = coupon_save(['code' => 'ONLY', 'type' => 'fixed', 'value' => 5, 'course_ids' => ['crs_other']]);
+check('coupon course restriction', empty(coupon_validate('ONLY', (string)$course['id'], 100)['ok']));
+coupon_redeem('SAVE20');
+check('coupon redeem increments uses', (int)(coupon_find('SAVE20')['uses'] ?? 0) === 1);
+
+$ref = referral_code_for_student($student);
+check('referral code stable', referral_code_for_student($student)['code'] === $ref['code']);
+$buyer = student_create(['email' => 'buyer@ref.com', 'password' => 'secret1', 'name' => '买家']);
+lf_setting_set('referral_reward', 10);
+$attr = referral_attribute((string)$ref['code'], (string)$buyer['id'], (string)$course['id'], 'ord_ref_1', 100);
+check('referral attributed + reward coupon', !empty($attr['ok']) && $attr['reward_coupon'] !== '' && coupon_find((string)$attr['reward_coupon']) !== null);
+check('self-referral blocked', empty(referral_attribute((string)$ref['code'], (string)$student['id'], (string)$course['id'], 'ord_self')['ok']));
+check('referral stats counted', referral_stats((string)$student['id'])['buyers'] === 1);
+
+$order = payflow_handle_order(['product_id' => 'test-course', 'email' => 'buyer2@ref.com', 'name' => 'B2', 'order_id' => 'ord_cp', 'amount' => 100, 'coupon' => 'SAVE20', 'ref_code' => (string)$ref['code']]);
+check('payflow order redeems coupon + attributes referral', !empty($order['ok']) && (int)(coupon_find('SAVE20')['uses'] ?? 0) === 2 && !empty($order['referral']['ok']));
+
+$rc = lf_api_call('coupon.create', ['value' => 15, 'name' => 'API 券'], ['key_id' => 'k', 'scopes' => ['write']]);
+check('api coupon.create', !empty($rc['ok']) && !empty($rc['data']['code']));
+check('api coupon.list', !empty(lf_api_call('coupon.list', [], ['scopes' => ['read']])['ok']));
+check('api referral.list', !empty(lf_api_call('referral.list', [], ['scopes' => ['read']])['ok']));
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

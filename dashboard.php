@@ -35,6 +35,20 @@ lf_page_start([
     </div>
   </div>
 
+  <?php $ref = referral_code_for_student($student); $refStats = referral_stats($studentId); $refLink = lf_abs_url('/courses?ref=' . $ref['code']); ?>
+  <div class="lf-form-card" style="max-width:none;margin-bottom:20px">
+    <div class="lf-row" style="justify-content:space-between;align-items:flex-end">
+      <div>
+        <span class="lf-kicker">Referral</span>
+        <div style="font-size:16px;margin-top:6px">我的推荐码 <b class="lf-cert-no"><?= lf_e((string)$ref['code']) ?></b> · 已推荐 <?= (int)$refStats['buyers'] ?> 人</div>
+      </div>
+      <div class="lf-row" style="flex:0 0 auto;gap:8px">
+        <input class="lf-inp" value="<?= lf_e($refLink) ?>" readonly style="width:260px;height:38px;font-size:12.5px">
+        <button class="btn ghost sm" type="button" data-lf-copy="<?= lf_e($refLink) ?>">复制链接</button>
+      </div>
+    </div>
+  </div>
+
   <?php if (!$courses): ?>
     <div class="lf-empty">你还没有加入任何课程。<a href="<?= lf_url('/courses') ?>">去看看课程</a> 或使用邀请码 <a href="<?= lf_url('/join') ?>">兑换入学</a>。</div>
   <?php else: ?>

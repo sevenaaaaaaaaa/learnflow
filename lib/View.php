@@ -134,6 +134,7 @@ function lf_admin_page_start(array $opts = []): void
         'certificates' => [lf_url('/admin/certificates.php'), '证书', 'cert'],
         'community' => [lf_url('/admin/community.php'), '圈子', 'share'],
         'notify' => [lf_url('/admin/notify.php'), '通知', 'share'],
+        'marketing' => [lf_url('/admin/marketing.php'), '营销', 'share'],
         'apikeys' => [lf_url('/admin/apikeys.php'), 'API/MCP', 'share'],
         'settings' => [lf_url('/admin/settings.php'), '设置', 'chart'],
     ];

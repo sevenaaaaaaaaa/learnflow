@@ -15,7 +15,7 @@ function payflow_course_product(array $course): string
     return (string)($course['payflow_product_id'] ?? '');
 }
 
-function payflow_checkout_url(array $course, string $email = '', string $returnTo = ''): string
+function payflow_checkout_url(array $course, string $email = '', string $returnTo = '', string $coupon = '', string $refCode = ''): string
 {
     $cfg = payflow_config();
     $product = payflow_course_product($course);
@@ -26,6 +26,8 @@ function payflow_checkout_url(array $course, string $email = '', string $returnT
         'success' => $returnTo !== '' ? $returnTo : lf_abs_url('/course/' . ($course['slug'] ?? $course['id']) . '?enrolled=1'),
     ];
     if ($email !== '') $params['email'] = $email;
+    if ($coupon !== '') $params['coupon'] = $coupon;
+    if ($refCode !== '') $params['ref_code'] = $refCode;
     return rtrim($cfg['base_url'], '/') . '/checkout?' . http_build_query($params);
 }
 
@@ -82,10 +84,27 @@ function payflow_handle_order(array $order): array
         (float)($order['amount'] ?? 0)
     );
 
+    require_once __DIR__ . '/Coupon.php';
+    require_once __DIR__ . '/Referral.php';
+    $couponCode = strtoupper(trim((string)($order['coupon'] ?? ($order['coupon_code'] ?? ''))));
+    if ($couponCode !== '') coupon_redeem($couponCode);
+
+    $refCode = strtoupper(trim((string)($order['ref_code'] ?? '')));
+    if ($refCode === '') {
+        $maybe = strtoupper(trim((string)($order['ref'] ?? '')));
+        if ($maybe !== '' && referral_find($maybe) !== null) $refCode = $maybe;
+    }
+    $referral = ['ok' => false];
+    if ($refCode !== '' && referral_find($refCode) !== null) {
+        $referral = referral_attribute($refCode, (string)$student['id'], (string)$course['id'], $orderId, (float)($order['amount'] ?? 0));
+    }
+
     return [
         'ok' => true,
         'course_id' => $course['id'],
         'student_id' => $student['id'],
         'enrollment' => $enrollment,
+        'coupon' => $couponCode,
+        'referral' => $referral,
     ];
 }

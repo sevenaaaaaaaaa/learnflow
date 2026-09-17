@@ -15,11 +15,6 @@ $student = lf_student_current();
 $isAdmin = lf_admin_current() !== null;
 $studentId = $student ? (string)$student['id'] : '';
 
-if ($student === null && !$isAdmin) {
-    header('Location: ' . lf_url('/login?next=' . urlencode('/learn/' . (string)$course['slug'])));
-    exit;
-}
-
 $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
 $lessons = course_lessons($course);
 $lessonId = (string)($_GET['lesson'] ?? '');
@@ -40,6 +35,10 @@ if ($lesson === null) {
 
 $isFreePreview = !empty($lesson['free']);
 if (!$hasAccess && !$isFreePreview && !$isAdmin) {
+    if ($student === null) {
+        header('Location: ' . lf_url('/login?next=' . urlencode('/learn/' . (string)$course['slug'])));
+        exit;
+    }
     lf_flash('warn', '请先报名该课程后继续学习。');
     header('Location: ' . lf_url('/course/' . rawurlencode((string)$course['slug'])));
     exit;
@@ -72,7 +71,7 @@ lf_page_start([
 ?>
 <div class="lf-layout">
   <div>
-    <div class="lf-player-wrap" data-lf-player data-endpoint="<?= lf_url('/api/progress.php') ?>" data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
+    <div class="lf-player-wrap" data-lf-player<?= ($studentId !== '' && $hasAccess) ? ' data-endpoint="' . lf_url('/api/progress.php') . '"' : '' ?> data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
       <?php if ($lessonType === 'video' && !empty($lesson['video'])):
           $videoUrl = media_resolve($lesson, (string)$course['id'], $hasAccess ? $studentId : '');
           $videoKind = media_kind($videoUrl);

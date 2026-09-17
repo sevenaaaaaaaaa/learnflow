@@ -20,6 +20,11 @@ $price = (float)($course['price'] ?? 0);
 $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
 $summary = $studentId !== '' ? progress_summary($studentId, (string)$course['id'], $course) : null;
 
+$refIn = strtoupper(trim((string)($_GET['ref'] ?? ($_GET['code'] ?? ''))));
+if ($refIn !== '' && referral_find($refIn) !== null) $_SESSION['lf_ref'] = $refIn;
+$appliedCoupon = (string)($_SESSION['lf_coupon'][(string)$course['id']] ?? '');
+$couponInfo = $appliedCoupon !== '' ? coupon_validate($appliedCoupon, (string)$course['id'], $price) : null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if (!lf_csrf_check()) {
         lf_flash('danger', '请求已失效，请重试。');
@@ -35,13 +40,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
             lf_flash('danger', (string)($res['error'] ?? '邀请码无效'));
         }
+    } elseif ($_POST['action'] === 'coupon') {
+        $code = (string)($_POST['coupon'] ?? '');
+        if (strtoupper(trim($code)) === '') {
+            unset($_SESSION['lf_coupon'][(string)$course['id']]);
+            lf_flash('ok', '已移除优惠券。');
+        } else {
+            $res = coupon_validate($code, (string)$course['id'], $price);
+            if (!empty($res['ok'])) {
+                $_SESSION['lf_coupon'][(string)$course['id']] = strtoupper(trim($code));
+                lf_flash('ok', '优惠券已应用，优惠 ¥' . number_format((float)$res['discount'], 2) . '。');
+            } else {
+                lf_flash('danger', (string)($res['error'] ?? '优惠券无效'));
+            }
+        }
+        header('Location: ' . lf_url('/course/' . rawurlencode((string)$course['slug'])));
+        exit;
     } elseif ($_POST['action'] === 'free') {
+        $final = $couponInfo && !empty($couponInfo['ok']) ? (float)$couponInfo['final'] : $price;
         if ($student === null) {
             lf_flash('warn', '请先登录后再报名。');
-        } elseif ($price > 0) {
+        } elseif ($final > 0) {
             lf_flash('danger', '该课程需要购买。');
         } else {
-            enroll_add((string)$course['id'], $studentId, ['source' => 'free']);
+            enroll_add((string)$course['id'], $studentId, ['source' => $appliedCoupon !== '' ? 'coupon' : 'free', 'coupon' => $appliedCoupon]);
+            if ($appliedCoupon !== '') coupon_redeem($appliedCoupon);
+            unset($_SESSION['lf_coupon'][(string)$course['id']]);
             lf_flash('ok', '报名成功，开始学习吧。');
             header('Location: ' . lf_url('/learn/' . rawurlencode((string)$course['slug'])));
             exit;
@@ -51,9 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $studentId = $student ? (string)$student['id'] : '';
     $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
     $summary = $studentId !== '' ? progress_summary($studentId, (string)$course['id'], $course) : null;
+    $couponInfo = $appliedCoupon !== '' ? coupon_validate($appliedCoupon, (string)$course['id'], $price) : null;
 }
 
-$payflowUrl = payflow_checkout_url($course, (string)($student['email'] ?? ''), lf_abs_url('/course/' . rawurlencode((string)$course['slug']) . '?enrolled=1'));
+$discounted = ($couponInfo && !empty($couponInfo['ok'])) ? (float)$couponInfo['final'] : $price;
+$refCode = (string)($_SESSION['lf_ref'] ?? '');
+$payflowUrl = payflow_checkout_url($course, (string)($student['email'] ?? ''), lf_abs_url('/course/' . rawurlencode((string)$course['slug']) . '?enrolled=1'), $appliedCoupon, $refCode);
 
 if (isset($_GET['enrolled'])) {
     lf_flash('ok', '支付完成后报名将自动同步，请稍后刷新查看。');
@@ -97,24 +124,42 @@ lf_page_start([
         <?php if (!empty($course['cover'])): ?><img src="<?= lf_e((string)$course['cover']) ?>" alt=""><?php else: ?><span class="lf-cover-fallback"><?= lf_e(mb_substr((string)$course['title'], 0, 1)) ?></span><?php endif; ?>
       </div>
       <div class="lf-player-body">
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700"><?= lf_e(course_price_label($course)) ?></div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700">
+          <?php if ($discounted < $price): ?>
+            <span style="color:var(--faint);text-decoration:line-through;font-size:17px;margin-right:8px"><?= lf_e(course_price_label($course)) ?></span>
+            ¥<?= lf_e(rtrim(rtrim(number_format($discounted, 2, '.', ''), '0'), '.')) ?>
+            <?php if ($couponInfo && !empty($couponInfo['ok'])): ?><span class="lf-chip ok" style="margin-left:6px">券 -¥<?= number_format((float)$couponInfo['discount'], 2) ?></span><?php endif; ?>
+          <?php else: ?>
+            <?= lf_e(course_price_label($course)) ?>
+          <?php endif; ?>
+        </div>
         <?php if ($hasAccess): ?>
           <?php if ($summary): ?><div style="margin:14px 0"><?= lf_progress_bar((int)$summary['percent'], '已完成 ' . (int)$summary['done'] . '/' . (int)$summary['total'] . ' 课时') ?></div><?php endif; ?>
           <a class="btn primary block" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>"><?= $summary && $summary['percent'] > 0 ? '继续学习' : '开始学习' ?></a>
         <?php elseif ($student === null): ?>
           <a class="btn primary block" style="margin-top:14px" href="<?= lf_url('/login?next=') ?><?= urlencode('/course/' . (string)$course['slug']) ?>">登录后报名</a>
-        <?php elseif ($price > 0 && $payflowUrl !== ''): ?>
-          <a class="btn primary block" style="margin-top:14px" href="<?= lf_e($payflowUrl) ?>">立即购买</a>
+        <?php elseif ($discounted > 0 && $payflowUrl !== ''): ?>
+          <a class="btn primary block" style="margin-top:14px" href="<?= lf_e($payflowUrl) ?>">立即购买<?= $discounted < $price ? '（已优惠）' : '' ?></a>
           <p class="lf-faint" style="margin-top:10px">由 PayFlow 收款，购买后自动入学。</p>
-        <?php elseif ($price > 0): ?>
-          <p class="lf-faint" style="margin-top:14px">该课程售价 <?= lf_e(course_price_label($course)) ?>，请联系讲师开通或使用邀请码。</p>
+        <?php elseif ($discounted > 0): ?>
+          <p class="lf-faint" style="margin-top:14px">该课程售价 ¥<?= number_format($discounted, 2) ?>，请联系讲师开通或使用邀请码。</p>
         <?php else: ?>
           <form method="post" style="margin-top:14px">
             <?= lf_csrf_field() ?>
             <input type="hidden" name="action" value="free">
-            <button class="btn primary block" type="submit">免费报名</button>
+            <button class="btn primary block" type="submit"><?= $appliedCoupon !== '' ? '用券免费报名' : '免费报名' ?></button>
           </form>
         <?php endif; ?>
+
+        <?php if (!$hasAccess && $price > 0): ?>
+          <form method="post" style="margin-top:12px;display:flex;gap:8px">
+            <?= lf_csrf_field() ?>
+            <input type="hidden" name="action" value="coupon">
+            <input class="lf-inp" name="coupon" placeholder="优惠券码" value="<?= lf_e($appliedCoupon) ?>" style="height:42px">
+            <button class="btn ghost sm" type="submit"><?= $appliedCoupon !== '' ? '更新' : '用券' ?></button>
+          </form>
+        <?php endif; ?>
+
         <?php if (!$hasAccess && ($course['allow_invite'] ?? false)): ?>
           <form method="post" style="margin-top:12px;display:flex;gap:8px">
             <?= lf_csrf_field() ?>
@@ -140,7 +185,8 @@ lf_page_start([
           <?php foreach ((array)($ch['lessons'] ?? []) as $li => $l):
               $done = $studentId !== '' ? !empty(progress_lesson_state($studentId, (string)$course['id'], (string)$l['id'])['done']) : false;
               $locked = !$hasAccess && empty($l['free']);
-              $href = $hasAccess ? lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$l['id'])) : '#';
+              $canOpen = $hasAccess || !empty($l['free']);
+              $href = $canOpen ? lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$l['id'])) : '#';
           ?>
             <a class="lf-lesson-row" href="<?= lf_e($href) ?>"<?= $locked ? ' onclick="return false" style="opacity:.72"' : '' ?>>
               <span class="lf-lesson-idx"><?= $ci + 1 ?>.<?= $li + 1 ?></span>

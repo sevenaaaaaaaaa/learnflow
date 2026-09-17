@@ -16,7 +16,8 @@
   var player = document.querySelector('[data-lf-player]');
   if (player) {
     var video = player.querySelector('video');
-    var endpoint = player.getAttribute('data-endpoint');
+    var endpoint = player.getAttribute('data-endpoint') || '';
+    var trackProgress = endpoint !== '';
     var courseId = player.getAttribute('data-course');
     var lessonId = player.getAttribute('data-lesson');
     var useBeacon = !!(video && navigator.sendBeacon);
@@ -47,13 +48,15 @@
       if (resume > 2) {
         video.addEventListener('loadedmetadata', function () { try { video.currentTime = resume; } catch (e) {} }, { once: true });
       }
-      var timer = setInterval(function () { if (!video.paused) send({}); }, 15000);
-      video.addEventListener('ended', function () { send({ done: true }); });
-      window.addEventListener('pagehide', function () { send({}); clearInterval(timer); });
+      if (trackProgress) {
+        var timer = setInterval(function () { if (!video.paused) send({}); }, 15000);
+        video.addEventListener('ended', function () { send({ done: true }); });
+        window.addEventListener('pagehide', function () { send({}); clearInterval(timer); });
+      }
     }
 
     var doneBtn = player.querySelector('[data-lf-done]');
-    if (doneBtn) {
+    if (doneBtn && trackProgress) {
       doneBtn.addEventListener('click', function () {
         var body = JSON.stringify(payload({ done: true }));
         fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body }).then(function () {
