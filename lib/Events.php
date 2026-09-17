@@ -3,9 +3,53 @@
 function integrations_config(): array
 {
     return array_merge([
-        'userloop' => ['enabled' => false, 'url' => '', 'secret' => ''],
+        'userloop' => ['enabled' => false, 'url' => 'http://127.0.0.1:8600/userloop/api/v1/ingest', 'secret' => ''],
         'mflow' => ['enabled' => false, 'url' => '', 'secret' => ''],
     ], (array)(lf_setting_get('integrations') ?: []));
+}
+
+function userloop_event_name(string $event): string
+{
+    return [
+        'student.registered' => 'signup',
+        'enrollment.created' => 'purchase',
+        'course.completed' => 'course_completed',
+        'certificate.issued' => 'certificate_issued',
+        'assignment.graded' => 'assignment_graded',
+        'study.reminder' => 'study_reminder_sent',
+        'course.updated' => 'course_updated',
+    ][$event] ?? str_replace('.', '_', $event);
+}
+
+function userloop_payload(string $event, array $data): array
+{
+    $email = trim((string)($data['email'] ?? ''));
+    $sid = trim((string)($data['student_id'] ?? ''));
+    $distinct = $email !== '' ? $email : ($sid !== '' ? $sid : 'learnflow_anon');
+    $props = [];
+    foreach (['course_id', 'course_title', 'course_slug', 'cert_no', 'title', 'feedback', 'score', 'order_id', 'amount', 'link', 'source'] as $k) {
+        if (isset($data[$k]) && $data[$k] !== '') $props[$k] = $data[$k];
+    }
+    $stable = (string)($data['cert_no'] ?? $data['order_id'] ?? ($event . '|' . $distinct . '|' . ($data['course_id'] ?? '') . '|' . ($data['title'] ?? '') . '|' . date('Ymd')));
+    return [
+        'distinct_id' => $distinct,
+        'user_id' => $sid !== '' ? $sid : null,
+        'event' => userloop_event_name($event),
+        'email' => $email !== '' ? $email : null,
+        'name' => (string)($data['name'] ?? '') ?: null,
+        'props' => array_merge($props, ['learnflow_event' => $event]),
+        'source' => 'learnflow',
+        'event_id' => 'lf_' . substr(hash('sha256', $stable), 0, 28),
+        'timestamp' => date('c'),
+    ];
+}
+
+function lf_send_integration(string $key, array $cfg, string $event, array $data): array
+{
+    if ($key === 'userloop') {
+        return lf_post_json((string)$cfg['url'], userloop_payload($event, $data), '', 5, ['X-UserLoop-Token: ' . (string)($cfg['secret'] ?? '')]);
+    }
+    return lf_post_json((string)$cfg['url'], ['event' => $event, 'data' => $data, 'source' => 'learnflow'], (string)($cfg['secret'] ?? ''), 8);
 }
 
 function webhook_queue_file(): string
@@ -22,23 +66,23 @@ function lf_event_log(string $event, array $data): void
     });
 }
 
-function lf_queue_webhook(string $event, array $data): void
+function lf_queue_webhook(string $event, array $data, string $target = ''): void
 {
-    json_update(webhook_queue_file(), function (array $q) use ($event, $data) {
-        $q[] = ['id' => 'wh_' . bin2hex(random_bytes(5)), 'event' => $event, 'data' => $data, 'tries' => 0, 'at' => date('Y-m-d H:i:s')];
+    json_update(webhook_queue_file(), function (array $q) use ($event, $data, $target) {
+        $q[] = ['id' => 'wh_' . bin2hex(random_bytes(5)), 'event' => $event, 'data' => $data, 'target' => $target, 'tries' => 0, 'at' => date('Y-m-d H:i:s')];
         if (count($q) > 500) $q = array_slice($q, -500);
         return $q;
     });
 }
 
-function lf_post_json(string $url, array $payload, string $secret = '', int $timeout = 8): array
+function lf_post_json(string $url, array $payload, string $secret = '', int $timeout = 8, array $extraHeaders = []): array
 {
     $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $sig = $secret !== '' ? hash_hmac('sha256', $body, $secret) : '';
 
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
-        $headers = ['Content-Type: application/json'];
+        $headers = array_merge(['Content-Type: application/json'], $extraHeaders);
         if ($sig !== '') $headers[] = 'X-LF-Signature: ' . $sig;
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -66,6 +110,7 @@ function lf_post_json(string $url, array $payload, string $secret = '', int $tim
     if (!$fp) return ['ok' => false, 'code' => 0, 'body' => '', 'error' => $errstr];
     stream_set_timeout($fp, $timeout);
     $req = "POST $path HTTP/1.1\r\nHost: $host\r\nContent-Type: application/json\r\nContent-Length: " . strlen($body) . "\r\nConnection: close\r\n";
+    foreach ($extraHeaders as $h) $req .= $h . "\r\n";
     if ($sig !== '') $req .= "X-LF-Signature: $sig\r\n";
     $req .= "\r\n" . $body;
     fwrite($fp, $req);
@@ -104,8 +149,11 @@ function lf_dispatch_webhooks(int $max = 50): array
         if ($processed >= $max) { $remaining[] = $item; continue; }
         $processed++;
         $okAll = true;
-        foreach ($targets as $key => $t) {
-            $res = lf_post_json((string)$t['url'], ['event' => $item['event'], 'data' => $item['data'], 'source' => 'learnflow'], (string)$t['secret']);
+        $target = (string)($item['target'] ?? '');
+        $keys = $target !== '' ? [$target] : array_keys($targets);
+        foreach ($keys as $key) {
+            if (!isset($targets[$key])) continue;
+            $res = lf_send_integration($key, $targets[$key], (string)$item['event'], (array)$item['data']);
             if (empty($res['ok'])) $okAll = false;
         }
         if ($okAll) {
@@ -125,8 +173,14 @@ function lf_emit(string $event, array $payload): void
     require_once LF_ROOT . '/lib/Mailer.php';
 
     lf_event_log($event, $payload);
-    if (array_filter(integrations_config(), fn($c) => !empty($c['enabled']) && ($c['url'] ?? '') !== '')) {
-        lf_queue_webhook($event, $payload);
+    $integrations = array_filter(integrations_config(), fn($c) => !empty($c['enabled']) && ($c['url'] ?? '') !== '');
+    foreach ($integrations as $key => $cfg) {
+        if ($key === 'userloop') {
+            $res = lf_send_integration('userloop', $cfg, $event, $payload);
+            if (empty($res['ok'])) lf_queue_webhook($event, $payload, 'userloop');
+        } else {
+            lf_queue_webhook($event, $payload, $key);
+        }
     }
 
     $studentId = (string)($payload['student_id'] ?? '');

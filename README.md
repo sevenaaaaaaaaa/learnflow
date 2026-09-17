@@ -53,7 +53,7 @@
 | 训练营运营 | 每日任务、作业提交与讲师/AI 点评、打卡与连续激励、圈子（问答/晒进度/点赞评论）、风险学员 |
 | 触达 | 站内通知 + SMTP 邮件（报名/点评/证书/提醒）、群发 |
 | AI（DeepSeek） | 作业点评、测验出题、学习周报（每日额度保险丝） |
-| 互通 | PayFlow 购买即入学；UserLoop/MFlow 出站事件队列（`bin/drain.php` 投递，HMAC 签名） |
+| 互通 | PayFlow 购买即入学；**事件实时投递 UserLoop 旅程/Loop 引擎**（私域触达与自动化由 UserLoop 承载）；MFlow 走通用 webhook（HMAC） |
 | Agent 接口 | API Key（read/write/ai 作用域 + 限流 + 审计）、REST `/api/v1`、**MCP server `/mcp`**（26 个工具，见 `docs/API-MCP.md`） |
 | 内容安全 | 上传鉴权、签名 URL + Range、`uploads/` 禁止直连、CSRF、越权拦截 |
 | 后台 | 看板/课程编辑器/测验编辑器/分类/排期/作业批改/学员/邀请码/证书/圈子/通知/设置/CSV 导出 |

@@ -155,11 +155,11 @@ lf_admin_page_start(['title' => '设置 · LearnFlow 讲师后台', 'active' => 
 <form method="post" style="margin-bottom:20px">
   <?= lf_csrf_field() ?><input type="hidden" name="section" value="integrations">
   <div class="lf-form-card" style="max-width:none">
-    <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 14px">矩阵互通（出站事件队列）</h2>
-    <p class="lf-faint" style="margin:0 0 12px">学习行为/课程事件会入队，由 <code>php bin/drain.php</code>（可配 cron）投递。签名头 <code>X-LF-Signature</code> = HMAC-SHA256(body, secret)。</p>
+    <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 14px">矩阵互通（出站事件）</h2>
+    <p class="lf-faint" style="margin:0 0 12px">学习行为/课程事件实时投递给 <b>UserLoop</b>（其旅程/Loop 引擎据此私域触达）；MFlow 走通用 webhook（HMAC，`bin/drain.php` 投递）。</p>
     <div class="lf-row">
-      <div class="lf-field" style="margin:0"><label>UserLoop Webhook URL</label><input class="lf-inp" name="userloop_url" value="<?= lf_e((string)$integrations['userloop']['url']) ?>" placeholder="https://.../userloop/api/events"></div>
-      <div class="lf-field" style="margin:0"><label>UserLoop Secret</label><input class="lf-inp" name="userloop_secret" value="<?= lf_e((string)$integrations['userloop']['secret']) ?>"></div>
+      <div class="lf-field" style="margin:0"><label>UserLoop Ingest URL</label><input class="lf-inp" name="userloop_url" value="<?= lf_e((string)$integrations['userloop']['url']) ?>" placeholder="http://127.0.0.1:8600/userloop/api/v1/ingest"></div>
+      <div class="lf-field" style="margin:0"><label>UserLoop Token（X-UserLoop-Token）</label><input class="lf-inp" name="userloop_secret" value="<?= lf_e((string)$integrations['userloop']['secret']) ?>"></div>
       <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center"><input type="checkbox" name="userloop_enabled" <?= !empty($integrations['userloop']['enabled']) ? 'checked' : '' ?>> 启用</label>
     </div>
     <div class="lf-row" style="margin-top:12px">
