@@ -10,6 +10,9 @@
 Authorization: Bearer lf_xxxxxxxxxxxxxxxx
 ```
 
+也可用 `X-Api-Key: lf_xxx` 头或 `?key=lf_xxx` 查询参数（部分客户端/网关会剥离 Authorization 时用）。
+应用 `.htaccess` 已把 FastCGI 下的 Authorization 透传给 PHP，无需额外配置。
+
 - 作用域：`read` / `write` / `ai`（建密钥时勾选；工具声明所需作用域，越权返回 403）
 - 速率限制：每密钥每分钟（默认 120，可配）
 - 审计：每次调用写入 `data/api-log.json`（后台可见最近调用）
@@ -37,6 +40,8 @@ Content-Type: application/json
 端点：`https://nownexts.com/learnflow/mcp`，同一密钥鉴权（Bearer）。
 
 支持方法：`initialize`、`tools/list`、`tools/call`、`ping`、`notifications/*`。
+
+> 传输为 MCP「Streamable HTTP」（POST 单次 JSON-RPC 请求/响应）。仅支持 stdio 的客户端（如旧版 Claude Desktop）可用桥接：`npx -y mcp-remote https://nownexts.com/learnflow/mcp --header "Authorization: Bearer lf_xxx"`。
 
 客户端配置示例（Claude Desktop / 任意支持 Streamable HTTP 的 MCP 客户端）：
 

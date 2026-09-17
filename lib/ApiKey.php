@@ -89,6 +89,12 @@ function api_bearer_token(): string
 {
     $header = (string)($_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? ''));
     if ($header !== '' && preg_match('/Bearer\s+(\S+)/i', $header, $m)) return $m[1];
+    if (function_exists('getallheaders')) {
+        foreach ((array)getallheaders() as $k => $v) {
+            if (strcasecmp((string)$k, 'Authorization') === 0 && preg_match('/Bearer\s+(\S+)/i', (string)$v, $m)) return $m[1];
+            if (strcasecmp((string)$k, 'X-Api-Key') === 0 && $v !== '') return (string)$v;
+        }
+    }
     $alt = (string)($_SERVER['HTTP_X_API_KEY'] ?? '');
     if ($alt !== '') return $alt;
     return (string)($_GET['key'] ?? ($_POST['key'] ?? ''));

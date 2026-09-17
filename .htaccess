@@ -4,6 +4,10 @@ DirectoryIndex admin/login.php index.php
 RewriteEngine On
 RewriteBase /learnflow/
 
+# FastCGI 下把 Authorization 头透传给 PHP（Bearer Token 鉴权）
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 RewriteRule ^data(/|$) - [F,L]
 RewriteRule ^uploads(/|$) - [F,L]
 RewriteRule ^(includes|lib)(/|$) - [F,L]
