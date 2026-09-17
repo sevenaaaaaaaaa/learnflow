@@ -33,6 +33,8 @@ img{max-width:100%;display:block}
 .icon-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
 .icon-btn:hover{color:var(--fg);border-color:var(--border-strong)}
 .icon-btn svg{width:17px;height:17px}
+.lf-bell{position:relative}
+.lf-badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--danger);color:oklch(100% 0 0);font-size:10.5px;font-weight:700;display:grid;place-items:center;line-height:1}
 @media(max-width:760px){.lf-nav-links{display:none}.lf-nav-cta{display:none}}
 
 .lf-flash-stack{max-width:var(--lf-max);margin:16px auto 0;padding:0 22px;display:grid;gap:8px}

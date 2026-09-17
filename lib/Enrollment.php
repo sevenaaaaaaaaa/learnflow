@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/Events.php';
+require_once __DIR__ . '/Student.php';
+
 function enrollments_file(): string
 {
     return LF_DATA_DIR . '/enrollments.json';
@@ -35,6 +38,7 @@ function enroll_add(string $courseId, string $studentId, array $data = []): arra
         'order_id' => '',
         'invite_code' => '',
         'note' => '',
+        'group' => '',
         'enrolled_at' => date('Y-m-d H:i:s'),
     ], $data);
     $existing = enroll_row($courseId, $studentId);
@@ -45,6 +49,19 @@ function enroll_add(string $courseId, string $studentId, array $data = []): arra
         $all[$courseId][$studentId] = $row;
         return $all;
     });
+    if ($existing === null && function_exists('lf_emit')) {
+        $student = student_get($studentId);
+        $course = function_exists('course_find') ? course_find($courseId) : null;
+        lf_emit('enrollment.created', [
+            'student_id' => $studentId,
+            'name' => (string)($student['name'] ?? ''),
+            'email' => (string)($student['email'] ?? ''),
+            'course_id' => $courseId,
+            'course_title' => (string)($course['title'] ?? $courseId),
+            'course_slug' => (string)($course['slug'] ?? $courseId),
+            'source' => (string)($row['source'] ?? ''),
+        ]);
+    }
     return $row;
 }
 
@@ -69,6 +86,27 @@ function enroll_remove(string $courseId, string $studentId): bool
         return $all;
     });
     return $removed;
+}
+
+function enroll_set_group(string $courseId, string $studentId, string $group): void
+{
+    json_update(enrollments_file(), function (array $all) use ($courseId, $studentId, $group) {
+        if (isset($all[$courseId][$studentId])) {
+            $all[$courseId][$studentId]['group'] = mb_substr(trim($group), 0, 40);
+        }
+        return $all;
+    });
+}
+
+function enroll_groups(string $courseId): array
+{
+    $out = [];
+    foreach (enroll_students($courseId) as $row) {
+        $g = trim((string)($row['group'] ?? ''));
+        if ($g !== '') $out[$g] = ($out[$g] ?? 0) + 1;
+    }
+    ksort($out);
+    return $out;
 }
 
 function enroll_students(string $courseId): array

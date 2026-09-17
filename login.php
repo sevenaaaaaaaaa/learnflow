@@ -69,7 +69,10 @@ lf_page_start([
       <div class="lf-field"><label>密码</label><input class="lf-inp" type="password" name="password" required minlength="6"></div>
       <button class="btn primary block" type="submit"><?= $mode === 'register' ? '注册并进入' : '登录' ?></button>
     </form>
-    <p class="lf-faint" style="margin-top:16px;text-align:center">购买课程后系统会自动为你开通账号，可直接用下单邮箱登录。</p>
+    <?php if ($mode === 'login'): ?>
+      <p class="lf-faint" style="margin-top:14px;text-align:center"><a href="<?= lf_url('/forgot-password') ?>">忘记密码？</a></p>
+    <?php endif; ?>
+    <p class="lf-faint" style="margin-top:10px;text-align:center">购买课程后系统会自动为你开通账号，可直接用下单邮箱登录。</p>
   </div>
 </section>
 <?php lf_page_end(); ?>

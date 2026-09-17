@@ -143,6 +143,10 @@ function course_normalize(array $input): array
         'status' => in_array(($input['status'] ?? 'draft'), ['draft', 'published', 'archived'], true) ? $input['status'] : 'draft',
         'certificate' => !empty($input['certificate']),
         'allow_invite' => !empty($input['allow_invite']),
+        'categories' => array_values(array_filter(array_map('strval', (array)($input['categories'] ?? [])))),
+        'tags' => array_values(array_filter(array_map('trim', (array)($input['tags'] ?? [])))),
+        'camp_start' => trim((string)($input['camp_start'] ?? '')),
+        'camp_end' => trim((string)($input['camp_end'] ?? '')),
         'payflow_product_id' => trim((string)($input['payflow_product_id'] ?? '')),
         'chapters' => [],
     ];

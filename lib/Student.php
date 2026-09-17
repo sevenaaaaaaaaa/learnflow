@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/Events.php';
+
 function students_file(): string
 {
     return LF_DATA_DIR . '/students.json';
@@ -59,6 +61,7 @@ function student_create(array $data): array
         $all[$id] = $row;
         return $all;
     });
+    lf_emit('student.registered', ['student_id' => $id, 'name' => $row['name'], 'email' => $email, 'source' => $row['source']]);
     return array_merge(['id' => $id], $row);
 }
 
@@ -111,4 +114,37 @@ function student_verify(string $email, string $password): ?array
     if (!$s || empty($s['password_hash'])) return null;
     if (!password_verify($password, (string)$s['password_hash'])) return null;
     return $s;
+}
+
+function student_set_reset(string $id, string $token, int $expires): void
+{
+    json_update(students_file(), function (array $all) use ($id, $token, $expires) {
+        if (isset($all[$id])) {
+            $all[$id]['reset_token'] = $token;
+            $all[$id]['reset_expires'] = $expires;
+        }
+        return $all;
+    });
+}
+
+function student_by_reset(string $token): ?array
+{
+    if ($token === '') return null;
+    foreach (student_all() as $id => $s) {
+        if (($s['reset_token'] ?? '') !== '' && hash_equals((string)$s['reset_token'], $token)) {
+            if ((int)($s['reset_expires'] ?? 0) < time()) return null;
+            return array_merge(['id' => (string)$id], $s);
+        }
+    }
+    return null;
+}
+
+function student_clear_reset(string $id): void
+{
+    json_update(students_file(), function (array $all) use ($id) {
+        if (isset($all[$id])) {
+            unset($all[$id]['reset_token'], $all[$id]['reset_expires']);
+        }
+        return $all;
+    });
 }

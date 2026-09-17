@@ -114,6 +114,22 @@ check('payflow order enrolls student', !empty($order['ok']) && enroll_is_active(
 $curve = progress_curve((string)$course['id']);
 check('progress curve learners', $curve['learners'] >= 1);
 
+$notifs = notify_list((string)$student['id'], 50);
+$types = array_column($notifs, 'type');
+check('welcome+enrollment+assignment notifications exist', in_array('system', $types, true) && in_array('course', $types, true));
+check('certificate notification emitted', in_array('certificate', $types, true));
+check('mail log written (SMTP disabled fallback)', file_exists($tmp . '/mail-log.json'));
+$events = json_read($tmp . '/events.json');
+check('event log recorded', count($events) >= 3);
+
+$cat = category_save('增长训练营', 'growth');
+check('category saved', category_find('growth') !== null);
+$withCat = course_save(course_normalize(array_merge(course_find('test-course'), ['categories' => ['growth'], 'tags' => ['x', 'y']])));
+check('course stores categories/tags', in_array('growth', (array)$withCat['categories'], true) && count((array)$withCat['tags']) === 2);
+
+enroll_set_group((string)$course['id'], (string)$student['id'], 'A 组');
+check('enrollment group saved', (enroll_row((string)$course['id'], (string)$student['id'])['group'] ?? '') === 'A 组');
+
 foreach (glob($tmp . '/*') ?: [] as $f) { is_file($f) && @unlink($f); }
 @rmdir($tmp);
 

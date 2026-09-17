@@ -26,7 +26,12 @@ if (!function_exists('lf_nav')) {
     <div class="lf-nav-actions">
       <?= lf_theme_toggle() ?>
       <?php if ($student): ?>
-        <a class="btn ghost lf-nav-cta" href="<?= lf_url('/dashboard') ?>"><?= lf_e((string)($student['name'] ?? '我')) ?></a>
+        <?php $unread = function_exists('notify_unread_count') ? notify_unread_count((string)$student['id']) : 0; ?>
+        <a class="icon-btn lf-bell" href="<?= lf_url('/notifications') ?>" aria-label="通知">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></svg>
+          <?php if ($unread > 0): ?><span class="lf-badge"><?= $unread > 99 ? '99+' : (int)$unread ?></span><?php endif; ?>
+        </a>
+        <a class="btn ghost lf-nav-cta" href="<?= lf_url('/account') ?>"><?= lf_e((string)($student['name'] ?? '我')) ?></a>
       <?php else: ?>
         <a class="lf-nav-link lf-nav-login" href="<?= lf_url('/login') ?>">登录</a>
         <a class="btn primary lf-nav-cta" href="<?= lf_url('/courses') ?>">开始学习</a>

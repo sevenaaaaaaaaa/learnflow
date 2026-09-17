@@ -18,6 +18,10 @@ if (!function_exists('lf_head')) {
         echo '<meta property="og:title" content="' . lf_e($title) . '">' . "\n";
         echo '<meta property="og:description" content="' . lf_e($desc) . '">' . "\n";
         echo '<meta property="og:type" content="website">' . "\n";
+        $ogImage = (string)(lf_setting_get('og_image') ?: '');
+        if ($ogImage !== '') echo '<meta property="og:image" content="' . lf_e($ogImage) . '">' . "\n";
+        echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+        echo '<meta property="og:site_name" content="' . lf_e((string)(lf_setting_get('site_name') ?: 'LearnFlow')) . '">' . "\n";
         echo '<link rel="icon" href="' . lf_e(lf_favicon_data_uri()) . '">' . "\n";
         echo '<script>try{var t=JSON.parse(localStorage.getItem("learnflow-theme")||"{}");if(t.theme)document.documentElement.dataset.theme=t.theme;else if(matchMedia("(prefers-color-scheme:dark)").matches)document.documentElement.dataset.theme="dark";}catch(e){}</script>' . "\n";
         echo '<link rel="stylesheet" href="' . lf_url('/assets/fonts/fonts.css') . '?v=' . $v . '">' . "\n";

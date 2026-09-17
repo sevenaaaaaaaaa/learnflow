@@ -51,6 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'status' => (string)($_POST['status'] ?? 'draft'),
         'certificate' => !empty($_POST['certificate']),
         'allow_invite' => !empty($_POST['allow_invite']),
+        'categories' => array_values((array)($_POST['categories'] ?? [])),
+        'tags' => array_filter(array_map('trim', explode(',', (string)($_POST['tags'] ?? '')))),
+        'camp_start' => (string)($_POST['camp_start'] ?? ''),
+        'camp_end' => (string)($_POST['camp_end'] ?? ''),
         'payflow_product_id' => (string)($_POST['payflow_product_id'] ?? ''),
         'chapters' => [],
     ];
@@ -129,11 +133,27 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     </div>
     <div class="lf-row">
       <div class="lf-field"><label>PayFlow 商品 ID</label><input class="lf-inp" name="payflow_product_id" value="<?= lf_e((string)($course['payflow_product_id'] ?? '')) ?>" placeholder="用于购买即入学"></div>
+      <div class="lf-field"><label>开营日期</label><input class="lf-inp" type="date" name="camp_start" value="<?= lf_e((string)($course['camp_start'] ?? '')) ?>"></div>
+      <div class="lf-field"><label>结营日期</label><input class="lf-inp" type="date" name="camp_end" value="<?= lf_e((string)($course['camp_end'] ?? '')) ?>"></div>
       <div class="lf-field" style="justify-content:flex-end;flex-direction:row;gap:20px;align-items:center">
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="certificate" <?= !empty($course['certificate']) ? 'checked' : '' ?>> 颁发结业证书</label>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="allow_invite" <?= !empty($course['allow_invite']) ? 'checked' : '' ?>> 允许邀请码</label>
       </div>
     </div>
+    <div class="lf-field"><label>标签（逗号分隔）</label><input class="lf-inp" name="tags" value="<?= lf_e(implode(', ', (array)($course['tags'] ?? []))) ?>" placeholder="训练营, 增长"></div>
+    <?php $allCats = category_all(); $courseCats = array_map('strval', (array)($course['categories'] ?? [])); ?>
+    <?php if ($allCats): ?>
+      <div class="lf-field"><label>分类</label>
+        <div class="lf-row" style="flex-wrap:wrap;gap:14px">
+          <?php foreach ($allCats as $cat): ?>
+            <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center;min-width:0"><input type="checkbox" name="categories[]" value="<?= lf_e((string)$cat['key']) ?>" <?= in_array((string)$cat['key'], $courseCats, true) ? 'checked' : '' ?>> <?= lf_e((string)$cat['name']) ?></label>
+          <?php endforeach; ?>
+        </div>
+        <span class="lf-faint">在「分类」里新增可选分类。</span>
+      </div>
+    <?php else: ?>
+      <p class="lf-faint">还没有分类，可到 <a href="<?= lf_url('/admin/categories.php') ?>">分类管理</a> 添加。</p>
+    <?php endif; ?>
   </div>
 
   <div class="lf-admin-head"><h2 class="lf-sec-title" style="font-size:18px">章节与课时</h2><button class="btn ghost sm" type="button" id="add-chapter">+ 添加章节</button></div>

@@ -77,7 +77,16 @@ lf_page_start([
         <?php if (!empty($course['level'])): ?><span class="lf-chip soft"><?= lf_e((string)$course['level']) ?></span><?php endif; ?>
         <?php if (!empty($course['instructor'])): ?><span class="lf-chip soft">讲师 · <?= lf_e((string)$course['instructor']) ?></span><?php endif; ?>
         <?php if (!empty($course['certificate'])): ?><span class="lf-chip ok">结业证书</span><?php endif; ?>
+        <?php foreach (category_names((array)($course['categories'] ?? [])) as $ck => $cn): ?><a class="lf-chip soft" href="<?= lf_url('/courses?cat=' . rawurlencode((string)$ck)) ?>"><?= lf_e($cn) ?></a><?php endforeach; ?>
+        <?php if (!empty($course['camp_start']) || !empty($course['camp_end'])): ?>
+          <span class="lf-chip">开营 <?= lf_e((string)($course['camp_start'] ?: '待定')) ?><?= !empty($course['camp_end']) ? ' → ' . lf_e((string)$course['camp_end']) : '' ?></span>
+        <?php endif; ?>
       </div>
+      <?php if (!empty($course['tags'])): ?>
+        <div class="lf-course-meta" style="margin-top:8px">
+          <?php foreach ((array)$course['tags'] as $t): ?><span class="lf-chip soft"># <?= lf_e((string)$t) ?></span><?php endforeach; ?>
+        </div>
+      <?php endif; ?>
       <?php if (!empty($course['summary'])): ?>
         <p style="margin-top:22px;line-height:1.9;color:var(--muted)"><?= nl2br(lf_e((string)$course['summary'])) ?></p>
       <?php endif; ?>

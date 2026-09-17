@@ -24,6 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'unenroll') {
             enroll_remove((string)($_POST['course_id'] ?? ''), (string)($_POST['student_id'] ?? ''));
             lf_flash('ok', '已移除报名。');
+        } elseif ($action === 'group') {
+            enroll_set_group((string)($_POST['course_id'] ?? ''), (string)($_POST['student_id'] ?? ''), (string)($_POST['group'] ?? ''));
+            lf_flash('ok', '分组已更新。');
         }
     }
     header('Location: ' . lf_url('/admin/students.php'));
@@ -69,9 +72,14 @@ lf_admin_page_start(['title' => '学员 · LearnFlow 讲师后台', 'active' => 
                   $sum = progress_summary((string)$sid, (string)$cid, $course);
                   $minutes += $sum['minutes'];
               ?>
-                <div class="lf-row" style="flex-wrap:nowrap;justify-content:space-between;gap:8px;font-size:13px">
+                <div class="lf-row" style="flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:13px">
                   <span><?= lf_e((string)$course['title']) ?> <span class="lf-faint">(<?= (int)$sum['percent'] ?>%)</span></span>
-                  <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="unenroll"><input type="hidden" name="course_id" value="<?= lf_e((string)$cid) ?>"><input type="hidden" name="student_id" value="<?= lf_e((string)$sid) ?>"><button class="btn subtle sm" type="submit" style="height:26px">移除</button></form>
+                  <form method="post" style="margin:0;display:flex;gap:6px;align-items:center">
+                    <?= lf_csrf_field() ?><input type="hidden" name="action" value="group"><input type="hidden" name="course_id" value="<?= lf_e((string)$cid) ?>"><input type="hidden" name="student_id" value="<?= lf_e((string)$sid) ?>">
+                    <input class="lf-inp" name="group" value="<?= lf_e((string)($row['group'] ?? '')) ?>" placeholder="分组" style="height:28px;width:90px;font-size:12.5px">
+                    <button class="btn subtle sm" type="submit" style="height:28px">保存</button>
+                  </form>
+                  <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="unenroll"><input type="hidden" name="course_id" value="<?= lf_e((string)$cid) ?>"><input type="hidden" name="student_id" value="<?= lf_e((string)$sid) ?>"><button class="btn subtle sm" type="submit" style="height:28px">移除</button></form>
                 </div>
               <?php endforeach; ?>
             <?php endif; ?>

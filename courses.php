@@ -1,7 +1,12 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
+$categories = category_all();
+$activeCat = trim((string)($_GET['cat'] ?? ''));
 $courses = course_all(true);
+if ($activeCat !== '') {
+    $courses = array_values(array_filter($courses, fn($c) => in_array($activeCat, array_map('strval', (array)($c['categories'] ?? [])), true)));
+}
 $student = lf_student_current();
 $enrolled = $student ? enroll_by_student((string)$student['id']) : [];
 
@@ -20,8 +25,18 @@ lf_page_start([
     </div>
     <span class="lf-faint">共 <?= count($courses) ?> 门</span>
   </div>
+
+  <?php if ($categories): ?>
+    <div class="lf-tabs" style="margin-bottom:22px">
+      <a class="lf-tab<?= $activeCat === '' ? ' on' : '' ?>" href="<?= lf_url('/courses') ?>">全部</a>
+      <?php foreach ($categories as $cat): ?>
+        <a class="lf-tab<?= $activeCat === (string)$cat['key'] ? ' on' : '' ?>" href="<?= lf_url('/courses?cat=' . rawurlencode((string)$cat['key'])) ?>"><?= lf_e((string)$cat['name']) ?></a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
   <?php if (!$courses): ?>
-    <div class="lf-empty">还没有上架课程。</div>
+    <div class="lf-empty">该分类下暂无课程。</div>
   <?php else: ?>
     <div class="lf-grid">
       <?php

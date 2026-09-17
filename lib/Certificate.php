@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/Events.php';
+
 function cert_file(): string
 {
     return LF_DATA_DIR . '/certificates.json';
@@ -38,6 +40,15 @@ function cert_issue(string $studentId, string $courseId, string $courseTitle, st
         $all[$certNo] = $row;
         return $all;
     });
+    $student = function_exists('student_get') ? student_get($studentId) : null;
+    lf_emit('certificate.issued', [
+        'student_id' => $studentId,
+        'name' => (string)($student['name'] ?? $name),
+        'email' => (string)($student['email'] ?? ''),
+        'course_id' => $courseId,
+        'course_title' => $courseTitle,
+        'cert_no' => $certNo,
+    ]);
     return $row;
 }
 
