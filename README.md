@@ -38,7 +38,24 @@
 - [x] 产品页上线（产品/能力页由主站 nownexts.com 承载，各自独立二级目录）
 - [x] 独立代码库搭建（H2，PayFlow 先行）——PHP 8.3 + JSON 数据层，零框架零 composer 运行时依赖
 - [x] 部署上线（`nownexts.com/learnflow` = 后台入口；学员端在 `/learnflow/*`）
+- [x] 训练营运营（H3）：开营节奏/每日任务/作业点评/打卡/圈子/完课率看板
+- [x] 触达与 AI：SMTP 邮件+站内通知、DeepSeek（作业点评/测验出题/周报）
+- [x] 视频保护与互通：签名 URL+Range 受控播放、UserLoop/MFlow 出站事件队列、多语言
 - [ ] 首个训练营闭环验证（R.B.E 第 4 期）
+
+## 已实现能力（H2–H3+）
+
+| 域 | 能力 |
+|---|---|
+| 课程结构 | 章节/课时（图文/视频/测验/资料/直播位）、分类标签、多语言、开营/结营 |
+| 学员与账号 | 注册/登录、找回密码/改密、资料、分组、通知中心 |
+| 学习交付 | 播放器（mp4/HLS、断点续播）、进度/完成/学习曲线、测验（章节+结业）、结业证书（可分享+校验） |
+| 训练营运营 | 每日任务、作业提交与讲师/AI 点评、打卡与连续激励、圈子（问答/晒进度/点赞评论）、风险学员 |
+| 触达 | 站内通知 + SMTP 邮件（报名/点评/证书/提醒）、群发 |
+| AI（DeepSeek） | 作业点评、测验出题、学习周报（每日额度保险丝） |
+| 互通 | PayFlow 购买即入学；UserLoop/MFlow 出站事件队列（`bin/drain.php` 投递，HMAC 签名） |
+| 内容安全 | 上传鉴权、签名 URL + Range、`uploads/` 禁止直连、CSRF、越权拦截 |
+| 后台 | 看板/课程编辑器/测验编辑器/分类/排期/作业批改/学员/邀请码/证书/圈子/通知/设置/CSV 导出 |
 
 ## 入口约定（子路径部署）
 
@@ -46,16 +63,19 @@
 |---|---|
 | `nownexts.com/learnflow` | 讲师后台入口（直接渲染后台登录，独享根） |
 | `nownexts.com/learnflow/admin/*` | 讲师后台 |
-| `nownexts.com/learnflow/courses`、`/course/*`、`/learn/*`、`/quiz/*`、`/certificate`、`/dashboard` | 学员端 |
-| `nownexts.com/learnflow/api/*` | 接口（进度、PayFlow webhook、无头只读） |
+| `nownexts.com/learnflow/courses`、`/course/*`、`/learn/*`、`/quiz/*`、`/camp/*`、`/certificate`、`/dashboard` | 学员端 |
+| `nownexts.com/learnflow/file` | 受控文件下载（签名 + 报名校验 + Range） |
+| `nownexts.com/learnflow/api/*` | 接口（进度、上传、AI、PayFlow webhook、无头只读） |
 | 产品页 / 能力页 | 主站（OpenFlow）负责，不在本应用内 |
 
 ## 本地开发
 
 ```bash
 php bin/seed.php                              # 生成管理员/示例课程/学员/邀请码
-php tests/domain.php                          # 领域层回归测试（23 项）
+php tests/domain.php                          # 领域层回归测试（45 项）
 php -S 127.0.0.1:8080 bin/router.php          # 本地预览（模拟 .htaccess 路由，根=后台登录）
+php bin/drain.php                             # 手动投递互通事件队列
+php bin/remind.php                            # 手动触发连续学习提醒
 ```
 
 - 管理员默认 `admin / learnflow123`；演示学员 `demo@learnflow.local / demo123`；邀请码 `RBECAMP4`

@@ -95,3 +95,22 @@ LearnFlow Dev/           # 本地 Dev 根（= git 仓库根 = 应用根）
 `data/`、`uploads/` 为运行时目录（服务器为源），部署永不删除。
 所有站内链接经 `lf_url()` 生成，自动带 `/learnflow` 前缀，无硬编码子域名。
 
+## 五、定时任务与运行时配置
+
+crontab（以 www 身份执行，已配置）：
+
+```cron
+# LearnFlow: 互通事件投递（每 15 分钟）
+*/15 * * * * su -s /bin/sh www -c "/www/server/php/83/bin/php /www/wwwroot/learnflow/bin/drain.php" >> /www/wwwroot/learnflow/data/cron.log 2>&1
+# LearnFlow: 连续学习提醒（每天 09:00）
+0 9 * * * su -s /bin/sh www -c "/www/server/php/83/bin/php /www/wwwroot/learnflow/bin/remind.php" >> /www/wwwroot/learnflow/data/cron.log 2>&1
+```
+
+运行时配置（后台「设置」页写入 `data/settings.json`）：
+
+- **SMTP**：启用后邮件直发（SSL 465 / STARTTLS 587）；未启用时邮件落 `data/mail-log.json`
+- **AI（DeepSeek）**：OpenAI 兼容协议，Key 存服务器 `data/settings.json`（勿入库），带 `daily_limit` 额度保险丝
+- **互通**：UserLoop / MFlow 出站 webhook URL + secret；签名头 `X-LF-Signature` = HMAC-SHA256(body, secret)
+- **上传**：`uploads/` 禁止直连（`.htaccess`），仅经 `/file`（HMAC 签名 + 报名校验 + Range 206）受控下载
+
+
