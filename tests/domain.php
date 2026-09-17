@@ -10,6 +10,8 @@ putenv('LF_ENV=dev');
 
 require_once dirname(__DIR__) . '/includes/bootstrap.php';
 
+lf_setting_set('mysql', ['enabled' => true, 'driver' => 'sqlite', 'sqlite_path' => $tmp . '/db/learnflow.db']);
+
 $pass = 0;
 $fail = 0;
 function check(string $label, bool $ok, string $extra = ''): void
@@ -173,6 +175,18 @@ $zh = lf_localize_course(course_find('test-course'), 'zh');
 check('i18n en title applied', ($en['title'] ?? '') === 'Test Course EN' && ($zh['title'] ?? '') === '测试课程');
 
 check('ai disabled by default', !ai_enabled());
+
+$dbStatus = lf_db_status();
+check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
+$kvCount = 0;
+$pdo = lf_db();
+if ($pdo !== null) $kvCount = (int)$pdo->query('SELECT COUNT(*) AS c FROM lf_kv')->fetch()['c'];
+check('collections persisted in DB', $kvCount >= 6);
+$pdo2 = lf_db();
+$row = $pdo2->prepare('SELECT v FROM lf_kv WHERE k = ?');
+$row->execute(['courses']);
+$persisted = json_decode((string)($row->fetch()['v'] ?? '[]'), true);
+check('course data readable from DB', is_array($persisted) && count($persisted) >= 1);
 
 foreach (glob($tmp . '/*') ?: [] as $f) { is_file($f) && @unlink($f); }
 @rmdir($tmp);

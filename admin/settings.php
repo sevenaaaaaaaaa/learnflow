@@ -57,6 +57,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ],
             ]);
             lf_flash('ok', '互通设置已保存。');
+        } elseif ($section === 'mysql') {
+            lf_setting_set('mysql', [
+                'enabled' => !empty($_POST['mysql_enabled']),
+                'driver' => (($_POST['mysql_driver'] ?? 'mysql') === 'sqlite') ? 'sqlite' : 'mysql',
+                'host' => trim((string)($_POST['mysql_host'] ?? 'localhost')),
+                'port' => (int)($_POST['mysql_port'] ?? 3306),
+                'dbname' => trim((string)($_POST['mysql_dbname'] ?? 'learnflow')),
+                'user' => trim((string)($_POST['mysql_user'] ?? 'learnflow')),
+                'pass' => (string)($_POST['mysql_pass'] ?? ''),
+                'sqlite_path' => trim((string)($_POST['mysql_sqlite_path'] ?? '')),
+            ]);
+            lf_flash('ok', '数据层设置已保存。');
         }
         lf_cache_flush();
     }
@@ -159,8 +171,33 @@ lf_admin_page_start(['title' => '设置 · LearnFlow 讲师后台', 'active' => 
   </div>
 </form>
 
-<div class="lf-form-card" style="max-width:none">
+<div class="lf-form-card" style="max-width:none;margin-bottom:20px">
   <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 10px">无头 API</h2>
   <p class="lf-faint">公开只读接口：<code>GET /api/courses.php</code>（列表）、<code>GET /api/courses.php?slug=xxx</code>（含全文）。课程数据可迁移，不强依赖本前端。</p>
 </div>
+
+<?php $mysql = lf_db_config(); $dbStatus = lf_db_status(); ?>
+<form method="post">
+  <?= lf_csrf_field() ?><input type="hidden" name="section" value="mysql">
+  <div class="lf-form-card" style="max-width:none">
+    <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 12px">数据层（MySQL 为主 / SQLite 为辅）</h2>
+    <p class="lf-faint" style="margin:0 0 12px">启用后，所有 JSON 集合改由数据库读写（事务 + 行锁，避免并发丢写），JSON 文件仍作快照备份；未启用时保持 JSON 文件存储。当前状态：
+      <b style="color:<?= !empty($dbStatus['connected']) ? 'var(--ok)' : 'var(--muted)' ?>"><?= lf_e((string)$dbStatus['message']) ?><?= !empty($dbStatus['collections']) ? '（' . (int)$dbStatus['collections'] . ' 个集合）' : '' ?></b>
+    </p>
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="checkbox" name="mysql_enabled" <?= !empty($mysql['enabled']) ? 'checked' : '' ?>> 启用数据库存储</label>
+    <div class="lf-row">
+      <div class="lf-field" style="margin:0"><label>驱动</label><select class="lf-inp" name="mysql_driver"><option value="mysql" <?= $mysql['driver'] === 'mysql' ? 'selected' : '' ?>>MySQL</option><option value="sqlite" <?= $mysql['driver'] === 'sqlite' ? 'selected' : '' ?>>SQLite</option></select></div>
+      <div class="lf-field" style="margin:0"><label>主机</label><input class="lf-inp" name="mysql_host" value="<?= lf_e((string)$mysql['host']) ?>"></div>
+      <div class="lf-field" style="margin:0"><label>端口</label><input class="lf-inp" type="number" name="mysql_port" value="<?= (int)$mysql['port'] ?>"></div>
+      <div class="lf-field" style="margin:0"><label>库名</label><input class="lf-inp" name="mysql_dbname" value="<?= lf_e((string)$mysql['dbname']) ?>"></div>
+    </div>
+    <div class="lf-row" style="margin-top:12px">
+      <div class="lf-field" style="margin:0"><label>账号</label><input class="lf-inp" name="mysql_user" value="<?= lf_e((string)$mysql['user']) ?>"></div>
+      <div class="lf-field" style="margin:0"><label>密码</label><input class="lf-inp" type="password" name="mysql_pass" value="<?= lf_e((string)$mysql['pass']) ?>"></div>
+      <div class="lf-field" style="margin:0"><label>SQLite 路径（驱动=SQLite 时）</label><input class="lf-inp" name="mysql_sqlite_path" value="<?= lf_e((string)$mysql['sqlite_path']) ?>"></div>
+    </div>
+    <p class="lf-faint" style="margin-top:10px">首次启用后，将现有 JSON 导入数据库：<code>php bin/migrate.php</code>（幂等，幂等导入缺失集合）。</p>
+    <button class="btn primary sm" type="submit" style="margin-top:10px">保存数据层设置</button>
+  </div>
+</form>
 <?php lf_admin_page_end(); ?>

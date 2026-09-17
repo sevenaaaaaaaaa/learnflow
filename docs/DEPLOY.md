@@ -108,6 +108,7 @@ crontab（以 www 身份执行，已配置）：
 
 运行时配置（后台「设置」页写入 `data/settings.json`）：
 
+- **数据层（MySQL 为主 / SQLite 为辅）**：默认 JSON 文件存储；后台启用后所有集合改由数据库读写（事务 + 行锁），JSON 仍作快照备份。MySQL 需先在宝塔建库：库名 `learnflow`、用户 `learnflow`、utf8mb4；再把凭据填入后台「设置 → 数据层」并保存，最后执行 `php bin/migrate.php` 导入现有 JSON。也可用 `driver=sqlite`（零配置，文件存 `data/db/learnflow.db`）。
 - **SMTP**：启用后邮件直发（SSL 465 / STARTTLS 587）；未启用时邮件落 `data/mail-log.json`
 - **AI（DeepSeek）**：OpenAI 兼容协议，Key 存服务器 `data/settings.json`（勿入库），带 `daily_limit` 额度保险丝
 - **互通**：UserLoop / MFlow 出站 webhook URL + secret；签名头 `X-LF-Signature` = HMAC-SHA256(body, secret)

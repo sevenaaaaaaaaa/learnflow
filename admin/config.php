@@ -42,6 +42,8 @@ foreach ([LF_DATA_DIR, LF_UPLOAD_DIR, LF_CACHE_DIR] as $lfDir) {
     if (!is_dir($lfDir)) @mkdir($lfDir, 0755, true);
 }
 
+require_once LF_ROOT . '/lib/DataStore.php';
+
 $lfEnvFile = LF_ROOT . '/.env';
 if (is_file($lfEnvFile)) {
     foreach (file($lfEnvFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $lfLine) {
@@ -103,7 +105,13 @@ function lf_error_response(int $code, string $message, ?string $detail = null): 
     exit;
 }
 
-function json_read(string $path): array
+function &lf_state_cache(): array
+{
+    static $cache = [];
+    return $cache;
+}
+
+function json_read_file(string $path): array
 {
     if (!is_file($path)) return [];
     $raw = @file_get_contents($path);
@@ -112,7 +120,7 @@ function json_read(string $path): array
     return is_array($data) ? $data : [];
 }
 
-function json_write(string $path, array $data): bool
+function json_write_file(string $path, array $data): bool
 {
     $dir = dirname($path);
     if (!is_dir($dir)) @mkdir($dir, 0755, true);
@@ -123,18 +131,55 @@ function json_write(string $path, array $data): bool
     return @rename($tmp, $path);
 }
 
+function json_read(string $path): array
+{
+    if (function_exists('lf_db_enabled') && lf_db_enabled()) {
+        $key = lf_db_key($path);
+        $cache = &lf_state_cache();
+        if (array_key_exists($key, $cache)) return $cache[$key];
+        $data = lf_kv_read($key);
+        if ($data === null) $data = json_read_file($path);
+        return $cache[$key] = $data;
+    }
+    return json_read_file($path);
+}
+
+function json_write(string $path, array $data): bool
+{
+    $ok = json_write_file($path, $data);
+    if (function_exists('lf_db_enabled') && lf_db_enabled()) {
+        $key = lf_db_key($path);
+        lf_kv_write($key, $data);
+        $cache = &lf_state_cache();
+        $cache[$key] = $data;
+    }
+    return $ok;
+}
+
 function json_update(string $path, callable $mutator): array
 {
+    if (function_exists('lf_db_enabled') && lf_db_enabled()) {
+        $key = lf_db_key($path);
+        $cache = &lf_state_cache();
+        if (!array_key_exists($key, $cache)) {
+            lf_kv_seed($key, json_read_file($path));
+        }
+        $data = lf_kv_update($key, $mutator, json_read_file($path));
+        json_write_file($path, $data);
+        $cache[$key] = $data;
+        return $data;
+    }
+
     $lock = $path . '.lock';
     $fp = @fopen($lock, 'c');
     if ($fp === false) {
-        $data = $mutator(json_read($path));
-        json_write($path, $data);
+        $data = $mutator(json_read_file($path));
+        json_write_file($path, $data);
         return $data;
     }
     @flock($fp, LOCK_EX);
-    $data = $mutator(json_read($path));
-    json_write($path, $data);
+    $data = $mutator(json_read_file($path));
+    json_write_file($path, $data);
     @flock($fp, LOCK_UN);
     @fclose($fp);
     @unlink($lock);
