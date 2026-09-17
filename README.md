@@ -54,6 +54,7 @@
 | 触达 | 站内通知 + SMTP 邮件（报名/点评/证书/提醒）、群发 |
 | AI（DeepSeek） | 作业点评、测验出题、学习周报（每日额度保险丝） |
 | 互通 | PayFlow 购买即入学；UserLoop/MFlow 出站事件队列（`bin/drain.php` 投递，HMAC 签名） |
+| Agent 接口 | API Key（read/write/ai 作用域 + 限流 + 审计）、REST `/api/v1`、**MCP server `/mcp`**（26 个工具，见 `docs/API-MCP.md`） |
 | 内容安全 | 上传鉴权、签名 URL + Range、`uploads/` 禁止直连、CSRF、越权拦截 |
 | 后台 | 看板/课程编辑器/测验编辑器/分类/排期/作业批改/学员/邀请码/证书/圈子/通知/设置/CSV 导出 |
 
@@ -65,7 +66,8 @@
 | `nownexts.com/learnflow/admin/*` | 讲师后台 |
 | `nownexts.com/learnflow/courses`、`/course/*`、`/learn/*`、`/quiz/*`、`/camp/*`、`/certificate`、`/dashboard` | 学员端 |
 | `nownexts.com/learnflow/file` | 受控文件下载（签名 + 报名校验 + Range） |
-| `nownexts.com/learnflow/api/*` | 接口（进度、上传、AI、PayFlow webhook、无头只读） |
+| `nownexts.com/learnflow/api/*` | 接口（进度、上传、AI、PayFlow webhook、无头只读、API v1） |
+| `nownexts.com/learnflow/mcp` | MCP server（Agent 接口，JSON-RPC 2.0） |
 | 产品页 / 能力页 | 主站（OpenFlow）负责，不在本应用内 |
 
 ## 本地开发

@@ -176,6 +176,31 @@ check('i18n en title applied', ($en['title'] ?? '') === 'Test Course EN' && ($zh
 
 check('ai disabled by default', !ai_enabled());
 
+$created = api_key_create('测试密钥', ['read', 'write'], 60);
+$auth = api_key_authenticate($created['token']);
+check('api key created + authenticated', $auth !== null && ($auth['id'] ?? '') === $created['id']);
+check('api key rejects bad token', api_key_authenticate('lf_deadbeef') === null);
+
+$r = lf_api_call('course.list', [], ['key_id' => $created['id'], 'scopes' => $auth['scopes']]);
+check('api course.list works', !empty($r['ok']) && isset($r['data']['courses']));
+$r2 = lf_api_call('course.create', ['title' => 'API 建课'], ['key_id' => $created['id'], 'scopes' => $auth['scopes']]);
+check('api course.create works (write scope)', !empty($r2['ok']) && !empty($r2['data']['course_id']));
+$r3 = lf_api_call('course.create', ['title' => 'x'], ['key_id' => $created['id'], 'scopes' => ['read']]);
+check('api scope enforced (403)', empty($r3['ok']) && ($r3['code'] ?? 0) === 403);
+$r4 = lf_api_call('nope.tool', [], ['key_id' => $created['id'], 'scopes' => ['read']]);
+check('api unknown tool 404', empty($r4['ok']) && ($r4['code'] ?? 0) === 404);
+$r5 = lf_api_call('course.create', [], ['key_id' => $created['id'], 'scopes' => ['write']]);
+check('api missing required param 422', empty($r5['ok']) && ($r5['code'] ?? 0) === 422);
+$r6 = lf_api_call('ai.weekly_report', ['course_id' => 'x'], ['key_id' => $created['id'], 'scopes' => ['read', 'write']]);
+check('api ai scope enforced', empty($r6['ok']) && ($r6['code'] ?? 0) === 403);
+$r7 = lf_api_call('ai.weekly_report', ['course_id' => 'x'], ['key_id' => $created['id'], 'scopes' => ['ai']]);
+check('api ai tool reachable (fails on AI disabled)', empty($r7['ok']) && str_contains((string)$r7['error'], 'AI'));
+
+api_key_revoke((string)$created['id']);
+check('api key revoked', api_key_authenticate($created['token']) === null);
+
+check('mcp tool list has schemas', count(lf_api_tool_list()) >= 15 && isset(lf_api_tool_list()[0]['inputSchema']));
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;
