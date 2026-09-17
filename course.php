@@ -14,6 +14,7 @@ if ($course === null || ($course['status'] ?? 'draft') !== 'published') {
 $student = lf_student_current();
 $studentId = $student ? (string)$student['id'] : '';
 $isAdmin = lf_admin_current() !== null;
+$course = lf_localize_course($course);
 $lessons = course_lessons($course);
 $price = (float)($course['price'] ?? 0);
 $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));

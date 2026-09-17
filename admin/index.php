@@ -81,9 +81,32 @@ lf_admin_page_start(['title' => '看板 · LearnFlow 讲师后台', 'active' => 
       <div class="lf-row" style="margin-top:10px;gap:8px">
         <a class="btn subtle sm" href="<?= lf_url('/admin/export.php?type=progress&course=' . urlencode((string)$course['id'])) ?>">导出进度 CSV</a>
         <a class="btn subtle sm" href="<?= lf_url('/admin/export.php?type=at_risk&course=' . urlencode((string)$course['id'])) ?>">导出风险学员</a>
+        <button class="btn subtle sm" type="button" data-ai-report data-course="<?= lf_e((string)$course['id']) ?>">AI 周报</button>
         <a class="btn subtle sm" href="<?= lf_url('/camp/' . rawurlencode((string)($course['slug'] ?? $course['id']))) ?>" target="_blank">训练营页</a>
       </div>
+      <div class="lf-flash info" id="rpt-<?= lf_e((string)$course['id']) ?>" style="display:none;margin-top:10px;font-size:13.5px;white-space:pre-wrap"></div>
     </div>
   <?php endforeach; ?>
 <?php endif; ?>
+<script>
+(function () {
+  var token = '<?= lf_csrf_token() ?>';
+  var api = '<?= lf_url('/api/ai.php') ?>';
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ai-report]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var box = document.getElementById('rpt-' + btn.getAttribute('data-course'));
+      var old = btn.textContent; btn.textContent = '生成中…'; btn.disabled = true;
+      var fd = new FormData();
+      fd.append('_token', token); fd.append('action', 'weekly_report');
+      fd.append('course_id', btn.getAttribute('data-course'));
+      fetch(api, { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+        btn.textContent = old; btn.disabled = false;
+        if (!box) return;
+        box.style.display = 'block';
+        box.textContent = d.ok ? d.report : (d.error || 'AI 失败');
+      }).catch(function () { btn.textContent = old; btn.disabled = false; });
+    });
+  });
+})();
+</script>
 <?php lf_admin_page_end(); ?>

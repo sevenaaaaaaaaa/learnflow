@@ -22,3 +22,6 @@ require_once LF_ROOT . '/lib/Assignment.php';
 require_once LF_ROOT . '/lib/Schedule.php';
 require_once LF_ROOT . '/lib/Checkin.php';
 require_once LF_ROOT . '/lib/Community.php';
+require_once LF_ROOT . '/lib/Media.php';
+require_once LF_ROOT . '/lib/Ai.php';
+require_once LF_ROOT . '/lib/I18n.php';

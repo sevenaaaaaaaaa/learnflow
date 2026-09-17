@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/Events.php';
+
 const LF_LESSON_TYPES = ['article', 'video', 'quiz', 'file', 'live'];
 
 function courses_file(): string
@@ -50,6 +52,15 @@ function course_save(array $course): array
         if (!$found) $all[] = $course;
         return $all;
     });
+    if (function_exists('lf_emit')) {
+        lf_emit('course.updated', [
+            'course_id' => (string)$course['id'],
+            'title' => (string)($course['title'] ?? ''),
+            'slug' => (string)($course['slug'] ?? ''),
+            'status' => (string)($course['status'] ?? ''),
+            'updated_at' => (string)$course['updated_at'],
+        ]);
+    }
     return $course;
 }
 
@@ -145,6 +156,7 @@ function course_normalize(array $input): array
         'allow_invite' => !empty($input['allow_invite']),
         'categories' => array_values(array_filter(array_map('strval', (array)($input['categories'] ?? [])))),
         'tags' => array_values(array_filter(array_map('trim', (array)($input['tags'] ?? [])))),
+        'i18n' => is_array($input['i18n'] ?? null) ? $input['i18n'] : [],
         'camp_start' => trim((string)($input['camp_start'] ?? '')),
         'camp_end' => trim((string)($input['camp_end'] ?? '')),
         'payflow_product_id' => trim((string)($input['payflow_product_id'] ?? '')),

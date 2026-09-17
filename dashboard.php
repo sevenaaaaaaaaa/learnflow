@@ -40,7 +40,7 @@ lf_page_start([
   <?php else: ?>
     <div class="lf-grid">
       <?php foreach ($courses as $item):
-          $course = $item['course'];
+          $course = lf_localize_course($item['course']);
           $sum = progress_summary($studentId, (string)$course['id'], $course);
           $totalMinutes += $sum['minutes'];
           $resume = progress_resume($studentId, (string)$course['id'], $course);

@@ -53,6 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'allow_invite' => !empty($_POST['allow_invite']),
         'categories' => array_values((array)($_POST['categories'] ?? [])),
         'tags' => array_filter(array_map('trim', explode(',', (string)($_POST['tags'] ?? '')))),
+        'i18n' => [
+            'en' => [
+                'title' => trim((string)($_POST['en_title'] ?? '')),
+                'subtitle' => trim((string)($_POST['en_subtitle'] ?? '')),
+                'summary' => trim((string)($_POST['en_summary'] ?? '')),
+            ],
+        ],
         'camp_start' => (string)($_POST['camp_start'] ?? ''),
         'camp_end' => (string)($_POST['camp_end'] ?? ''),
         'payflow_product_id' => (string)($_POST['payflow_product_id'] ?? ''),
@@ -141,6 +148,13 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       </div>
     </div>
     <div class="lf-field"><label>标签（逗号分隔）</label><input class="lf-inp" name="tags" value="<?= lf_e(implode(', ', (array)($course['tags'] ?? []))) ?>" placeholder="训练营, 增长"></div>
+    <?php $en = (array)($course['i18n']['en'] ?? []); ?>
+    <details style="margin-bottom:14px">
+      <summary style="cursor:pointer;font-size:13.5px;color:var(--muted)">英文内容（多语言，可选）</summary>
+      <div class="lf-field" style="margin-top:10px"><label>EN Title</label><input class="lf-inp" name="en_title" value="<?= lf_e((string)($en['title'] ?? '')) ?>"></div>
+      <div class="lf-field"><label>EN Subtitle</label><input class="lf-inp" name="en_subtitle" value="<?= lf_e((string)($en['subtitle'] ?? '')) ?>"></div>
+      <div class="lf-field"><label>EN Summary</label><textarea class="lf-inp" name="en_summary"><?= lf_e((string)($en['summary'] ?? '')) ?></textarea></div>
+    </details>
     <?php $allCats = category_all(); $courseCats = array_map('strval', (array)($course['categories'] ?? [])); ?>
     <?php if ($allCats): ?>
       <div class="lf-field"><label>分类</label>
@@ -189,7 +203,13 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <button class="btn subtle sm" type="button" style="flex:0 0 auto" data-remove-lesson>移除</button>
     </div>
     <div class="lf-row" style="margin-top:10px">
-      <div class="lf-field" style="margin:0" data-field="video"><label>视频 URL (mp4/HLS)</label><input class="lf-inp" data-name="video"></div>
+      <div class="lf-field" style="margin:0" data-field="video"><label>视频 URL 或上传（mp4/HLS）</label>
+        <div style="display:flex;gap:6px">
+          <input class="lf-inp" data-name="video" style="flex:1" placeholder="https://… 或点上传">
+          <button class="btn subtle sm" type="button" data-upload-video style="flex:0 0 auto">上传</button>
+        </div>
+        <input type="file" accept="video/*,.m3u8" data-video-file style="display:none">
+      </div>
       <div class="lf-field" style="margin:0" data-field="quiz"><label>关联测验</label><select class="lf-inp" data-name="quiz_id"><option value="">— 选择测验 —</option><?php foreach ($quizzes as $qid => $q): ?><option value="<?= lf_e((string)$qid) ?>"><?= lf_e((string)($q['title'] ?? $qid)) ?></option><?php endforeach; ?></select></div>
       <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-name="free"> 试看</label>
     </div>
@@ -243,14 +263,37 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     ls.querySelector('[data-field="quiz"]').style.display = type === 'quiz' ? '' : 'none';
     ls.querySelector('[data-field="content"]').style.display = type === 'article' ? '' : 'none';
   }
+  var LF_CSRF = '<?= lf_csrf_token() ?>';
+  var LF_UPLOAD = '<?= lf_url('/api/upload.php') ?>';
+  var LF_SCOPE = '<?= lf_e((string)($course['id'] ?? '')) ?>';
   function bindLesson(ls) {
     ls.querySelector('[data-remove-lesson]').addEventListener('click', function () { ls.remove(); reindex(); });
     ls.querySelector('[data-type-select]').addEventListener('change', function () { syncLesson(ls); });
-    ls.querySelectorAll('[data-name]').forEach(function (el) {
+    Array.prototype.forEach.call(ls.querySelectorAll('[data-name]'), function (el) {
       el.addEventListener('input', reindex);
       el.addEventListener('change', reindex);
     });
+    var upBtn = ls.querySelector('[data-upload-video]');
+    var fileInput = ls.querySelector('[data-video-file]');
+    if (upBtn && fileInput) {
+      upBtn.addEventListener('click', function () { fileInput.click(); });
+      fileInput.addEventListener('change', function () {
+        if (!fileInput.files || !fileInput.files[0]) return;
+        var fd = new FormData();
+        fd.append('_token', LF_CSRF);
+        fd.append('scope', LF_SCOPE || 'media');
+        fd.append('file', fileInput.files[0]);
+        var old = upBtn.textContent; upBtn.textContent = '上传中…'; upBtn.disabled = true;
+        fetch(LF_UPLOAD, { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+          upBtn.textContent = old; upBtn.disabled = false;
+          if (!d.ok) { alert(d.error || '上传失败'); return; }
+          ls.querySelector('[data-name="video"]').value = 'upload:' + d.rel;
+          reindex();
+        }).catch(function () { upBtn.textContent = old; upBtn.disabled = false; alert('网络错误'); });
+      });
+    }
   }
+
   function addLesson(ch, data) {
     var ls = tplLesson.content.firstElementChild.cloneNode(true);
     data = data || {};

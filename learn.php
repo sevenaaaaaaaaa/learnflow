@@ -50,6 +50,8 @@ $resumePosition = (int)($state['position'] ?? 0);
 $neighbors = course_lesson_neighbors($course, (string)$lesson['id']);
 $summary = ($studentId !== '' && $hasAccess) ? progress_summary($studentId, (string)$course['id'], $course) : null;
 $lessonType = (string)($lesson['type'] ?? 'article');
+$course = lf_localize_course($course);
+$lesson = lf_localize_lesson($lesson, $course);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'done' && $studentId !== '' && $hasAccess) {
     if (lf_csrf_check()) {
@@ -71,8 +73,17 @@ lf_page_start([
 <div class="lf-layout">
   <div>
     <div class="lf-player-wrap" data-lf-player data-endpoint="<?= lf_url('/api/progress.php') ?>" data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
-      <?php if ($lessonType === 'video' && !empty($lesson['video'])): ?>
-        <video class="lf-player-video" controls playsinline preload="metadata" src="<?= lf_e((string)$lesson['video']) ?><?= $resumePosition > 2 ? '#t=' . (int)$resumePosition : '' ?>"></video>
+      <?php if ($lessonType === 'video' && !empty($lesson['video'])):
+          $videoUrl = media_resolve($lesson, (string)$course['id'], $hasAccess ? $studentId : '');
+          $videoKind = media_kind($videoUrl);
+      ?>
+        <?php if ($videoKind === 'hls'): ?>
+          <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+        <?php endif; ?>
+        <video class="lf-player-video" controls playsinline preload="metadata"<?= $videoKind === 'hls' ? ' data-hls="1"' : '' ?> src="<?= lf_e($videoUrl) ?><?= ($resumePosition > 2 && $videoKind !== 'hls') ? '#t=' . (int)$resumePosition : '' ?>"></video>
+        <?php if ($videoKind === 'hls'): ?>
+          <script>document.addEventListener('DOMContentLoaded',function(){var v=document.querySelector('[data-hls]');if(v&&window.Hls&&window.Hls.isSupported()){var h=new window.Hls();h.loadSource(v.getAttribute('src'));h.attachMedia(v);}else if(v){v.play&&0;}});</script>
+        <?php endif; ?>
       <?php elseif ($lessonType === 'quiz'): ?>
         <div class="lf-player-art">
           <span class="lf-kicker">测验</span>

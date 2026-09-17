@@ -69,7 +69,15 @@ lf_admin_page_start(['title' => '编辑测验 · LearnFlow 讲师后台', 'activ
     <div class="lf-field" style="margin-top:12px"><label>关联课时 ID（可选，用于完课时自动标记）</label><input class="lf-inp" name="lesson_id" value="<?= lf_e((string)($quiz['lesson_id'] ?? '')) ?>"></div>
   </div>
 
-  <div class="lf-admin-head"><h2 class="lf-sec-title" style="font-size:18px">题目</h2><button class="btn ghost sm" type="button" id="add-q">+ 添加题目</button></div>
+  <div class="lf-admin-head">
+    <h2 class="lf-sec-title" style="font-size:18px">题目</h2>
+    <div class="lf-row" style="flex:0 0 auto;gap:6px">
+      <input class="lf-inp" id="ai-topic" placeholder="AI 出题主题" style="height:38px;width:180px">
+      <input class="lf-inp" id="ai-count" type="number" min="1" max="10" value="3" style="height:38px;width:70px">
+      <button class="btn ghost sm" type="button" id="ai-gen">AI 生成</button>
+      <button class="btn ghost sm" type="button" id="add-q">+ 添加题目</button>
+    </div>
+  </div>
   <div id="questions"></div>
 
   <div style="margin-top:20px"><button class="btn primary" type="submit">保存测验</button></div>
@@ -161,6 +169,32 @@ lf_admin_page_start(['title' => '编辑测验 · LearnFlow 讲师后台', 'activ
   }
   document.getElementById('add-q').addEventListener('click', function () { addQ({}); });
   if (initial.length) initial.forEach(function (q) { addQ(q); }); else addQ({});
+
+  var aiBtn = document.getElementById('ai-gen');
+  if (aiBtn) aiBtn.addEventListener('click', function () {
+    var topic = document.getElementById('ai-topic').value.trim();
+    if (!topic) { alert('请填写主题'); return; }
+    var count = document.getElementById('ai-count').value || 3;
+    var old = aiBtn.textContent; aiBtn.textContent = '生成中…'; aiBtn.disabled = true;
+    var fd = new FormData();
+    fd.append('_token', '<?= lf_csrf_token() ?>');
+    fd.append('action', 'generate_quiz');
+    fd.append('topic', topic);
+    fd.append('count', count);
+    fetch('<?= lf_url('/api/ai.php') ?>', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+      aiBtn.textContent = old; aiBtn.disabled = false;
+      if (!d.ok) { alert(d.error || 'AI 失败'); return; }
+      (d.questions || []).forEach(function (q) {
+        var answers = (q.answer || []).map(String);
+        addQ({
+          title: q.title || '', type: q.type || 'single', score: q.score || 1,
+          explanation: q.explanation || '',
+          options: (q.options || []).map(function (o) { return { id: o.id || undefined, text: o.text || '' }; }),
+          answer: answers
+        });
+      });
+    }).catch(function () { aiBtn.textContent = old; aiBtn.disabled = false; alert('网络错误'); });
+  });
 })();
 </script>
 <?php lf_admin_page_end(); ?>

@@ -83,6 +83,7 @@ function lf_progress_bar(int $percent, string $label = ''): string
 
 function lf_course_card(array $course, array $opts = []): string
 {
+    if (function_exists('lf_localize_course')) $course = lf_localize_course($course);
     $href = lf_url('/course/' . rawurlencode((string)($course['slug'] ?? $course['id'] ?? '')));
     $lessons = course_lesson_count($course);
     $chapters = count((array)($course['chapters'] ?? []));

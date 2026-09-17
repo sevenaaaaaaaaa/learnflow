@@ -53,6 +53,7 @@ if ($course === null) {
 $student = lf_student_current();
 $isAdmin = lf_admin_current() !== null;
 $sid = $student ? (string)$student['id'] : '';
+$course = lf_localize_course($course);
 $hasAccess = $isAdmin || ($sid !== '' && enroll_is_active((string)$course['id'], $sid));
 
 if (!$hasAccess) {

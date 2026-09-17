@@ -76,8 +76,10 @@ foreach ($routes as $pattern => $target) {
         $_SERVER['SCRIPT_NAME'] = $target;
         $_SERVER['SCRIPT_FILENAME'] = $root . $target;
         if ($qs !== '') {
-            $_SERVER['QUERY_STRING'] = ltrim($qs, '?');
-            parse_str(ltrim($qs, '?'), $_GET);
+            $params = [];
+            parse_str(ltrim($qs, '?'), $params);
+            $_GET = array_merge($_GET, $params);
+            $_SERVER['QUERY_STRING'] = http_build_query($_GET);
         }
         require $root . $target;
         return true;

@@ -5,6 +5,7 @@ RewriteEngine On
 RewriteBase /learnflow/
 
 RewriteRule ^data(/|$) - [F,L]
+RewriteRule ^uploads(/|$) - [F,L]
 RewriteRule ^(includes|lib)(/|$) - [F,L]
 RewriteRule ^(\.env|\.git) - [F,L]
 

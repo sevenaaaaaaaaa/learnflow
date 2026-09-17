@@ -43,6 +43,7 @@ $course = course_save(course_normalize([
     'price' => 100,
     'status' => 'published',
     'certificate' => true,
+    'i18n' => ['en' => ['title' => 'Test Course EN', 'subtitle' => 'EN sub']],
     'chapters' => [[
         'title' => '第一章',
         'lessons' => [
@@ -160,6 +161,18 @@ file_put_contents($tmp . '/uploads/' . $uploadRel, 'hi');
 $signed = lf_file_url($uploadRel, (string)$student['id']);
 check('signed file url includes base + sig', str_contains($signed, 'file?') && str_contains($signed, 's='));
 check('file path safe', lf_file_path($uploadRel) !== null && lf_file_path('../../etc/passwd') === null);
+
+check('media_resolve external passthrough', media_resolve(['video' => 'https://cdn.test/a.mp4']) === 'https://cdn.test/a.mp4');
+$signedVideo = media_resolve(['video' => 'upload:' . $uploadRel], (string)$course['id'], (string)$student['id']);
+check('media_resolve upload -> signed file url', str_contains($signedVideo, 'file?') && str_contains($signedVideo, 's='));
+check('media_kind hls', media_kind('https://media.test/x/index.m3u8') === 'hls' && media_kind('https://media.test/x/a.mp4') === 'video');
+check('media protected flag', media_is_protected(['video' => 'upload:x']) && !media_is_protected(['video' => 'https://x/y.mp4']));
+
+$en = lf_localize_course(course_find('test-course'), 'en');
+$zh = lf_localize_course(course_find('test-course'), 'zh');
+check('i18n en title applied', ($en['title'] ?? '') === 'Test Course EN' && ($zh['title'] ?? '') === '测试课程');
+
+check('ai disabled by default', !ai_enabled());
 
 foreach (glob($tmp . '/*') ?: [] as $f) { is_file($f) && @unlink($f); }
 @rmdir($tmp);

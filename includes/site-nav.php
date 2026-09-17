@@ -25,6 +25,7 @@ if (!function_exists('lf_nav')) {
     </nav>
     <div class="lf-nav-actions">
       <?= lf_theme_toggle() ?>
+      <a class="lf-nav-link" href="?lang=<?= lf_lang() === 'en' ? 'zh' : 'en' ?>" style="height:38px"><?= lf_lang() === 'en' ? '中文' : 'EN' ?></a>
       <?php if ($student): ?>
         <?php $unread = function_exists('notify_unread_count') ? notify_unread_count((string)$student['id']) : 0; ?>
         <a class="icon-btn lf-bell" href="<?= lf_url('/notifications') ?>" aria-label="通知">

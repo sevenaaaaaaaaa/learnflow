@@ -75,8 +75,9 @@ lf_admin_page_start(['title' => '作业 · LearnFlow 讲师后台', 'active' => 
                 <input type="hidden" name="student_id" value="<?= lf_e((string)$studentId) ?>">
                 <input type="hidden" name="back" value="/admin/assignments.php?id=<?= urlencode($viewId) ?>">
                 <div class="lf-row" style="gap:6px">
-                  <input class="lf-inp" name="grade" type="number" step="0.5" min="0" value="<?= lf_e((string)($s['grade'] ?? '')) ?>" placeholder="分数" style="height:34px;width:80px">
-                  <input class="lf-inp" name="feedback" value="<?= lf_e((string)($s['feedback'] ?? '')) ?>" placeholder="点评" style="height:34px">
+                  <input class="lf-inp" id="grade-<?= lf_e((string)$studentId) ?>" name="grade" type="number" step="0.5" min="0" value="<?= lf_e((string)($s['grade'] ?? '')) ?>" placeholder="分数" style="height:34px;width:80px">
+                  <input class="lf-inp" id="fb-<?= lf_e((string)$studentId) ?>" name="feedback" value="<?= lf_e((string)($s['feedback'] ?? '')) ?>" placeholder="点评" style="height:34px">
+                  <button class="btn subtle sm" type="button" style="height:34px" data-ai-grade data-assignment="<?= lf_e($viewId) ?>" data-student="<?= lf_e((string)$studentId) ?>" data-grade-target="grade-<?= lf_e((string)$studentId) ?>" data-fb-target="fb-<?= lf_e((string)$studentId) ?>">AI 点评</button>
                   <button class="btn primary sm" type="submit" style="height:34px">保存</button>
                 </div>
               </form>
@@ -129,4 +130,27 @@ lf_admin_page_start(['title' => '作业 · LearnFlow 讲师后台', 'active' => 
     </table>
   <?php endif; ?>
 <?php endif; ?>
+<script>
+(function () {
+  var token = '<?= lf_csrf_token() ?>';
+  var api = '<?= lf_url('/api/ai.php') ?>';
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ai-grade]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var old = btn.textContent; btn.textContent = '生成中…'; btn.disabled = true;
+      var fd = new FormData();
+      fd.append('_token', token); fd.append('action', 'grade');
+      fd.append('assignment_id', btn.getAttribute('data-assignment'));
+      fd.append('student_id', btn.getAttribute('data-student'));
+      fetch(api, { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+        btn.textContent = old; btn.disabled = false;
+        if (!d.ok) { alert(d.error || 'AI 失败'); return; }
+        var g = document.getElementById(btn.getAttribute('data-grade-target'));
+        var f = document.getElementById(btn.getAttribute('data-fb-target'));
+        if (g && d.grade != null) g.value = d.grade;
+        if (f) f.value = d.feedback || '';
+      }).catch(function () { btn.textContent = old; btn.disabled = false; alert('网络错误'); });
+    });
+  });
+})();
+</script>
 <?php lf_admin_page_end(); ?>
