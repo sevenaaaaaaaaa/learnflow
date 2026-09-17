@@ -106,9 +106,32 @@ crontab（以 www 身份执行，已配置）：
 0 9 * * * su -s /bin/sh www -c "/www/server/php/83/bin/php /www/wwwroot/learnflow/bin/remind.php" >> /www/wwwroot/learnflow/data/cron.log 2>&1
 ```
 
+MySQL 独立实例（systemd）：
+
+```ini
+# /etc/systemd/system/learnflow-mysql.service
+[Unit]
+Description=LearnFlow MySQL instance (127.0.0.1:3308)
+After=network.target
+[Service]
+Type=simple
+User=mysql
+Group=mysql
+ExecStart=/www/server/mysql/bin/mysqld --defaults-file=/www/server/learnflow-mysql/my.cnf
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+```
+
+配置 `/www/server/learnflow-mysql/my.cnf`：`port=3308`、`bind-address=127.0.0.1`、socket/pid/log 指向该目录、`utf8mb4`、低内存参数。
+
+
 运行时配置（后台「设置」页写入 `data/settings.json`）：
 
-- **数据层（MySQL 为主 / SQLite 为辅）**：默认 JSON 文件存储；后台启用后所有集合改由数据库读写（事务 + 行锁），JSON 仍作快照备份。MySQL 需先在宝塔建库：库名 `learnflow`、用户 `learnflow`、utf8mb4；再把凭据填入后台「设置 → 数据层」并保存，最后执行 `php bin/migrate.php` 导入现有 JSON。也可用 `driver=sqlite`（零配置，文件存 `data/db/learnflow.db`）。
+- **数据层（MySQL 独立实例，已启用）**：`learnflow-mysql.service` → `127.0.0.1:3308`，datadir `/www/server/learnflow-mysql/data`，低内存配置（`innodb_buffer_pool_size=64M`，与 UserLoop 的 3307 同模式），库 `learnflow`。应用驱动已切到 MySQL，JSON 集合仍作快照备份。凭据：服务器 `/root/learnflow-mysql-credentials.txt`、本机 `docs/secrets-local.md`。切换/回退：后台「设置 → 数据层」改驱动（SQLite 文件 `data/db/learnflow.db`），改动后用 `php bin/migrate.php` 补导入。
 - **SMTP**：启用后邮件直发（SSL 465 / STARTTLS 587）；未启用时邮件落 `data/mail-log.json`
 - **AI（DeepSeek）**：OpenAI 兼容协议，Key 存服务器 `data/settings.json`（勿入库），带 `daily_limit` 额度保险丝
 - **互通**：UserLoop / MFlow 出站 webhook URL + secret；签名头 `X-LF-Signature` = HMAC-SHA256(body, secret)
