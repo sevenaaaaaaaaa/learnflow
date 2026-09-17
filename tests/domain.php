@@ -3,6 +3,8 @@
 $tmp = sys_get_temp_dir() . '/learnflow-test-' . bin2hex(random_bytes(4));
 mkdir($tmp, 0755, true);
 putenv('LF_DATA_DIR=' . $tmp);
+putenv('LF_UPLOAD_DIR=' . $tmp . '/uploads');
+@mkdir($tmp . '/uploads', 0755, true);
 $_SERVER['HTTP_HOST'] = 'localhost';
 putenv('LF_ENV=dev');
 
@@ -129,6 +131,35 @@ check('course stores categories/tags', in_array('growth', (array)$withCat['categ
 
 enroll_set_group((string)$course['id'], (string)$student['id'], 'A 组');
 check('enrollment group saved', (enroll_row((string)$course['id'], (string)$student['id'])['group'] ?? '') === 'A 组');
+
+$asg = assignment_save(['course_id' => (string)$course['id'], 'title' => '第一次作业', 'allow_file' => true]);
+assignment_submit((string)$asg['id'], (string)$student['id'], '这是我的作业');
+check('assignment submission stored', (assignment_submission((string)$asg['id'], (string)$student['id'])['status'] ?? '') === 'submitted');
+assignment_grade((string)$asg['id'], (string)$student['id'], 90, '写得不错');
+$sub = assignment_submission((string)$asg['id'], (string)$student['id']);
+check('assignment graded', ($sub['status'] ?? '') === 'graded' && (float)$sub['grade'] === 90.0);
+check('assignment grade notification', in_array('assignment', array_column(notify_list((string)$student['id']), 'type'), true));
+
+$task = task_save((string)$course['id'], ['day_index' => 1, 'title' => '第 1 天任务']);
+task_complete((string)$course['id'], (string)$student['id'], (string)$task['id']);
+check('daily task completed', (task_progress((string)$course['id'], (string)$student['id'])['done'] ?? 0) === 1);
+
+checkin_do((string)$course['id'], (string)$student['id'], '打卡');
+check('checkin today', checkin_today((string)$course['id'], (string)$student['id']));
+check('checkin streak 1', checkin_streak((string)$course['id'], (string)$student['id']) === 1);
+
+$post = post_create((string)$course['id'], $student, ['type' => 'question', 'title' => '提问', 'body' => '怎么开始？']);
+post_like((string)$course['id'], (string)$post['id'], (string)$student['id']);
+comment_add((string)$course['id'], (string)$post['id'], $student, '同问');
+$p = post_find((string)$course['id'], (string)$post['id']);
+check('community post with like/comment', count((array)$p['likes']) === 1 && count((array)$p['comments']) === 1);
+
+$uploadRel = 'assignments/test/demo.txt';
+@mkdir($tmp . '/uploads/assignments/test', 0755, true);
+file_put_contents($tmp . '/uploads/' . $uploadRel, 'hi');
+$signed = lf_file_url($uploadRel, (string)$student['id']);
+check('signed file url includes base + sig', str_contains($signed, 'file?') && str_contains($signed, 's='));
+check('file path safe', lf_file_path($uploadRel) !== null && lf_file_path('../../etc/passwd') === null);
 
 foreach (glob($tmp . '/*') ?: [] as $f) { is_file($f) && @unlink($f); }
 @rmdir($tmp);

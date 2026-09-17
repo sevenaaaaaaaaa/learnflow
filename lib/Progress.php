@@ -124,6 +124,44 @@ function progress_lesson_state(string $studentId, string $courseId, string $less
     ];
 }
 
+function progress_last_activity(string $studentId, string $courseId): int
+{
+    $rows = progress_course($studentId, $courseId);
+    $last = 0;
+    foreach ($rows as $st) {
+        $t = strtotime((string)($st['updated_at'] ?? '')) ?: 0;
+        if ($t > $last) $last = $t;
+    }
+    return $last;
+}
+
+function progress_at_risk(string $courseId, int $inactiveDays = 7, int $maxPercent = 50): array
+{
+    $course = course_find($courseId);
+    if ($course === null) return [];
+    $cutoff = time() - $inactiveDays * 86400;
+    $out = [];
+    foreach (enroll_students($courseId) as $studentId => $row) {
+        $sum = progress_summary((string)$studentId, $courseId, $course);
+        if ($sum['total'] > 0 && $sum['done'] >= $sum['total']) continue;
+        $last = progress_last_activity((string)$studentId, $courseId);
+        if ($last !== 0 && $last >= $cutoff) continue;
+        if ($sum['percent'] > $maxPercent) continue;
+        $student = function_exists('student_get') ? student_get((string)$studentId) : null;
+        $out[] = [
+            'student_id' => (string)$studentId,
+            'name' => (string)($student['name'] ?? $studentId),
+            'email' => (string)($student['email'] ?? ''),
+            'percent' => $sum['percent'],
+            'done' => $sum['done'],
+            'total' => $sum['total'],
+            'last_at' => $last > 0 ? date('Y-m-d H:i', $last) : '从未学习',
+        ];
+    }
+    usort($out, fn($a, $b) => $a['percent'] <=> $b['percent']);
+    return $out;
+}
+
 function progress_curve(string $courseId): array
 {
     $course = course_find($courseId);

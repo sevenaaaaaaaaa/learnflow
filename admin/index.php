@@ -5,14 +5,17 @@ lf_admin_required();
 $courses = course_all();
 $students = student_all();
 $enrollCount = 0;
-$certCount = count(cert_all());
 foreach (enrollment_all() as $rows) $enrollCount += count($rows);
+$certCount = count(cert_all());
 
 lf_admin_page_start(['title' => '看板 · LearnFlow 讲师后台', 'active' => 'index']);
 ?>
 <div class="lf-admin-head">
   <h1>交付看板</h1>
-  <a class="btn primary sm" href="<?= lf_url('/admin/course-edit.php') ?>">+ 新建课程</a>
+  <div class="lf-row" style="flex:0 0 auto">
+    <a class="btn ghost sm" href="<?= lf_url('/admin/export.php?type=students') ?>">导出学员 CSV</a>
+    <a class="btn primary sm" href="<?= lf_url('/admin/course-edit.php') ?>">+ 新建课程</a>
+  </div>
 </div>
 
 <div class="lf-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:26px">
@@ -22,33 +25,65 @@ lf_admin_page_start(['title' => '看板 · LearnFlow 讲师后台', 'active' => 
   <div class="lf-stat"><b><?= $certCount ?></b><span>已发证书</span></div>
 </div>
 
-<h2 class="lf-sec-title" style="font-size:20px;margin-bottom:14px">完课率看板</h2>
+<h2 class="lf-sec-title" style="font-size:20px;margin-bottom:14px">完课率与学习曲线</h2>
 <?php if (!$courses): ?>
   <div class="lf-empty">还没有课程。<a href="<?= lf_url('/admin/course-edit.php') ?>">创建第一门课程</a></div>
 <?php else: ?>
-  <table class="lf-table">
-    <thead><tr><th>课程</th><th>学员</th><th>完课</th><th>完课率</th><th>状态</th><th></th></tr></thead>
-    <tbody>
-    <?php foreach ($courses as $course):
-        $enrolled = enroll_students((string)$course['id']);
-        $learners = 0; $completed = 0;
-        foreach ($enrolled as $sid => $row) {
-            $learners++;
-            $sum = progress_summary((string)$sid, (string)$course['id'], $course);
-            if ($sum['total'] > 0 && $sum['done'] >= $sum['total']) $completed++;
-        }
-        $rate = $learners > 0 ? round($completed / $learners * 100) : 0;
-    ?>
-      <tr>
-        <td><a href="<?= lf_url('/admin/course-edit.php?id=') ?><?= urlencode((string)$course['id']) ?>"><b><?= lf_e((string)$course['title']) ?></b></a><br><span class="lf-faint"><?= count((array)$course['chapters']) ?> 章 · <?= course_lesson_count($course) ?> 课时</span></td>
-        <td><?= $learners ?></td>
-        <td><?= $completed ?></td>
-        <td style="min-width:150px"><?= lf_progress_bar($rate, $rate . '%') ?></td>
-        <td><span class="lf-chip <?= ($course['status'] ?? '') === 'published' ? 'ok' : 'soft' ?>"><?= ($course['status'] ?? 'draft') === 'published' ? '已上架' : '草稿' ?></span></td>
-        <td><a class="btn subtle sm" href="<?= lf_url('/course/') ?><?= rawurlencode((string)($course['slug'] ?? $course['id'])) ?>" target="_blank">预览</a></td>
-      </tr>
-    <?php endforeach; ?>
-    </tbody>
-  </table>
+  <?php foreach ($courses as $course):
+      $enrolled = enroll_students((string)$course['id']);
+      $learners = 0; $completed = 0;
+      foreach ($enrolled as $sid => $row) {
+          $learners++;
+          $sum = progress_summary((string)$sid, (string)$course['id'], $course);
+          if ($sum['total'] > 0 && $sum['done'] >= $sum['total']) $completed++;
+      }
+      $rate = $learners > 0 ? round($completed / $learners * 100) : 0;
+      $curve = progress_curve((string)$course['id']);
+      $atRisk = progress_at_risk((string)$course['id']);
+      $checkin = checkin_course_stats((string)$course['id']);
+  ?>
+    <div class="lf-form-card" style="max-width:none;margin-bottom:18px">
+      <div class="lf-admin-head" style="margin-bottom:12px">
+        <div>
+          <b style="font-size:16px"><a href="<?= lf_url('/admin/course-edit.php?id=' . urlencode((string)$course['id'])) ?>"><?= lf_e((string)$course['title']) ?></a></b>
+          <div class="lf-faint"><?= count((array)$course['chapters']) ?> 章 · <?= course_lesson_count($course) ?> 课时 · 学员 <?= $learners ?> · 完课 <?= $completed ?> · 打卡今日 <?= (int)$checkin['today'] ?></div>
+        </div>
+        <span class="lf-chip <?= ($course['status'] ?? '') === 'published' ? 'ok' : 'soft' ?>"><?= ($course['status'] ?? 'draft') === 'published' ? '已上架' : '草稿' ?></span>
+      </div>
+      <?= lf_progress_bar((int)$rate, '完课率 ' . $rate . '%') ?>
+
+      <?php if (!empty($curve['lessons'])): ?>
+        <div style="margin-top:16px">
+          <div class="lf-faint" style="margin-bottom:6px">课时学习曲线（开始 → 完成，<?= (int)$curve['learners'] ?> 名学员）</div>
+          <div style="display:flex;gap:6px;align-items:flex-end;height:70px;overflow-x:auto;padding-bottom:4px">
+            <?php $maxStarted = max(1, max(array_map(fn($l) => max($l['started'], $l['done']), $curve['lessons']))); ?>
+            <?php foreach ($curve['lessons'] as $l): ?>
+              <div title="<?= lf_e((string)$l['title']) ?>：开始 <?= (int)$l['started'] ?> / 完成 <?= (int)$l['done'] ?>" style="flex:0 0 auto;width:22px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%">
+                <span style="height:<?= (int)round($l['started'] / $maxStarted * 60) ?>px;background:var(--accent-soft);border-radius:3px"></span>
+                <span style="height:<?= (int)round($l['done'] / $maxStarted * 60) ?>px;background:var(--accent);border-radius:3px"></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <?php if ($atRisk): ?>
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer;color:var(--warn);font-size:13.5px">风险学员 <?= count($atRisk) ?> 人（进度低且近 7 天不活跃）</summary>
+          <div class="lf-row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+            <?php foreach ($atRisk as $r): ?>
+              <span class="lf-chip" title="<?= lf_e($r['email']) ?> · 最近 <?= lf_e($r['last_at']) ?>" style="background:var(--warn-soft);color:var(--warn)"><?= lf_e($r['name']) ?> <?= (int)$r['percent'] ?>%</span>
+            <?php endforeach; ?>
+          </div>
+        </details>
+      <?php endif; ?>
+
+      <div class="lf-row" style="margin-top:10px;gap:8px">
+        <a class="btn subtle sm" href="<?= lf_url('/admin/export.php?type=progress&course=' . urlencode((string)$course['id'])) ?>">导出进度 CSV</a>
+        <a class="btn subtle sm" href="<?= lf_url('/admin/export.php?type=at_risk&course=' . urlencode((string)$course['id'])) ?>">导出风险学员</a>
+        <a class="btn subtle sm" href="<?= lf_url('/camp/' . rawurlencode((string)($course['slug'] ?? $course['id']))) ?>" target="_blank">训练营页</a>
+      </div>
+    </div>
+  <?php endforeach; ?>
 <?php endif; ?>
 <?php lf_admin_page_end(); ?>

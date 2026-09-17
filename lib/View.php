@@ -126,10 +126,13 @@ function lf_admin_page_start(array $opts = []): void
         'courses' => [lf_url('/admin/courses.php'), '课程', 'article'],
         'quizzes' => [lf_url('/admin/quizzes.php'), '测验', 'quiz'],
         'categories' => [lf_url('/admin/categories.php'), '分类', 'file'],
+        'schedule' => [lf_url('/admin/schedule.php'), '排期', 'clock'],
+        'assignments' => [lf_url('/admin/assignments.php'), '作业', 'file'],
         'students' => [lf_url('/admin/students.php'), '学员', 'user'],
         'invites' => [lf_url('/admin/invites.php'), '邀请码', 'share'],
         'certificates' => [lf_url('/admin/certificates.php'), '证书', 'cert'],
-        'notify' => [lf_url('/admin/notify.php'), '通知', 'clock'],
+        'community' => [lf_url('/admin/community.php'), '圈子', 'share'],
+        'notify' => [lf_url('/admin/notify.php'), '通知', 'share'],
         'settings' => [lf_url('/admin/settings.php'), '设置', 'chart'],
     ];
     echo '<!doctype html><html lang="zh-CN" data-theme="light"><head>';

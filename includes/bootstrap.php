@@ -17,3 +17,8 @@ require_once LF_ROOT . '/lib/PayFlow.php';
 require_once LF_ROOT . '/lib/Mailer.php';
 require_once LF_ROOT . '/lib/Notify.php';
 require_once LF_ROOT . '/lib/Events.php';
+require_once LF_ROOT . '/lib/Upload.php';
+require_once LF_ROOT . '/lib/Assignment.php';
+require_once LF_ROOT . '/lib/Schedule.php';
+require_once LF_ROOT . '/lib/Checkin.php';
+require_once LF_ROOT . '/lib/Community.php';
