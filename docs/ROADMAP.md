@@ -33,6 +33,7 @@
 
 ## 技术约束
 
-- 与 PayFlow 同栈（PHP 8.3 / SQLite / 零依赖）
+- 与矩阵同栈（PHP 8.3，零 composer 运行时依赖；MySQL 为主、SQLite 为辅）
+- 数据层：当前为 JSON；生产已具备 MySQL（PDO mysql 驱动 + openflow 库），可按需升级为主存储
 - 域名：nownexts.com/learnflow（子路径部署，服务器 `/www/wwwroot/learnflow` + Alias）
 - 部署/CF/AI 配置见 `docs/` 同名文档（OpenFlow 同步副本）
