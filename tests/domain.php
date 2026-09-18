@@ -266,6 +266,7 @@ check('api points.balance', !empty(lf_api_call('points.balance', ['student_id' =
 $tc = course_find('test-course');
 $ret = ai_retrieve($tc, '图文');
 check('ai_retrieve structure + match', isset($ret['sources'], $ret['contexts']) && count($ret['sources']) >= 1);
+check('bm25 ranks title match first', ($ret['sources'][0] ?? '') === '图文');
 check('api ai.ask scope ok (AI disabled error)', empty(lf_api_call('ai.ask', ['course_id' => 'test-course', 'question' => 'x'], ['scopes' => ['ai']])['ok']));
 check('api ai.ask read scope denied', (lf_api_call('ai.ask', ['course_id' => 'x', 'question' => 'y'], ['scopes' => ['read']])['code'] ?? 0) === 403);
 

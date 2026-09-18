@@ -19,20 +19,50 @@ function ai_tokens(string $text): array
 
 function ai_retrieve(array $course, string $question, int $top = 5): array
 {
-    $qt = array_count_values(ai_tokens($question));
-    if (!$qt) return ['sources' => [], 'contexts' => []];
+    $qTokens = ai_tokens($question);
+    if (!$qTokens) return ['sources' => [], 'contexts' => []];
+    $qCounts = array_count_values($qTokens);
+    $qUnique = array_keys($qCounts);
 
-    $scored = [];
+    $docs = [];
     foreach (course_lessons($course) as $lesson) {
-        $text = (string)($lesson['title'] ?? '') . ' ' . (string)($lesson['title'] ?? '') . ' ' . (string)($lesson['content'] ?? '');
-        $lt = array_count_values(ai_tokens($text));
-        $score = 0;
-        foreach ($qt as $tok => $qcount) {
-            if (isset($lt[$tok])) $score += $qcount * (1 + min(3, $lt[$tok]));
-        }
-        if ($score > 0) $scored[] = ['lesson' => $lesson, 'score' => $score];
+        $title = (string)($lesson['title'] ?? '');
+        $content = trim(strip_tags((string)($lesson['content'] ?? '')));
+        $docs[] = [
+            'lesson' => $lesson,
+            'title' => $title,
+            'content' => $content,
+            'titleTf' => array_count_values(ai_tokens($title)),
+            'bodyTf' => array_count_values(ai_tokens($content)),
+            'len' => max(1, count(ai_tokens($content))),
+        ];
     }
-    usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+    $n = max(1, count($docs));
+    $avgdl = 0;
+    foreach ($docs as $d) $avgdl += $d['len'];
+    $avgdl = max(1, $avgdl / $n);
+
+    $df = [];
+    foreach ($qUnique as $t) {
+        $df[$t] = 0;
+        foreach ($docs as $d) if (isset($d['bodyTf'][$t]) || isset($d['titleTf'][$t])) $df[$t]++;
+    }
+
+    $k1 = 1.5;
+    $b = 0.75;
+    $scored = [];
+    foreach ($docs as $d) {
+        $score = 0.0;
+        foreach ($qUnique as $t) {
+            $f = (int)($d['bodyTf'][$t] ?? 0) + 3 * (int)($d['titleTf'][$t] ?? 0);
+            if ($f <= 0) continue;
+            $idf = log(1 + ($n - $df[$t] + 0.5) / ($df[$t] + 0.5));
+            $score += $idf * ($f * ($k1 + 1)) / ($f + $k1 * (1 - $b + $b * $d['len'] / $avgdl));
+        }
+        foreach ($qUnique as $t) if (isset($d['titleTf'][$t])) $score += 0.5 * $qCounts[$t];
+        if ($score > 0) $scored[] = ['lesson' => $d['lesson'], 'content' => $d['content'], 'score' => $score];
+    }
+    usort($scored, fn($a, $b2) => $b2['score'] <=> $a['score']);
     $scored = array_slice($scored, 0, $top);
 
     $sources = [];
@@ -40,8 +70,7 @@ function ai_retrieve(array $course, string $question, int $top = 5): array
     foreach ($scored as $row) {
         $l = $row['lesson'];
         $title = (string)($l['title'] ?? '');
-        $content = trim(strip_tags((string)($l['content'] ?? '')));
-        $content = mb_substr($content, 0, 700);
+        $content = mb_substr($row['content'], 0, 900);
         $sources[] = $title;
         $contexts[] = '【课时：' . $title . '】' . ($l['chapter_title'] ?? '') . "\n" . ($content !== '' ? $content : '（视频/测验课时，无文字内容）');
     }
