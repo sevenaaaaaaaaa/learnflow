@@ -55,6 +55,18 @@
       }
     }
 
+    var autoNext = player.getAttribute('data-autonext');
+    if (video && autoNext) {
+      video.addEventListener('ended', function () { setTimeout(function () { location.href = autoNext; }, 900); });
+    }
+    var wm = player.getAttribute('data-wm');
+    if (wm) {
+      var ov = document.createElement('div');
+      ov.className = 'lf-wm';
+      for (var wi = 0; wi < 10; wi++) { var sp = document.createElement('span'); sp.textContent = wm; ov.appendChild(sp); }
+      player.appendChild(ov);
+    }
+
     var doneBtn = player.querySelector('[data-lf-done]');
     if (doneBtn && trackProgress) {
       doneBtn.addEventListener('click', function () {

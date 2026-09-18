@@ -87,7 +87,7 @@ lf_page_start([
 ?>
 <div class="lf-layout">
   <div>
-    <div class="lf-player-wrap" data-lf-player<?= ($studentId !== '' && $hasAccess) ? ' data-endpoint="' . lf_url('/api/progress.php') . '"' : '' ?> data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
+    <div class="lf-player-wrap" data-lf-player<?= ($studentId !== '' && $hasAccess) ? ' data-endpoint="' . lf_url('/api/progress.php') . '"' : '' ?><?= $neighbors['next'] ? ' data-autonext="' . lf_e(lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$neighbors['next']['id']))) . '"' : '' ?><?= ($studentId !== '' && lf_setting_get('watermark')) ? ' data-wm="' . lf_e((string)($student['email'] ?? $studentId)) . '"' : '' ?> data-course="<?= lf_e((string)$course['id']) ?>" data-lesson="<?= lf_e((string)$lesson['id']) ?>" data-resume="<?= (int)$resumePosition ?>">
       <?php if ($lessonType === 'video' && !empty($lesson['video'])):
           $videoUrl = media_resolve($lesson, (string)$course['id'], $hasAccess ? $studentId : '');
           $videoKind = media_kind($videoUrl);
@@ -95,7 +95,9 @@ lf_page_start([
         <?php if ($videoKind === 'hls'): ?>
           <script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
         <?php endif; ?>
-        <video class="lf-player-video" controls playsinline preload="metadata"<?= $videoKind === 'hls' ? ' data-hls="1"' : '' ?> src="<?= lf_e($videoUrl) ?><?= ($resumePosition > 2 && $videoKind !== 'hls') ? '#t=' . (int)$resumePosition : '' ?>"></video>
+        <video class="lf-player-video" controls playsinline preload="metadata"<?= $videoKind === 'hls' ? ' data-hls="1"' : '' ?><?= !empty($lesson['poster']) ? ' poster="' . lf_e((string)$lesson['poster']) . '"' : '' ?> src="<?= lf_e($videoUrl) ?><?= ($resumePosition > 2 && $videoKind !== 'hls') ? '#t=' . (int)$resumePosition : '' ?>">
+          <?php if (!empty($lesson['subtitle'])): ?><track kind="subtitles" srclang="zh" label="字幕" src="<?= lf_e((string)$lesson['subtitle']) ?>" default><?php endif; ?>
+        </video>
         <?php if ($videoKind === 'hls'): ?>
           <script>document.addEventListener('DOMContentLoaded',function(){var v=document.querySelector('[data-hls]');if(v&&window.Hls&&window.Hls.isSupported()){var h=new window.Hls();h.loadSource(v.getAttribute('src'));h.attachMedia(v);}else if(v){v.play&&0;}});</script>
         <?php endif; ?>
@@ -143,7 +145,14 @@ lf_page_start([
         <div class="lf-player-art">
           <span class="lf-kicker"><?= lf_e(lf_lesson_type_label($lessonType)) ?></span>
           <h1 style="font-family:var(--font-display);margin:10px 0"><?= lf_e((string)$lesson['title']) ?></h1>
-          <div class="lf-prose" style="margin-top:18px"><?= $lesson['content'] ?? '' ?></div>
+          <div class="lf-prose" id="lf-prose" style="margin-top:18px"><?= $lesson['content'] ?? '' ?></div>
+          <?php if ($studentId !== '' && $hasAccess && $lessonType === 'article'): ?>
+            <div style="margin-top:14px;border-top:1px solid var(--border-soft);padding-top:12px">
+              <button class="btn ghost sm" type="button" id="hl-btn"><?= lf_t('高亮所选文字', 'Highlight selection') ?></button>
+              <span class="lf-faint" id="hl-state" style="margin-left:8px">选中正文文字后可高亮并写批注</span>
+              <div id="hl-list" style="margin-top:10px;display:grid;gap:8px"></div>
+            </div>
+          <?php endif; ?>
         </div>
       <?php endif; ?>
     </div>
@@ -268,6 +277,51 @@ lf_page_start([
     <?php endif; ?>
   </aside>
 </div>
+<?php if ($studentId !== '' && $hasAccess && $lessonType === 'article'): ?>
+<script>
+(function () {
+  var prose = document.getElementById('lf-prose'), btn = document.getElementById('hl-btn'), list = document.getElementById('hl-list'), state = document.getElementById('hl-state');
+  if (!prose || !btn) return;
+  var API = '<?= lf_url('/api/highlight.php') ?>', TOKEN = '<?= lf_csrf_token() ?>', CID = '<?= lf_e((string)$course['id']) ?>', LID = '<?= lf_e((string)$lesson['id']) ?>';
+  var existing = <?= json_encode(highlights_for($studentId, (string)$course['id'], (string)$lesson['id']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function wrap(h) {
+    if (!h.text) return;
+    var walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT), n;
+    while ((n = walker.nextNode())) {
+      var i = n.nodeValue.indexOf(h.text);
+      if (i >= 0) {
+        var r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + h.text.length);
+        var m = document.createElement('mark'); m.className = 'lf-hl lf-hl-' + (h.color || 'yellow'); m.dataset.hid = h.id; m.title = h.note || '';
+        try { r.surroundContents(m); } catch (e) {}
+        break;
+      }
+    }
+  }
+  function renderList() {
+    list.innerHTML = '';
+    existing.forEach(function (h) {
+      var d = document.createElement('div'); d.className = 'lf-flash info'; d.style.fontSize = '13px';
+      d.innerHTML = '<b>“' + esc(h.text) + '”</b>' + (h.note ? ('<br>' + esc(h.note)) : '') + ' <a href="#" data-del="' + h.id + '" style="margin-left:6px;color:var(--danger)">删除</a>';
+      list.appendChild(d);
+    });
+  }
+  existing.forEach(wrap); renderList();
+  list.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-del]'); if (!a) return; e.preventDefault();
+    var fd = new FormData(); fd.append('_token', TOKEN); fd.append('action', 'delete'); fd.append('course_id', CID); fd.append('lesson_id', LID); fd.append('id', a.getAttribute('data-del'));
+    fetch(API, { method: 'POST', body: fd }).then(function () { location.reload(); });
+  });
+  btn.addEventListener('click', function () {
+    var sel = window.getSelection(), text = sel ? sel.toString().trim() : '';
+    if (!text) { state.textContent = '请先选中正文文字'; return; }
+    var note = prompt('批注（可选）'); if (note === null) return;
+    var fd = new FormData(); fd.append('_token', TOKEN); fd.append('action', 'add'); fd.append('course_id', CID); fd.append('lesson_id', LID); fd.append('text', text); fd.append('note', note);
+    fetch(API, { method: 'POST', body: fd }).then(function () { location.reload(); });
+  });
+})();
+</script>
+<?php endif; ?>
 <script>
 (function () {
   var s = document.getElementById('lf-lesson-search'); if (!s) return;

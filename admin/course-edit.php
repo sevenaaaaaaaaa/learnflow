@@ -37,6 +37,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: ' . lf_url('/admin/courses.php'));
         exit;
     }
+    $formAction = (string)($_POST['form_action'] ?? '');
+    if ($formAction === 'comment_add') {
+        if ((string)($_POST['body'] ?? '') !== '') {
+            team_comment_add((string)($course['id'] ?? ''), (string)lf_admin_current(), (string)$_POST['body'], (string)($_POST['lesson_id'] ?? ''));
+            lf_flash('ok', '已添加批注。');
+        }
+        header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)($course['id'] ?? '')) . '#team'));
+        exit;
+    }
+    if ($formAction === 'comment_resolve') {
+        team_comment_resolve((string)($course['id'] ?? ''), (string)($_POST['id'] ?? ''));
+        header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)($course['id'] ?? '')) . '#team'));
+        exit;
+    }
+    if ($formAction === 'restore') {
+        if (lf_admin_role() !== 'admin') {
+            lf_flash('danger', '仅管理员可恢复版本。');
+        } else {
+            $restored = revision_restore((string)($course['id'] ?? ''), (string)($_POST['rev_id'] ?? ''));
+            lf_flash($restored ? 'ok' : 'danger', $restored ? '已恢复到该版本。' : '版本不存在。');
+        }
+        header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)($course['id'] ?? ''))));
+        exit;
+    }
     $raw = [
         'id' => $course['id'] ?? '',
         'title' => (string)($_POST['title'] ?? ''),
@@ -82,6 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'title' => (string)($l['title'] ?? ''),
                 'duration' => (int)($l['duration'] ?? 0),
                 'video' => (string)($l['video'] ?? ''),
+                'poster' => (string)($l['poster'] ?? ''),
+                'subtitle' => (string)($l['subtitle'] ?? ''),
                 'content' => (string)($l['content'] ?? ''),
                 'quiz_id' => (string)($l['quiz_id'] ?? ''),
                 'live_url' => (string)($l['live_url'] ?? ''),
@@ -102,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($i18nLessons) $raw['i18n']['en']['lessons'] = $i18nLessons;
     if (lf_admin_role() !== 'admin' && ($raw['status'] ?? '') === 'published') $raw['status'] = 'pending';
     $saved = course_save(course_normalize($raw));
+    revision_snapshot($saved, (string)lf_admin_current());
     lf_flash('ok', '课程已保存。');
     header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)$saved['id'])));
     exit;
@@ -202,6 +229,72 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
   </div>
 </form>
 
+<?php if (!$isNew && $course['id'] !== ''): ?>
+  <div class="lf-form-card" style="max-width:none;margin-top:20px">
+    <div id="lf-presence" class="lf-faint" style="margin-bottom:10px"></div>
+    <h3 style="margin:0 0 10px;font-size:16px">历史版本（最近 20 次保存）</h3>
+    <?php $revs = revision_list((string)$course['id']); if (!$revs): ?>
+      <div class="lf-empty">还没有版本记录。</div>
+    <?php else: ?>
+      <table class="lf-table">
+        <thead><tr><th>时间</th><th>保存人</th><th>状态</th><th></th></tr></thead>
+        <tbody>
+          <?php foreach ($revs as $r): ?>
+            <tr>
+              <td class="lf-faint"><?= lf_e((string)$r['at']) ?></td>
+              <td><?= lf_e((string)$r['by']) ?></td>
+              <td class="lf-faint"><?= lf_e((string)$r['status']) ?></td>
+              <td><?php if (lf_admin_role() === 'admin'): ?><form method="post" style="margin:0" onsubmit="return confirm('恢复到该版本？当前内容会先备份。')"><?= lf_csrf_field() ?><input type="hidden" name="form_action" value="restore"><input type="hidden" name="rev_id" value="<?= lf_e((string)$r['id']) ?>"><button class="btn subtle sm" type="submit">恢复</button></form><?php endif; ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    <?php endif; ?>
+  </div>
+
+  <div class="lf-form-card" style="max-width:none;margin-top:20px" id="team">
+    <h3 style="margin:0 0 10px;font-size:16px">团队批注</h3>
+    <form method="post" style="margin-bottom:14px">
+      <?= lf_csrf_field() ?><input type="hidden" name="form_action" value="comment_add">
+      <div class="lf-row" style="align-items:flex-end">
+        <div class="lf-field" style="margin:0;flex:2"><label>批注内容</label><input class="lf-inp" name="body" required placeholder="给同事的修改建议、待办…"></div>
+        <div class="lf-field" style="margin:0"><label>关联课时（可选）</label><select class="lf-inp" name="lesson_id"><option value="">— 课程级 —</option><?php foreach (course_lessons($course) as $l): ?><option value="<?= lf_e((string)$l['id']) ?>"><?= lf_e((string)($l['title'] ?? '')) ?></option><?php endforeach; ?></select></div>
+        <button class="btn primary sm" type="submit" style="flex:0 0 auto">添加</button>
+      </div>
+    </form>
+    <?php $tcs = team_comments((string)$course['id']); if (!$tcs): ?>
+      <div class="lf-faint">暂无批注。</div>
+    <?php else: ?>
+      <div style="display:grid;gap:8px">
+        <?php foreach ($tcs as $c): ?>
+          <div class="lf-flash <?= !empty($c['resolved']) ? '' : 'info' ?>" style="font-size:13.5px;<?= !empty($c['resolved']) ? 'opacity:.6' : '' ?>">
+            <b><?= lf_e((string)$c['author']) ?></b> <span class="lf-faint"><?= lf_e((string)$c['at']) ?></span>
+            <?php if (!empty($c['resolved'])): ?> <span class="lf-chip ok">已解决</span><?php endif; ?>
+            <div style="margin-top:4px"><?= nl2br(lf_e((string)$c['body'])) ?></div>
+            <?php if (empty($c['resolved'])): ?><form method="post" style="margin-top:6px"><?= lf_csrf_field() ?><input type="hidden" name="form_action" value="comment_resolve"><input type="hidden" name="id" value="<?= lf_e((string)$c['id']) ?>"><button class="btn subtle sm" type="submit" style="height:26px">标记解决</button></form><?php endif; ?>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
+  <script>
+  (function () {
+    var key = 'course:<?= lf_e((string)$course['id']) ?>';
+    function beat() {
+      var fd = new FormData();
+      fd.append('_token', '<?= lf_csrf_token() ?>');
+      fd.append('key', key);
+      fetch('<?= lf_url('/api/presence.php') ?>', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+        var el = document.getElementById('lf-presence');
+        if (!el || !d.ok) return;
+        el.textContent = (d.others && d.others.length) ? ('⚠ ' + d.others.map(function (o) { return o.who; }).join('、') + ' 也正在编辑本课程') : '';
+      }).catch(function () {});
+    }
+    beat(); setInterval(beat, 30000);
+  })();
+  </script>
+<?php endif; ?>
+
 <template id="tpl-chapter">
   <div class="lf-form-card chapter-box" style="max-width:none;margin-bottom:16px" data-chapter>
     <div class="lf-row" style="align-items:flex-end">
@@ -233,6 +326,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
           <button class="btn subtle sm" type="button" data-upload-video style="flex:0 0 auto">上传</button>
         </div>
         <input type="file" accept="video/*,.m3u8" data-video-file style="display:none">
+        <div class="lf-row" style="margin-top:6px"><input class="lf-inp" data-name="poster" placeholder="封面图 URL（poster）" style="flex:1"><input class="lf-inp" data-name="subtitle" placeholder="字幕 VTT URL（.vtt）" style="flex:1"></div>
       </div>
       <div class="lf-field" style="margin:0" data-field="quiz"><label>关联测验</label><select class="lf-inp" data-name="quiz_id"><option value="">— 选择测验 —</option><?php foreach ($quizzes as $qid => $q): ?><option value="<?= lf_e((string)$qid) ?>"><?= lf_e((string)($q['title'] ?? $qid)) ?></option><?php endforeach; ?></select></div>
       <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-name="free"> 试看</label>
@@ -269,6 +363,8 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
               'type' => (string)($l['type'] ?? 'article'),
               'duration' => (int)($l['duration'] ?? 0),
               'video' => (string)($l['video'] ?? ''),
+              'poster' => (string)($l['poster'] ?? ''),
+              'subtitle' => (string)($l['subtitle'] ?? ''),
               'content' => (string)($l['content'] ?? ''),
               'quiz_id' => (string)($l['quiz_id'] ?? ''),
               'live_url' => (string)($l['live_url'] ?? ''),
@@ -344,7 +440,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     var ls = tplLesson.content.firstElementChild.cloneNode(true);
     data = data || {};
     setVal(ls, 'id', data.id); setVal(ls, 'title', data.title); setVal(ls, 'type', data.type || 'article');
-    setVal(ls, 'duration', data.duration); setVal(ls, 'video', data.video); setVal(ls, 'content', data.content);
+    setVal(ls, 'duration', data.duration); setVal(ls, 'video', data.video); setVal(ls, 'poster', data.poster); setVal(ls, 'subtitle', data.subtitle); setVal(ls, 'content', data.content);
     setVal(ls, 'quiz_id', data.quiz_id); setVal(ls, 'free', data.free); setVal(ls, 'attachments', data.attachments);
     setVal(ls, 'live_url', data.live_url); setVal(ls, 'live_room_id', data.live_room_id); setVal(ls, 'live_start', data.live_start); setVal(ls, 'live_end', data.live_end);
     setVal(ls, 'en_title', data.en_title); setVal(ls, 'en_content', data.en_content);

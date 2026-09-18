@@ -326,6 +326,30 @@ check('course attachments aggregate', count(course_attachments($fileCourse)) ===
 check('lesson_dropoff structure', is_array(lesson_dropoff((string)$course['id'])));
 check('quiz_question_stats structure', is_array(quiz_question_stats((string)$course['id'])));
 
+$hl = highlight_add((string)$student['id'], (string)$course['id'], (string)$article['id'], '交付闭环', '重点');
+check('highlight add/list', count(highlights_for((string)$student['id'], (string)$course['id'], (string)$article['id'])) === 1 && ($hl['text'] ?? '') === '交付闭环');
+highlight_delete((string)$student['id'], (string)$course['id'], (string)$article['id'], (string)$hl['id']);
+check('highlight delete', count(highlights_for((string)$student['id'], (string)$course['id'], (string)$article['id'])) === 0);
+$pv = course_save(course_normalize(['title' => '封面课', 'chapters' => [['title' => 'c', 'lessons' => [['type' => 'video', 'title' => 'v', 'poster' => 'https://x/p.jpg', 'subtitle' => 'https://x/s.vtt']]]]]));
+$pvl = course_lessons($pv)[0];
+check('lesson poster+subtitle saved', ($pvl['poster'] ?? '') === 'https://x/p.jpg' && ($pvl['subtitle'] ?? '') === 'https://x/s.vtt');
+
+$revCourse = course_find('test-course');
+revision_snapshot($revCourse, 'tester');
+check('revision snapshot/list', count(revision_list((string)$revCourse['id'])) >= 1);
+$rev = revision_list((string)$revCourse['id'])[0];
+$restored = revision_restore((string)$revCourse['id'], (string)$rev['id']);
+check('revision restore', $restored !== null && ($restored['id'] ?? '') === (string)$revCourse['id']);
+
+presence_touch('course:test', 'alice');
+presence_touch('course:test', 'bob');
+check('presence others', count(presence_others('course:test', 'alice')) === 1);
+
+$tc = team_comment_add('test-course', 'alice', '这里建议补充案例');
+check('team comment add/list', count(team_comments('test-course')) >= 1);
+team_comment_resolve('test-course', (string)$tc['id']);
+check('team comment resolve', !empty(team_comments('test-course')[0]['resolved']));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

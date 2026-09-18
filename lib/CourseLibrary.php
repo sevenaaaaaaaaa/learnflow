@@ -175,6 +175,8 @@ function course_normalize(array $input): array
                 'title' => trim((string)($l['title'] ?? '')),
                 'duration' => max(0, (int)($l['duration'] ?? 0)),
                 'video' => trim((string)($l['video'] ?? '')),
+                'poster' => trim((string)($l['poster'] ?? '')),
+                'subtitle' => trim((string)($l['subtitle'] ?? '')),
                 'content' => (string)($l['content'] ?? ''),
                 'quiz_id' => (string)($l['quiz_id'] ?? ''),
                 'attachments' => array_values(array_filter((array)($l['attachments'] ?? []))),

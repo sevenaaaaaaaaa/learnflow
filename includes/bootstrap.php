@@ -43,3 +43,7 @@ require_once LF_ROOT . '/lib/Membership.php';
 require_once LF_ROOT . '/lib/Points.php';
 require_once LF_ROOT . '/lib/Live.php';
 require_once LF_ROOT . '/lib/Note.php';
+require_once LF_ROOT . '/lib/Highlight.php';
+require_once LF_ROOT . '/lib/Revision.php';
+require_once LF_ROOT . '/lib/Presence.php';
+require_once LF_ROOT . '/lib/TeamComment.php';
