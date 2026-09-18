@@ -62,7 +62,7 @@
 | 移动端 | PWA（可安装、离线壳）；学员 API + 微信小程序工程（`miniprogram/`，见 `docs/MINIPROGRAM.md`） |
 | 内容台 | 富文本编辑器（图片上传 / 排版 / Markdown 导入）、素材库（公共图床 URL）、通知/邮件文案模板、定时发布 |
 | 分销与拼团 | 多级分销佣金**记录/归因/待结算汇总**（不动资金）；拼团属资金域，交 PayFlow |
-| AI（DeepSeek） | 作业点评、测验出题、学习周报、**课程资料 RAG 问答**、课程大纲生成（每日额度保险丝） |
+| AI（DeepSeek） | 作业点评、测验出题、学习周报、课程资料 RAG 问答、**讲义生成、资料→课程、营销文案（朋友圈/社群/直播脚本/口播/PPT/邮件）、工作台助手**（每日额度保险丝） |
 | 互通 | PayFlow 购买即入学；**事件实时投递 UserLoop 旅程/Loop 引擎**（私域触达与自动化由 UserLoop 承载）；MFlow 走通用 webhook（HMAC） |
 | Agent 接口 | API Key（read/write/ai 作用域 + 限流 + 审计）、REST `/api/v1`、**MCP server `/mcp`**（26 个工具，见 `docs/API-MCP.md`） |
 | 内容安全 | 上传鉴权、签名 URL + Range、`uploads/` 禁止直连、CSRF、越权拦截 |

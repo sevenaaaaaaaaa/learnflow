@@ -413,6 +413,49 @@ function lf_api_tools(): array
                 return ['chapters' => $data['chapters']];
             },
         ],
+        'content.generate_lesson' => [
+            'scope' => 'ai', 'description' => '为某课时生成讲义正文（可选直接写入）',
+            'schema' => $obj(['course_id' => $str(), 'lesson_id' => $str(), 'hint' => $str(), 'write' => $bool()], ['course_id', 'lesson_id']),
+            'handler' => function (array $p) {
+                if (!ai_enabled()) throw new RuntimeException('AI 未启用');
+                $course = course_find((string)$p['course_id']);
+                if ($course === null) throw new RuntimeException('课程不存在');
+                $lesson = course_lesson_find($course, (string)$p['lesson_id']);
+                if ($lesson === null) throw new RuntimeException('课时不存在');
+                $html = ai_lesson_content($course, $lesson, (string)($p['hint'] ?? ''));
+                if ($html === null) throw new RuntimeException('AI 生成失败');
+                if (!empty($p['write'])) {
+                    foreach ((array)$course['chapters'] as $ci => $ch) {
+                        foreach ((array)($ch['lessons'] ?? []) as $li => $l) {
+                            if ((string)($l['id'] ?? '') === (string)$lesson['id']) $course['chapters'][$ci]['lessons'][$li]['content'] = $html;
+                        }
+                    }
+                    course_save(course_normalize($course));
+                }
+                return ['html' => $html, 'written' => !empty($p['write'])];
+            },
+        ],
+        'content.marketing' => [
+            'scope' => 'ai', 'description' => '生成营销文案（page/moments/community/live/shortvideo/ppt/email）',
+            'schema' => $obj(['type' => $str(), 'topic' => $str(), 'extra' => $str()], ['topic']),
+            'handler' => function (array $p) {
+                if (!ai_enabled()) throw new RuntimeException('AI 未启用');
+                $text = ai_marketing((string)($p['type'] ?? 'page'), (string)$p['topic'], (string)($p['extra'] ?? ''));
+                if ($text === null) throw new RuntimeException('AI 生成失败');
+                $draft = ai_draft_save((string)($p['type'] ?? 'page'), (string)$p['topic'], $text);
+                return ['content' => $text, 'draft_id' => $draft['id']];
+            },
+        ],
+        'content.outline_from_text' => [
+            'scope' => 'ai', 'description' => '根据提供的文本资料生成课程大纲',
+            'schema' => $obj(['text' => $str(), 'title' => $str()], ['text']),
+            'handler' => function (array $p) {
+                if (!ai_enabled()) throw new RuntimeException('AI 未启用');
+                $data = ai_outline_from_text((string)$p['text'], (string)($p['title'] ?? ''));
+                if ($data === null) throw new RuntimeException('AI 生成失败');
+                return ['title' => (string)($data['title'] ?? ''), 'chapters' => $data['chapters']];
+            },
+        ],
         'ai.weekly_report' => [
             'scope' => 'ai', 'description' => '生成课程运营周报（文本）',
             'schema' => $obj(['course_id' => $str()], ['course_id']),

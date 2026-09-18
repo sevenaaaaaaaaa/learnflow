@@ -129,6 +129,7 @@ function lf_admin_page_start(array $opts = []): void
         'quizzes' => [lf_url('/admin/quizzes.php'), '测验', 'quiz'],
         'categories' => [lf_url('/admin/categories.php'), '分类', 'file'],
         'media' => [lf_url('/admin/media.php'), '素材', 'file'],
+        'ai' => [lf_url('/admin/ai.php'), 'AI 工作台', 'chart'],
         'schedule' => [lf_url('/admin/schedule.php'), '排期', 'clock'],
         'assignments' => [lf_url('/admin/assignments.php'), '作业', 'file'],
         'students' => [lf_url('/admin/students.php'), '学员', 'user'],
@@ -174,6 +175,7 @@ function lf_admin_page_end(): void
     echo '</main></div>';
     echo '<script src="' . lf_url('/assets/app.js') . '?v=' . LF_SHELL_VER . '" defer></script>';
     echo '<script src="' . lf_url('/assets/editor.js') . '?v=' . LF_SHELL_VER . '" defer></script>';
+    echo '<script src="' . lf_url('/assets/admin-ai.js') . '?v=' . LF_SHELL_VER . '" defer></script>';
     echo '</body></html>';
 }
 

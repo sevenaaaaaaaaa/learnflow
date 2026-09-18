@@ -297,6 +297,15 @@ check('media library delete', media_find((string)$savedMedia['id']) === null);
 $pc = course_save(course_normalize(['title' => '定时课', 'status' => 'draft', 'publish_at' => '2030-01-01T10:00']));
 check('publish_at saved', ($pc['publish_at'] ?? '') === '2030-01-01T10:00');
 
+check('marketing types', count(ai_marketing_types()) === 7);
+$matFile = $tmp . '/material.txt';
+file_put_contents($matFile, str_repeat('增长飞轮与交付闭环。', 10));
+check('doc extract txt', mb_strlen(ai_extract_text($matFile, 'txt')) > 20);
+$draft = ai_draft_save('page', '测试主题', '文案内容');
+check('ai draft saved', ($draft['id'] ?? '') !== '' && count(ai_drafts()) >= 1);
+check('content.marketing scope denied', (lf_api_call('content.marketing', ['topic' => 'x'], ['scopes' => ['read']])['code'] ?? 0) === 403);
+check('content.generate_lesson reachable (AI off)', empty(lf_api_call('content.generate_lesson', ['course_id' => 'x', 'lesson_id' => 'y'], ['scopes' => ['ai']])['ok']));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

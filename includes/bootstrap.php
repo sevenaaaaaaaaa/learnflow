@@ -27,6 +27,8 @@ require_once LF_ROOT . '/lib/Media.php';
 require_once LF_ROOT . '/lib/MediaLibrary.php';
 require_once LF_ROOT . '/lib/Ai.php';
 require_once LF_ROOT . '/lib/AiKnowledge.php';
+require_once LF_ROOT . '/lib/AiContent.php';
+require_once LF_ROOT . '/lib/DocExtract.php';
 require_once LF_ROOT . '/lib/I18n.php';
 require_once LF_ROOT . '/lib/Markdown.php';
 require_once LF_ROOT . '/lib/ApiKey.php';

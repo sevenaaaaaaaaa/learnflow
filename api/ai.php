@@ -68,4 +68,63 @@ if ($action === 'outline') {
     lf_json_out(['ok' => true, 'chapters' => $data['chapters']]);
 }
 
+if ($action === 'lesson_content') {
+    $course = course_find((string)($_POST['course_id'] ?? ''));
+    if ($course === null) lf_json_out(['ok' => false, 'error' => '课程不存在'], 404);
+    $lesson = course_lesson_find($course, (string)($_POST['lesson_id'] ?? ''));
+    if ($lesson === null) lf_json_out(['ok' => false, 'error' => '课时不存在'], 404);
+    $html = ai_lesson_content($course, $lesson, (string)($_POST['hint'] ?? ''));
+    if ($html === null) lf_json_out(['ok' => false, 'error' => 'AI 生成失败'], 502);
+    if (!empty($_POST['write'])) {
+        foreach ((array)($course['chapters'] ?? []) as $ci => $ch) {
+            foreach ((array)($ch['lessons'] ?? []) as $li => $l) {
+                if ((string)($l['id'] ?? '') === (string)$lesson['id']) {
+                    $course['chapters'][$ci]['lessons'][$li]['content'] = $html;
+                }
+            }
+        }
+        course_save(course_normalize($course));
+    }
+    lf_json_out(['ok' => true, 'html' => $html, 'written' => !empty($_POST['write'])]);
+}
+
+if ($action === 'marketing') {
+    $type = (string)($_POST['type'] ?? 'page');
+    $topic = trim((string)($_POST['topic'] ?? ''));
+    if ($topic === '') lf_json_out(['ok' => false, 'error' => '请填写主题/课程'], 400);
+    $text = ai_marketing($type, $topic, (string)($_POST['extra'] ?? ''));
+    if ($text === null) lf_json_out(['ok' => false, 'error' => 'AI 生成失败'], 502);
+    $draft = ai_draft_save($type, $topic, $text);
+    lf_json_out(['ok' => true, 'content' => $text, 'draft_id' => $draft['id']]);
+}
+
+if ($action === 'from_material') {
+    if (empty($_FILES['file'])) lf_json_out(['ok' => false, 'error' => '缺少资料文件'], 400);
+    try {
+        $saved = lf_upload_save($_FILES['file'], 'materials');
+    } catch (Throwable $e) {
+        lf_json_out(['ok' => false, 'error' => $e->getMessage()], 400);
+    }
+    $path = lf_file_path((string)$saved['rel']);
+    $text = $path !== null ? ai_extract_text($path, (string)$saved['ext']) : '';
+    if (strlen(trim($text)) < 30) {
+        lf_json_out(['ok' => false, 'error' => '未能从资料中提取到足够文本（支持 txt/md/csv/html/docx/pptx）'], 422);
+    }
+    $outline = ai_outline_from_text($text, (string)($_POST['title'] ?? ''));
+    if ($outline === null) lf_json_out(['ok' => false, 'error' => 'AI 生成大纲失败'], 502);
+    $media = media_add($saved, ['scope' => 'materials']);
+    lf_json_out(['ok' => true, 'title' => (string)($outline['title'] ?? ''), 'chapters' => $outline['chapters'], 'material_id' => $media['id'], 'chars' => mb_strlen($text)]);
+}
+
+if ($action === 'assistant') {
+    $prompt = trim((string)($_POST['prompt'] ?? ''));
+    if ($prompt === '') lf_json_out(['ok' => false, 'error' => '请输入内容'], 400);
+    $text = ai_chat([
+        ['role' => 'system', 'content' => '你是 LearnFlow 工作台助手，帮助知识付费创作者运营课程：选题、内容、招生、训练营运营、数据答疑。回答用中文、直接可执行、简洁。'],
+        ['role' => 'user', 'content' => $prompt],
+    ], 0.7, 1200);
+    if ($text === null) lf_json_out(['ok' => false, 'error' => 'AI 生成失败'], 502);
+    lf_json_out(['ok' => true, 'content' => $text]);
+}
+
 lf_json_out(['ok' => false, 'error' => '未知操作'], 400);
