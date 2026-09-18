@@ -386,6 +386,11 @@ check('autonomy guarded blocks medium', empty(autonomy_reason('reminder')['ok'])
 autonomy_record('marketing');
 check('autonomy daily cap enforced', empty(autonomy_reason('marketing')['ok']));
 
+$strat = strategy_find('test:action');
+check('strategy recorded from execute', $strat !== null && (int)$strat['runs'] >= 1 && (int)$strat['failures'] >= 1);
+check('strategy stats', isset(strategy_stats()['success_rate']) && strategy_stats()['count'] >= 1);
+check('api strategy.list', !empty(lf_api_call('strategy.list', [], ['scopes' => ['read']])['ok']));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

@@ -153,6 +153,10 @@ function evolution_execute(string $id, bool $auto = false): array
     if ($proposal === null) return ['ok' => false, 'result' => '建议不存在'];
     $action = (array)($proposal['action'] ?? []);
     $res = evolution_run_action($action);
+    if (function_exists('strategy_touch_on_execute')) {
+        strategy_touch_on_execute($proposal);
+        if (empty($res['ok'])) strategy_verdict($id, false);
+    }
     $status = !empty($res['ok']) ? 'executed' : 'failed';
     json_update(evolution_file(), function (array $s) use ($id, $status, $res, $auto) {
         foreach (($s['proposals'] ?? []) as $i => $p) {
@@ -191,7 +195,7 @@ function evolution_generate(): array
         if (in_array($id, $detectedIds, true)) continue;
         $st = (string)($p['status'] ?? 'open');
         if ($st === 'open') { $p['status'] = 'resolved'; }
-        elseif ($st === 'executed') { $p['status'] = 'verified'; $p['verified_at'] = $now; }
+        elseif ($st === 'executed') { $p['status'] = 'verified'; $p['verified_at'] = $now; if (function_exists('strategy_verdict')) strategy_verdict($id, true); }
         $p['updated_at'] = $now;
         $next[] = $p;
     }

@@ -306,6 +306,15 @@ function lf_api_tools(): array
                 return ['points' => points_balance($sid), 'achievements' => (array)(points_of($sid)['achievements'] ?? [])];
             },
         ],
+        'strategy.list' => [
+            'scope' => 'read', 'description' => '自进化策略库与效果统计',
+            'schema' => $obj([]),
+            'handler' => function () {
+                $out = [];
+                foreach (strategy_all() as $s) $out[] = ['key' => $s['key'], 'title' => $s['title'] ?? '', 'category' => $s['category'] ?? '', 'action_type' => $s['action_type'] ?? '', 'runs' => (int)($s['runs'] ?? 0), 'successes' => (int)($s['successes'] ?? 0), 'failures' => (int)($s['failures'] ?? 0), 'status' => $s['status'] ?? 'active'];
+                return ['stats' => strategy_stats(), 'strategies' => $out];
+            },
+        ],
         'commission.list' => [
             'scope' => 'read', 'description' => '分销佣金记录与汇总',
             'schema' => $obj([]),

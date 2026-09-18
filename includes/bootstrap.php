@@ -50,3 +50,4 @@ require_once LF_ROOT . '/lib/Presence.php';
 require_once LF_ROOT . '/lib/TeamComment.php';
 require_once LF_ROOT . '/lib/SelfEvolve.php';
 require_once LF_ROOT . '/lib/Autonomy.php';
+require_once LF_ROOT . '/lib/Strategy.php';

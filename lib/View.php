@@ -144,11 +144,12 @@ function lf_admin_page_start(array $opts = []): void
         'commissions' => [lf_url('/admin/commissions.php'), '分销', 'share'],
         'apikeys' => [lf_url('/admin/apikeys.php'), 'API/MCP', 'share'],
         'evolution' => [lf_url('/admin/evolution.php'), '自进化', 'chart'],
+        'strategies' => [lf_url('/admin/strategies.php'), '策略库', 'chart'],
         'audit' => [lf_url('/admin/audit.php'), '审计', 'file'],
         'users' => [lf_url('/admin/users.php'), '账号', 'user'],
         'settings' => [lf_url('/admin/settings.php'), '设置', 'chart'],
     ];
-    $adminOnlyKeys = ['marketing', 'membership', 'commissions', 'apikeys', 'audit', 'evolution', 'users', 'settings'];
+    $adminOnlyKeys = ['marketing', 'membership', 'commissions', 'apikeys', 'audit', 'evolution', 'strategies', 'users', 'settings'];
     $role = function_exists('lf_admin_role') ? lf_admin_role() : 'admin';
     if ($role !== 'admin') {
         foreach ($adminOnlyKeys as $k) unset($nav[$k]);
