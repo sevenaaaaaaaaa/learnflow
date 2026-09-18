@@ -23,6 +23,10 @@ if (!function_exists('lf_head')) {
         echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
         echo '<meta property="og:site_name" content="' . lf_e((string)(lf_setting_get('site_name') ?: 'LearnFlow')) . '">' . "\n";
         echo '<link rel="icon" href="' . lf_e(lf_favicon_data_uri()) . '">' . "\n";
+        echo '<link rel="manifest" href="' . lf_url('/manifest.webmanifest') . '">' . "\n";
+        echo '<meta name="theme-color" content="#2f6bff">' . "\n";
+        echo '<link rel="apple-touch-icon" href="' . lf_url('/assets/icon.svg') . '">' . "\n";
+        echo '<script>window.LF_BASE=' . json_encode(lf_base_path()) . ';</script>' . "\n";
         echo '<script>try{var t=JSON.parse(localStorage.getItem("learnflow-theme")||"{}");if(t.theme)document.documentElement.dataset.theme=t.theme;else if(matchMedia("(prefers-color-scheme:dark)").matches)document.documentElement.dataset.theme="dark";}catch(e){}</script>' . "\n";
         echo '<link rel="stylesheet" href="' . lf_url('/assets/fonts/fonts.css') . '?v=' . $v . '">' . "\n";
         echo '<link rel="stylesheet" href="' . lf_url('/assets/tokens.css') . '?v=' . $v . '">' . "\n";

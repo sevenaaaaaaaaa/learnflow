@@ -59,6 +59,8 @@ $routes = [
     '#^/membership/?$#' => '/membership.php',
     '#^/robots\.txt$#' => '/robots.php',
     '#^/sitemap\.xml$#' => '/sitemap.php',
+    '#^/manifest\.webmanifest$#' => '/manifest.php',
+    '#^/sw\.js$#' => '/sw.php',
     '#^/mcp/?$#' => '/mcp.php',
     '#^/api/v1/?$#' => '/api/v1.php',
     '#^/course/([^/]+)/?$#' => '/course.php?slug=$1',

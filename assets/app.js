@@ -76,4 +76,10 @@
       setTimeout(function () { btn.textContent = old; }, 1600);
     });
   });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register((window.LF_BASE || '') + '/sw.js').catch(function () {});
+    });
+  }
 })();
