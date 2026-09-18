@@ -64,3 +64,26 @@
 - **订单/退款/发票**：等 PayFlow 订单查询 API
 - **私域主动触达**：等 UserLoop 触点层发送 API（企微/公众号/短信）
 - **性能**：进程内请求缓存 + id/slug/email 索引；大数据量下 analytics 逐步改增量与缓存
+
+## 九、运维排查记录
+
+### 2026-09-18 · 首次全量排查（提交 `ae5667d`）
+
+**工程质量**
+- 127 个 PHP 文件 / 约 1.57 万行；`php -l` 全清；无 `var_dump`/`print_r`/`console.log`/`TODO` 残留
+- 清理 7 个未接线函数：`enroll_groups` `enroll_set_status` `media_upload_rel` `note_course` `notify_broadcast` `payflow_sign` `quiz_course_progress`
+- 修复功能缺口：学习页「标记为未完成」此前只提交 `done` → 接通 `progress_undone`（可正/反标记）
+- 接通无入口能力：`points_log` → Dashboard 积分明细
+- 补无入口脚本：`bin/transcode.php` → cron 每日 4:00
+
+**入口核查（已开发无入口）**
+- 后台 22 页均在侧栏或从列表可达；前台页均有路由且互相链接；公开接口有后台说明
+- 结论：无遗留「能跑但点不到」的功能
+
+**性能**
+- 新增请求内索引：课程 id/slug、学员 email 哈希索引（消除循环内线性扫描）
+- 生产实测：核心页 ~0.19s；`/api/v1`、`/mcp` 未鉴权 401 路径 ~0.19s
+- 已知慢点（可接受，上量后再优化）：analytics 全量扫描；progress 存储整份重写
+
+**运维**
+- cron 6 条（互通投递/学习提醒/备份/直播提醒/定时发布/转码）；备份留 14 份；`php-error.log` 0 行
