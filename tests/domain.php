@@ -238,6 +238,11 @@ check('fine-grained events emitted', in_array('lesson.completed', $eventNames, t
     && in_array('certificate.revoked', $eventNames, true));
 check('userloop event mapping', userloop_event_name('lesson.completed') === 'lesson_completed' && userloop_event_name('checkin.done') === 'checkin_done');
 
+$an = analytics_overview(30);
+check('analytics overview structure', isset($an['revenue'], $an['paid'], $an['conv_paid'], $an['sources'], $an['revenue_by_course'], $an['referrals']));
+check('analytics counts paid + revenue', (int)$an['paid'] >= 1 && (float)$an['revenue'] > 0);
+check('api analytics.overview', !empty(lf_api_call('analytics.overview', ['days' => 30], ['scopes' => ['read']])['ok']));
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

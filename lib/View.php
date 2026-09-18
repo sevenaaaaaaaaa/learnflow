@@ -124,6 +124,7 @@ function lf_admin_page_start(array $opts = []): void
     $active = (string)($opts['active'] ?? '');
     $nav = [
         'index' => [lf_url('/admin/'), '看板', 'chart'],
+        'analytics' => [lf_url('/admin/analytics.php'), '营收', 'chart'],
         'courses' => [lf_url('/admin/courses.php'), '课程', 'article'],
         'quizzes' => [lf_url('/admin/quizzes.php'), '测验', 'quiz'],
         'categories' => [lf_url('/admin/categories.php'), '分类', 'file'],

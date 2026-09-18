@@ -279,6 +279,13 @@ function lf_api_tools(): array
                 return ['referrals' => $out, 'count' => count($out)];
             },
         ],
+        'analytics.overview' => [
+            'scope' => 'read', 'description' => '营收与转化漏斗总览（营收/付费/客单价/漏斗/来源/推荐）',
+            'schema' => $obj(['days' => ['type' => 'integer', 'description' => '统计天数，默认 30']]),
+            'handler' => function (array $p) {
+                return analytics_overview((int)($p['days'] ?? 30));
+            },
+        ],
         'analytics.course' => [
             'scope' => 'read', 'description' => '课程经营数据（完课率/学习曲线/风险学员/打卡）',
             'schema' => $obj(['course_id' => $str()], ['course_id']),

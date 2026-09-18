@@ -60,6 +60,44 @@ function userloop_payload(string $event, array $data): array
     ];
 }
 
+function lf_get_json(string $url, array $headers = [], int $timeout = 8): array
+{
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_HTTPHEADER => array_merge(['Accept: application/json'], $headers),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_CONNECTTIMEOUT => $timeout,
+        ]);
+        $resp = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return ['ok' => $code >= 200 && $code < 300, 'code' => $code, 'body' => (string)$resp];
+    }
+    $u = parse_url($url);
+    if (!is_array($u) || empty($u['host'])) return ['ok' => false, 'code' => 0, 'body' => ''];
+    $scheme = $u['scheme'] ?? 'http';
+    $host = $u['host'];
+    $port = (int)($u['port'] ?? ($scheme === 'https' ? 443 : 80));
+    $path = ($u['path'] ?? '/') . (isset($u['query']) ? '?' . $u['query'] : '');
+    $transport = $scheme === 'https' ? 'ssl://' : '';
+    $fp = @stream_socket_client($transport . $host . ':' . $port, $errno, $errstr, $timeout);
+    if (!$fp) return ['ok' => false, 'code' => 0, 'body' => '', 'error' => $errstr];
+    stream_set_timeout($fp, $timeout);
+    $req = "GET $path HTTP/1.1\r\nHost: $host\r\nAccept: application/json\r\nConnection: close\r\n";
+    foreach ($headers as $h) $req .= $h . "\r\n";
+    $req .= "\r\n";
+    fwrite($fp, $req);
+    $resp = '';
+    while (!feof($fp)) { $chunk = fread($fp, 8192); if ($chunk === false) break; $resp .= $chunk; }
+    fclose($fp);
+    $code = 0;
+    if (preg_match('#^HTTP/\d\.\d\s+(\d{3})#', $resp, $m)) $code = (int)$m[1];
+    $split = strpos($resp, "\r\n\r\n");
+    return ['ok' => $code >= 200 && $code < 300, 'code' => $code, 'body' => $split !== false ? substr($resp, $split + 4) : ''];
+}
+
 function lf_send_integration(string $key, array $cfg, string $event, array $data): array
 {
     if ($key === 'userloop') {
