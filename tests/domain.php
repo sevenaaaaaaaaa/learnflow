@@ -283,6 +283,20 @@ commission_mark_settled((string)($firstCm['id'] ?? ''));
 check('commission settled', (commission_all()[0]['status'] ?? '') === 'settled');
 check('api commission.list', !empty(lf_api_call('commission.list', [], ['scopes' => ['read']])['ok']));
 
+$md = lf_md_to_html("# 标题\n\n**粗体** 和 `代码`\n\n- 一\n- 二\n");
+check('markdown to html', str_contains($md, '<h1>标题</h1>') && str_contains($md, '<strong>粗体</strong>') && str_contains($md, '<li>一</li>'));
+check('template default + vars', template_vars('课程 {course}', ['course' => 'X']) === '课程 X' && (template_get('welcome')['subject'] ?? '') !== '');
+[$nt, $nb] = notify_template('notify_enrollment', ['course' => 'C'], 'fb', 'fb2');
+check('notify template render', $nt === '报名成功：C');
+
+$savedMedia = media_add(['rel' => 'library/x.png', 'name' => 'x.png', 'ext' => 'png', 'size' => 10]);
+check('media library add/find', media_find((string)$savedMedia['id']) !== null && media_kind_of('png') === 'image' && str_contains(media_public_url((string)$savedMedia['id']), '/media/'));
+media_delete((string)$savedMedia['id']);
+check('media library delete', media_find((string)$savedMedia['id']) === null);
+
+$pc = course_save(course_normalize(['title' => '定时课', 'status' => 'draft', 'publish_at' => '2030-01-01T10:00']));
+check('publish_at saved', ($pc['publish_at'] ?? '') === '2030-01-01T10:00');
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

@@ -20,11 +20,15 @@ if (empty($_FILES['file'])) {
 $scope = preg_replace('/[^a-z0-9_\-]/i', '', (string)($_POST['scope'] ?? 'media'));
 try {
     $saved = lf_upload_save($_FILES['file'], 'courses/' . ($scope !== '' ? $scope : 'media'));
+    $media = media_add($saved, ['scope' => $scope]);
     lf_json_out([
         'ok' => true,
+        'id' => $media['id'],
         'rel' => $saved['rel'],
         'name' => $saved['name'],
         'size' => $saved['size'],
+        'kind' => $media['kind'],
+        'url' => media_public_url((string)$media['id']),
         'play' => lf_file_url($saved['rel'], '', 3600),
     ]);
 } catch (Throwable $e) {

@@ -42,6 +42,7 @@ if (!function_exists('lf_head')) {
         echo '<link rel="stylesheet" href="' . lf_url('/assets/tokens.css') . '?v=' . $v . '">' . "\n";
         echo '<link rel="stylesheet" href="' . lf_url('/assets/modules.css') . '?v=' . $v . '">' . "\n";
         echo '<link rel="stylesheet" href="' . lf_url('/assets/app.css') . '?v=' . $v . '">' . "\n";
+        echo '<link rel="stylesheet" href="' . lf_url('/assets/editor.css') . '?v=' . $v . '">' . "\n";
         if ($appcss !== '') echo $appcss . "\n";
     }
 }

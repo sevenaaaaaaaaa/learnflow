@@ -226,6 +226,7 @@ function lf_emit(string $event, array $payload): void
 {
     require_once LF_ROOT . '/lib/Notify.php';
     require_once LF_ROOT . '/lib/Mailer.php';
+    require_once LF_ROOT . '/lib/Template.php';
 
     lf_event_log($event, $payload);
     if (function_exists('points_for_event')) points_for_event($event, $payload);
@@ -245,21 +246,24 @@ function lf_emit(string $event, array $payload): void
 
     switch ($event) {
         case 'student.registered':
-            notify_add($studentId, 'system', '欢迎加入', '完善资料后即可开始学习。', lf_url('/courses'));
+[$nt, $nb] = notify_template('notify_welcome', ['name' => $name, 'email' => $email], '欢迎加入', '完善资料后即可开始学习。');
+            notify_add($studentId, 'system', $nt, $nb, lf_url('/courses'));
             if ($email !== '') lf_mail_template_send($email, 'welcome', ['name' => $name, 'email' => $email, 'url' => lf_abs_url('/courses')], $name);
             break;
 
         case 'enrollment.created':
             $course = (string)($payload['course_title'] ?? '');
             $link = lf_url('/learn/' . rawurlencode((string)($payload['course_slug'] ?? $payload['course_id'] ?? '')));
-            notify_add($studentId, 'course', '报名成功：' . $course, '开始你的学习吧。', $link);
+[$nt, $nb] = notify_template('notify_enrollment', ['course' => $course], '报名成功：' . $course, '开始你的学习吧。');
+            notify_add($studentId, 'course', $nt, $nb, $link);
             if ($email !== '') lf_mail_template_send($email, 'enrollment', ['course' => $course, 'url' => lf_abs_url($link)], $name);
             break;
 
         case 'assignment.graded':
             $title = (string)($payload['title'] ?? '');
             $link = lf_url((string)($payload['link'] ?? '/dashboard'));
-            notify_add($studentId, 'assignment', '作业已点评：' . $title, (string)($payload['feedback'] ?? ''), $link);
+[$nt, $nb] = notify_template('notify_assignment', ['title' => $title, 'feedback' => (string)($payload['feedback'] ?? '')], '作业已点评：' . $title, (string)($payload['feedback'] ?? ''));
+            notify_add($studentId, 'assignment', $nt, $nb, $link);
             if ($email !== '') lf_mail_template_send($email, 'assignment_graded', ['title' => $title, 'feedback' => (string)($payload['feedback'] ?? ''), 'url' => lf_abs_url($link)], $name);
             break;
 
@@ -271,21 +275,24 @@ function lf_emit(string $event, array $payload): void
         case 'certificate.issued':
             $course = (string)($payload['course_title'] ?? '');
             $link = lf_url('/certificate/' . rawurlencode((string)($payload['cert_no'] ?? '')));
-            notify_add($studentId, 'certificate', '证书已颁发：' . $course, '点击查看并分享。', $link);
+[$nt, $nb] = notify_template('notify_certificate', ['course' => $course], '证书已颁发：' . $course, '点击查看并分享。');
+            notify_add($studentId, 'certificate', $nt, $nb, $link);
             if ($email !== '') lf_mail_template_send($email, 'certificate', ['course' => $course, 'url' => lf_abs_url($link)], $name);
             break;
 
         case 'study.reminder':
             $course = (string)($payload['course_title'] ?? '');
             $link = lf_url((string)($payload['link'] ?? '/dashboard'));
-            notify_add($studentId, 'reminder', '继续学习：' . $course, '还有进度未完成。', $link);
+[$nt, $nb] = notify_template('notify_reminder', ['course' => $course], '继续学习：' . $course, '还有进度未完成。');
+            notify_add($studentId, 'reminder', $nt, $nb, $link);
             if ($email !== '') lf_mail_template_send($email, 'reminder', ['course' => $course, 'url' => lf_abs_url($link)], $name);
             break;
 
         case 'live.reminder':
             $title = (string)($payload['title'] ?? '直播');
             $link = lf_url((string)($payload['link'] ?? '/dashboard'));
-            notify_add($studentId, 'reminder', '直播提醒：' . $title, '即将开播，记得进入直播间。', $link);
+[$nt, $nb] = notify_template('notify_live', ['title' => $title], '直播提醒：' . $title, '即将开播，记得进入直播间。');
+            notify_add($studentId, 'reminder', $nt, $nb, $link);
             if ($email !== '') lf_mail_template_send($email, 'reminder', ['course' => $title, 'url' => lf_abs_url($link)], $name);
             break;
     }

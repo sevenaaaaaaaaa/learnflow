@@ -160,6 +160,7 @@ function course_normalize(array $input): array
         'i18n' => is_array($input['i18n'] ?? null) ? $input['i18n'] : [],
         'camp_start' => trim((string)($input['camp_start'] ?? '')),
         'camp_end' => trim((string)($input['camp_end'] ?? '')),
+        'publish_at' => trim((string)($input['publish_at'] ?? '')),
         'payflow_product_id' => trim((string)($input['payflow_product_id'] ?? '')),
         'chapters' => [],
     ];

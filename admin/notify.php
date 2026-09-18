@@ -50,7 +50,7 @@ lf_admin_page_start(['title' => '通知 · LearnFlow 讲师后台', 'active' => 
       <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center"><input type="checkbox" name="with_mail"> 同时发邮件</label>
     </div>
     <div class="lf-field" style="margin-top:12px"><label>标题</label><input class="lf-inp" name="title" required></div>
-    <div class="lf-field" style="margin-top:12px"><label>正文</label><textarea class="lf-inp" name="body"></textarea></div>
+    <div class="lf-field" style="margin-top:12px"><label>正文</label><textarea class="lf-inp lf-rich" name="body"></textarea></div>
     <button class="btn primary sm" type="submit" style="margin-top:12px">发送</button>
   </form>
 </div>

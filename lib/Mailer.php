@@ -144,9 +144,17 @@ function lf_mail_template(string $key, array $data): array
         return '<p style="margin:20px 0"><a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block;padding:11px 22px;border-radius:10px;background:#2f6bff;color:#fff;text-decoration:none">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a></p>';
     };
 
+    require_once __DIR__ . '/Template.php';
+    $tpl = template_get($key);
+    if (($tpl['subject'] ?? '') !== '' || ($tpl['body'] ?? '') !== '') {
+        $vars = array_merge(['site' => $site, 'name' => (string)($data['name'] ?? ''), 'email' => (string)($data['email'] ?? ''), 'course' => (string)($data['course'] ?? ''), 'title' => (string)($data['title'] ?? ''), 'feedback' => (string)($data['feedback'] ?? ''), 'url' => (string)($data['url'] ?? '')], $data);
+        $subject = template_vars((string)$tpl['subject'], $vars) ?: $site;
+        $bodyHtml = template_vars((string)$tpl['body'], $vars);
+        return [$subject, $wrap($subject, $bodyHtml)];
+    }
+
     switch ($key) {
-        case 'welcome':
-            return [
+        case 'welcome':            return [
                 '欢迎加入 ' . $site,
                 $wrap('欢迎，' . ($data['name'] ?? '同学'), '<p>账号已创建：' . htmlspecialchars((string)($data['email'] ?? ''), ENT_QUOTES, 'UTF-8') . '</p>' . $btn((string)($data['url'] ?? lf_abs_url('/courses')), '去看看课程')),
             ];

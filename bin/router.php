@@ -54,6 +54,7 @@ $routes = [
     '#^/camp/?$#' => '/camp.php',
     '#^/camp/([^/]+)/?$#' => '/camp.php?slug=$1',
     '#^/file/?$#' => '/file.php',
+    '#^/media/([^/]+)/?$#' => '/media.php?id=$1',
     '#^/dashboard/?$#' => '/dashboard.php',
     '#^/login/?$#' => '/login.php',
     '#^/join/?$#' => '/join.php',

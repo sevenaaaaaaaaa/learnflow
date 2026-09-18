@@ -128,6 +128,7 @@ function lf_admin_page_start(array $opts = []): void
         'courses' => [lf_url('/admin/courses.php'), '课程', 'article'],
         'quizzes' => [lf_url('/admin/quizzes.php'), '测验', 'quiz'],
         'categories' => [lf_url('/admin/categories.php'), '分类', 'file'],
+        'media' => [lf_url('/admin/media.php'), '素材', 'file'],
         'schedule' => [lf_url('/admin/schedule.php'), '排期', 'clock'],
         'assignments' => [lf_url('/admin/assignments.php'), '作业', 'file'],
         'students' => [lf_url('/admin/students.php'), '学员', 'user'],
@@ -135,6 +136,7 @@ function lf_admin_page_start(array $opts = []): void
         'certificates' => [lf_url('/admin/certificates.php'), '证书', 'cert'],
         'community' => [lf_url('/admin/community.php'), '圈子', 'share'],
         'notify' => [lf_url('/admin/notify.php'), '通知', 'share'],
+        'templates' => [lf_url('/admin/templates.php'), '模板', 'file'],
         'marketing' => [lf_url('/admin/marketing.php'), '营销', 'share'],
         'membership' => [lf_url('/admin/membership.php'), '会员', 'user'],
         'commissions' => [lf_url('/admin/commissions.php'), '分销', 'share'],
@@ -171,6 +173,7 @@ function lf_admin_page_end(): void
 {
     echo '</main></div>';
     echo '<script src="' . lf_url('/assets/app.js') . '?v=' . LF_SHELL_VER . '" defer></script>';
+    echo '<script src="' . lf_url('/assets/editor.js') . '?v=' . LF_SHELL_VER . '" defer></script>';
     echo '</body></html>';
 }
 

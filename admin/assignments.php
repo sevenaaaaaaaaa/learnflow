@@ -98,7 +98,7 @@ lf_admin_page_start(['title' => '作业 · LearnFlow 讲师后台', 'active' => 
         <div class="lf-field" style="margin:0"><label>截止时间</label><input class="lf-inp" type="date" name="due_at"></div>
         <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center"><input type="checkbox" name="allow_file" checked> 允许附件</label>
       </div>
-      <div class="lf-field" style="margin-top:10px"><label>说明</label><textarea class="lf-inp" name="description"></textarea></div>
+      <div class="lf-field" style="margin-top:10px"><label>说明</label><textarea class="lf-inp lf-rich" name="description"></textarea></div>
       <button class="btn primary sm" type="submit" style="margin-top:10px">创建作业</button>
     </form>
   </div>

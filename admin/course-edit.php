@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ],
         'camp_start' => (string)($_POST['camp_start'] ?? ''),
         'camp_end' => (string)($_POST['camp_end'] ?? ''),
+        'publish_at' => (string)($_POST['publish_at'] ?? ''),
         'payflow_product_id' => (string)($_POST['payflow_product_id'] ?? ''),
         'chapters' => [],
     ];
@@ -135,7 +136,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <div class="lf-field"><label>Slug（URL，可留空自动）</label><input class="lf-inp" name="slug" value="<?= lf_e((string)($course['slug'] ?? '')) ?>"></div>
     </div>
     <div class="lf-field"><label>副标题</label><input class="lf-inp" name="subtitle" value="<?= lf_e((string)($course['subtitle'] ?? '')) ?>"></div>
-    <div class="lf-field"><label>课程简介</label><textarea class="lf-inp" name="summary"><?= lf_e((string)($course['summary'] ?? '')) ?></textarea></div>
+    <div class="lf-field"><label>课程简介</label><textarea class="lf-inp lf-rich" name="summary"><?= lf_e((string)($course['summary'] ?? '')) ?></textarea></div>
     <div class="lf-row">
       <div class="lf-field"><label>封面图 URL</label><input class="lf-inp" name="cover" value="<?= lf_e((string)($course['cover'] ?? '')) ?>"></div>
       <div class="lf-field"><label>讲师</label><input class="lf-inp" name="instructor" value="<?= lf_e((string)($course['instructor'] ?? '')) ?>"></div>
@@ -154,6 +155,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <div class="lf-field"><label>PayFlow 商品 ID</label><input class="lf-inp" name="payflow_product_id" value="<?= lf_e((string)($course['payflow_product_id'] ?? '')) ?>" placeholder="用于购买即入学"></div>
       <div class="lf-field"><label>开营日期</label><input class="lf-inp" type="date" name="camp_start" value="<?= lf_e((string)($course['camp_start'] ?? '')) ?>"></div>
       <div class="lf-field"><label>结营日期</label><input class="lf-inp" type="date" name="camp_end" value="<?= lf_e((string)($course['camp_end'] ?? '')) ?>"></div>
+      <div class="lf-field"><label>定时发布（到点自动上架）</label><input class="lf-inp" type="datetime-local" name="publish_at" value="<?= lf_e((string)($course['publish_at'] ?? '')) ?>"></div>
       <div class="lf-field" style="justify-content:flex-end;flex-direction:row;gap:20px;align-items:center">
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="certificate" <?= !empty($course['certificate']) ? 'checked' : '' ?>> 颁发结业证书</label>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="allow_invite" <?= !empty($course['allow_invite']) ? 'checked' : '' ?>> 允许邀请码</label>
@@ -166,7 +168,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <summary style="cursor:pointer;font-size:13.5px;color:var(--muted)">英文内容（多语言，可选）</summary>
       <div class="lf-field" style="margin-top:10px"><label>EN Title</label><input class="lf-inp" name="en_title" value="<?= lf_e((string)($en['title'] ?? '')) ?>"></div>
       <div class="lf-field"><label>EN Subtitle</label><input class="lf-inp" name="en_subtitle" value="<?= lf_e((string)($en['subtitle'] ?? '')) ?>"></div>
-      <div class="lf-field"><label>EN Summary</label><textarea class="lf-inp" name="en_summary"><?= lf_e((string)($en['summary'] ?? '')) ?></textarea></div>
+      <div class="lf-field"><label>EN Summary</label><textarea class="lf-inp lf-rich" name="en_summary"><?= lf_e((string)($en['summary'] ?? '')) ?></textarea></div>
     </details>
     <?php $allCats = category_all(); $courseCats = array_map('strval', (array)($course['categories'] ?? [])); ?>
     <?php if ($allCats): ?>
@@ -233,7 +235,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <div class="lf-field" style="margin:0" data-field="quiz"><label>关联测验</label><select class="lf-inp" data-name="quiz_id"><option value="">— 选择测验 —</option><?php foreach ($quizzes as $qid => $q): ?><option value="<?= lf_e((string)$qid) ?>"><?= lf_e((string)($q['title'] ?? $qid)) ?></option><?php endforeach; ?></select></div>
       <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-name="free"> 试看</label>
     </div>
-    <div class="lf-field" style="margin-top:10px" data-field="content"><label>图文内容（支持 HTML）</label><textarea class="lf-inp" data-name="content" style="min-height:110px"></textarea></div>
+    <div class="lf-field" style="margin-top:10px" data-field="content"><label>图文内容（支持 HTML）</label><textarea class="lf-inp lf-rich" data-name="content" style="min-height:110px"></textarea></div>
     <div class="lf-row" data-field="live" style="margin-top:10px">
       <div class="lf-field" style="margin:0;flex:2"><label>直播地址（HLS .m3u8 或嵌入 URL）</label><input class="lf-inp" data-name="live_url" placeholder="https://.../live.m3u8 或 https://.../embed"></div>
       <div class="lf-field" style="margin:0"><label>OpenFlow 直播间 ID（可选，用于状态/聊天）</label><input class="lf-inp" data-name="live_room_id" placeholder="room_xxx"></div>
@@ -244,7 +246,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     <details style="margin-top:10px">
       <summary style="cursor:pointer;font-size:13px;color:var(--muted)">英文内容（可选）</summary>
       <div class="lf-field" style="margin-top:8px"><label>EN Title</label><input class="lf-inp" data-name="en_title"></div>
-      <div class="lf-field"><label>EN Content (HTML)</label><textarea class="lf-inp" data-name="en_content" style="min-height:90px"></textarea></div>
+      <div class="lf-field"><label>EN Content (HTML)</label><textarea class="lf-inp lf-rich" data-name="en_content" style="min-height:90px"></textarea></div>
     </details>
   </div>
 </template>
@@ -346,6 +348,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     setVal(ls, 'en_title', data.en_title); setVal(ls, 'en_content', data.en_content);
     ch.querySelector('.lessons').appendChild(ls);
     bindLesson(ls); syncLesson(ls);
+    if (window.lfInitEditors) window.lfInitEditors(ls);
     return ls;
   }
   function addChapter(data) {
