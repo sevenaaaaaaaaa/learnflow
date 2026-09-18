@@ -199,6 +199,32 @@ lf_page_start([
     })();
     </script>
   <?php endif; ?>
+
+  <?php if ($hasAccess && $studentId !== ''): ?>
+    <?php $myNote = note_get($studentId, (string)$course['id'], (string)$lesson['id']); ?>
+    <div class="lf-form-card" style="max-width:none;margin-top:16px">
+      <span class="lf-kicker"><?= lf_t('我的笔记', 'My notes') ?></span>
+      <textarea class="lf-inp" id="note-text" style="margin-top:8px;min-height:90px" placeholder="记录你的笔记（仅自己可见）"><?= lf_e((string)($myNote['content'] ?? '')) ?></textarea>
+      <div style="margin-top:8px"><button class="btn primary sm" type="button" id="note-save">保存笔记</button> <span class="lf-faint" id="note-state" style="margin-left:8px"><?= !empty($myNote['updated_at']) ? '上次保存 ' . lf_e((string)$myNote['updated_at']) : '' ?></span></div>
+    </div>
+    <script>
+    (function () {
+      var b = document.getElementById('note-save'); if (!b) return;
+      b.addEventListener('click', function () {
+        var fd = new FormData();
+        fd.append('_token', '<?= lf_csrf_token() ?>');
+        fd.append('course_id', '<?= lf_e((string)$course['id']) ?>');
+        fd.append('lesson_id', '<?= lf_e((string)$lesson['id']) ?>');
+        fd.append('content', document.getElementById('note-text').value);
+        b.disabled = true;
+        fetch('<?= lf_url('/api/note.php') ?>', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+          b.disabled = false;
+          document.getElementById('note-state').textContent = d.ok ? ('已保存 ' + d.saved_at) : (d.error || '失败');
+        }).catch(function () { b.disabled = false; });
+      });
+    })();
+    </script>
+  <?php endif; ?>
   </div>
 
   <aside class="lf-sidebar">
@@ -207,6 +233,7 @@ lf_page_start([
       <?php if ($summary): ?>
         <?= lf_progress_bar((int)$summary['percent'], '进度 ' . (int)$summary['done'] . '/' . (int)$summary['total'] . ' 课时') ?>
       <?php endif; ?>
+      <input class="lf-inp" id="lf-lesson-search" placeholder="<?= lf_t('搜索课时…', 'Search lessons…') ?>" style="height:36px;margin-top:8px">
     </div>
     <?php foreach ($course['chapters'] as $ci => $ch): ?>
       <div class="lf-chapter">
@@ -231,6 +258,30 @@ lf_page_start([
         <?php endif; ?>
       </div>
     <?php endif; ?>
+    <?php $files = course_attachments($course); if ($files): ?>
+      <div class="lf-sidebar-head">
+        <span class="lf-kicker"><?= lf_t('课程资料', 'Materials') ?></span>
+        <?php foreach ($files as $f): ?>
+          <a class="lf-faint" style="display:block;margin-top:4px" href="<?= lf_e((string)$f['url']) ?>" target="_blank" rel="noopener"<?= preg_match('#^https?://#', (string)$f['url']) ? '' : ' download' ?>><?= lf_icon('file', 15) ?> <?= lf_e((string)$f['name']) ?></a>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
   </aside>
 </div>
+<script>
+(function () {
+  var s = document.getElementById('lf-lesson-search'); if (!s) return;
+  s.addEventListener('input', function () {
+    var q = s.value.trim().toLowerCase();
+    document.querySelectorAll('.lf-lesson-row').forEach(function (a) {
+      a.style.display = (!q || (a.textContent || '').toLowerCase().indexOf(q) >= 0) ? '' : 'none';
+    });
+    document.querySelectorAll('.lf-chapter').forEach(function (ch) {
+      var any = false;
+      ch.querySelectorAll('.lf-lesson-row').forEach(function (a) { if (a.style.display !== 'none') any = true; });
+      ch.style.display = any ? '' : 'none';
+    });
+  });
+})();
+</script>
 <?php lf_page_end(); ?>

@@ -106,6 +106,44 @@ function referral_all_stats(): array
     return ['total' => count($attributions), 'amount' => round($amount, 2), 'by_code' => array_slice($codes, 0, 10, true)];
 }
 
+function lesson_dropoff(string $courseId): array
+{
+    $curve = progress_curve($courseId);
+    $out = [];
+    foreach ((array)($curve['lessons'] ?? []) as $l) {
+        $started = (int)($l['started'] ?? 0);
+        $done = (int)($l['done'] ?? 0);
+        $out[] = ['title' => (string)($l['title'] ?? ''), 'started' => $started, 'done' => $done, 'drop' => max(0, $started - $done), 'rate' => $started > 0 ? (int)round($done / $started * 100) : 0];
+    }
+    usort($out, fn($a, $b) => $a['rate'] <=> $b['rate']);
+    return $out;
+}
+
+function quiz_question_stats(string $courseId): array
+{
+    $out = [];
+    foreach (quiz_for_course($courseId) as $q) {
+        $counts = [];
+        foreach (student_all() as $sid => $s) {
+            foreach (quiz_attempts((string)$sid, (string)$q['id']) as $a) {
+                foreach ((array)($a['detail'] ?? []) as $d) {
+                    $qid = (string)($d['question_id'] ?? '');
+                    if ($qid === '') continue;
+                    $counts[$qid]['total'] = ($counts[$qid]['total'] ?? 0) + 1;
+                    if (!empty($d['correct'])) $counts[$qid]['correct'] = ($counts[$qid]['correct'] ?? 0) + 1;
+                }
+            }
+        }
+        foreach ((array)($q['questions'] ?? []) as $qq) {
+            $qid = (string)($qq['id'] ?? '');
+            $c = $counts[$qid] ?? ['total' => 0, 'correct' => 0];
+            $out[] = ['quiz' => (string)($q['title'] ?? ''), 'question' => (string)($qq['title'] ?? ''), 'total' => (int)$c['total'], 'correct' => (int)$c['correct'], 'rate' => $c['total'] > 0 ? (int)round($c['correct'] / $c['total'] * 100) : 0];
+        }
+    }
+    usort($out, fn($a, $b) => $a['rate'] <=> $b['rate']);
+    return $out;
+}
+
 function analytics_userloop_overview(int $ttl = 60): ?array
 {
     require_once __DIR__ . '/Events.php';

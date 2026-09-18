@@ -108,4 +108,51 @@ lf_admin_page_start(['title' => '营收看板 · LearnFlow 讲师后台', 'activ
     </div>
   </div>
 </div>
+
+<?php
+$allCourses = course_all();
+$selId = (string)($_GET['course'] ?? ($allCourses[0]['id'] ?? ''));
+$selCourse = $selId !== '' ? course_find($selId) : null;
+?>
+<div class="lf-admin-head" style="margin-top:26px">
+  <h2 class="lf-sec-title" style="font-size:18px">内容分析</h2>
+  <form method="get" class="lf-row" style="flex:0 0 auto;gap:6px">
+    <input type="hidden" name="days" value="<?= (int)$days ?>">
+    <select class="lf-inp" name="course" onchange="this.form.submit()" style="height:36px"><?php foreach ($allCourses as $c): ?><option value="<?= lf_e((string)$c['id']) ?>" <?= $selId === (string)$c['id'] ? 'selected' : '' ?>><?= lf_e((string)$c['title']) ?></option><?php endforeach; ?></select>
+  </form>
+</div>
+
+<?php if ($selCourse === null): ?>
+  <div class="lf-empty">还没有课程。</div>
+<?php else: ?>
+  <?php $drop = lesson_dropoff((string)$selCourse['id']); $qs = quiz_question_stats((string)$selCourse['id']); ?>
+  <div class="lf-grid" style="grid-template-columns:1fr 1fr;align-items:start">
+    <div class="lf-form-card" style="max-width:none">
+      <h3 style="margin:0 0 10px;font-size:15px">课时流失（完成/开始，低者优先）</h3>
+      <?php if (!$drop): ?><div class="lf-empty">暂无学习数据。</div><?php else: ?>
+        <table class="lf-table">
+          <thead><tr><th>课时</th><th>开始</th><th>完成</th><th>完成率</th></tr></thead>
+          <tbody>
+            <?php foreach (array_slice($drop, 0, 12) as $d): ?>
+              <tr><td><?= lf_e($d['title']) ?></td><td><?= (int)$d['started'] ?></td><td><?= (int)$d['done'] ?></td><td><span class="lf-chip <?= $d['rate'] < 50 ? 'danger' : 'soft' ?>"><?= (int)$d['rate'] ?>%</span></td></tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php endif; ?>
+    </div>
+    <div class="lf-form-card" style="max-width:none">
+      <h3 style="margin:0 0 10px;font-size:15px">题目正确率（低者优先）</h3>
+      <?php if (!$qs): ?><div class="lf-empty">暂无测验作答数据。</div><?php else: ?>
+        <table class="lf-table">
+          <thead><tr><th>题目</th><th>作答</th><th>正确率</th></tr></thead>
+          <tbody>
+            <?php foreach (array_slice($qs, 0, 12) as $q): ?>
+              <tr><td style="max-width:260px"><?= lf_e(mb_substr($q['question'], 0, 40)) ?></td><td><?= (int)$q['total'] ?></td><td><span class="lf-chip <?= $q['rate'] < 50 ? 'danger' : 'soft' ?>"><?= (int)$q['rate'] ?>%</span></td></tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php endif; ?>
+    </div>
+  </div>
+<?php endif; ?>
 <?php lf_admin_page_end(); ?>

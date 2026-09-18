@@ -129,6 +129,7 @@ function lf_admin_page_start(array $opts = []): void
         'quizzes' => [lf_url('/admin/quizzes.php'), '测验', 'quiz'],
         'categories' => [lf_url('/admin/categories.php'), '分类', 'file'],
         'media' => [lf_url('/admin/media.php'), '素材', 'file'],
+        'library' => [lf_url('/admin/library.php'), '内容库', 'file'],
         'ai' => [lf_url('/admin/ai.php'), 'AI 工作台', 'chart'],
         'schedule' => [lf_url('/admin/schedule.php'), '排期', 'clock'],
         'assignments' => [lf_url('/admin/assignments.php'), '作业', 'file'],

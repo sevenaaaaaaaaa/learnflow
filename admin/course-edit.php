@@ -100,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
     }
     if ($i18nLessons) $raw['i18n']['en']['lessons'] = $i18nLessons;
+    if (lf_admin_role() !== 'admin' && ($raw['status'] ?? '') === 'published') $raw['status'] = 'pending';
     $saved = course_save(course_normalize($raw));
     lf_flash('ok', '课程已保存。');
     header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)$saved['id'])));
@@ -147,7 +148,8 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <div class="lf-field"><label>价格（元，0 = 免费）</label><input class="lf-inp" name="price" type="number" step="0.01" min="0" value="<?= lf_e((string)($course['price'] ?? 0)) ?>"></div>
       <div class="lf-field"><label>状态</label><select class="lf-inp" name="status">
         <option value="draft" <?= $published === 'draft' ? 'selected' : '' ?>>草稿</option>
-        <option value="published" <?= $published === 'published' ? 'selected' : '' ?>>已上架</option>
+        <option value="pending" <?= $published === 'pending' ? 'selected' : '' ?>>提交审核</option>
+        <option value="published" <?= $published === 'published' ? 'selected' : '' ?>>已上架<?= lf_admin_role() !== 'admin' ? '（需管理员）' : '' ?></option>
         <option value="archived" <?= $published === 'archived' ? 'selected' : '' ?>>归档</option>
       </select></div>
     </div>

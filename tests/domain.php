@@ -306,6 +306,26 @@ check('ai draft saved', ($draft['id'] ?? '') !== '' && count(ai_drafts()) >= 1);
 check('content.marketing scope denied', (lf_api_call('content.marketing', ['topic' => 'x'], ['scopes' => ['read']])['code'] ?? 0) === 403);
 check('content.generate_lesson reachable (AI off)', empty(lf_api_call('content.generate_lesson', ['course_id' => 'x', 'lesson_id' => 'y'], ['scopes' => ['ai']])['ok']));
 
+$tpl = course_template_from_course(course_find('test-course'), '测试模板');
+check('course template saved', course_template_find((string)$tpl['id']) !== null);
+$fromTpl = course_from_template((string)$tpl['id']);
+check('course from template', $fromTpl !== null && count((array)$fromTpl['chapters']) >= 1);
+$copied = course_copy_chapter('test-course', 0, (string)$fromTpl['id']);
+check('copy chapter across courses', $copied !== null && count((array)$copied['chapters']) >= 2);
+$mdChapters = course_import_markdown("# 第一章\n## 第一节\n正文一\n## 第二节\n正文二\n# 第二章\n## 第三节\n正文三");
+check('markdown import splits chapters/lessons', count($mdChapters) === 2 && count($mdChapters[0]['lessons']) === 2 && str_contains($mdChapters[0]['lessons'][0]['content'], '正文一'));
+$pending = course_save(course_normalize(['title' => '待审课', 'status' => 'pending']));
+check('pending status allowed', ($pending['status'] ?? '') === 'pending');
+
+note_save((string)$student['id'], (string)$course['id'], (string)$article['id'], '我的第一条笔记');
+check('note save/get', (note_get((string)$student['id'], (string)$course['id'], (string)$article['id'])['content'] ?? '') === '我的第一条笔记');
+
+$fileCourse = course_save(course_normalize(['title' => '资料课', 'chapters' => [['title' => 'c1', 'lessons' => [['type' => 'file', 'title' => '模板下载', 'attachments' => [['name' => 't.md', 'url' => 'https://x/t.md']]]]]]]));
+check('course attachments aggregate', count(course_attachments($fileCourse)) === 1);
+
+check('lesson_dropoff structure', is_array(lesson_dropoff((string)$course['id'])));
+check('quiz_question_stats structure', is_array(quiz_question_stats((string)$course['id'])));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

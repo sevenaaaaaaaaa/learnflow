@@ -151,7 +151,7 @@ function course_normalize(array $input): array
         'type' => (string)($input['type'] ?? '单课'),
         'level' => (string)($input['level'] ?? '入门'),
         'price' => (float)($input['price'] ?? 0),
-        'status' => in_array(($input['status'] ?? 'draft'), ['draft', 'published', 'archived'], true) ? ($input['status'] ?? 'draft') : 'draft',
+        'status' => in_array(($input['status'] ?? 'draft'), ['draft', 'pending', 'published', 'archived'], true) ? ($input['status'] ?? 'draft') : 'draft',
         'certificate' => !empty($input['certificate']),
         'allow_invite' => !empty($input['allow_invite']),
         'members_only' => !empty($input['members_only']),
