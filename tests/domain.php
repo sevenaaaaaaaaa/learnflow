@@ -273,6 +273,8 @@ check('api ai.ask read scope denied', (lf_api_call('ai.ask', ['course_id' => 'x'
 $liveCourse = course_save(course_normalize(['title' => '直播测试', 'status' => 'draft', 'chapters' => [['title' => '第一章', 'lessons' => [['type' => 'live', 'title' => '开班直播', 'live_url' => 'https://cdn.test/live.m3u8', 'live_start' => '2026-10-01 20:00', 'live_end' => '2026-10-01 21:00']]]]]));
 $ll = course_lessons($liveCourse)[0] ?? [];
 check('live lesson fields saved', ($ll['live_url'] ?? '') === 'https://cdn.test/live.m3u8' && ($ll['live_start'] ?? '') === '2026-10-01 20:00' && ($ll['live_end'] ?? '') === '2026-10-01 21:00');
+check('live lesson state', live_lesson_state(['live_start' => '2030-01-01 20:00', 'live_end' => '2030-01-01 21:00']) === '未开始' && live_lesson_state(['live_start' => '2020-01-01 20:00', 'live_end' => '2020-01-01 21:00']) === '已结束');
+check('openflow live room url', str_contains(live_openflow_room_url('room_1'), '/live?room=room_1'));
 
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');

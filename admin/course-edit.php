@@ -84,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'content' => (string)($l['content'] ?? ''),
                 'quiz_id' => (string)($l['quiz_id'] ?? ''),
                 'live_url' => (string)($l['live_url'] ?? ''),
+                'live_room_id' => (string)($l['live_room_id'] ?? ''),
                 'live_start' => (string)($l['live_start'] ?? ''),
                 'live_end' => (string)($l['live_end'] ?? ''),
                 'free' => !empty($l['free']),
@@ -235,6 +236,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     <div class="lf-field" style="margin-top:10px" data-field="content"><label>图文内容（支持 HTML）</label><textarea class="lf-inp" data-name="content" style="min-height:110px"></textarea></div>
     <div class="lf-row" data-field="live" style="margin-top:10px">
       <div class="lf-field" style="margin:0;flex:2"><label>直播地址（HLS .m3u8 或嵌入 URL）</label><input class="lf-inp" data-name="live_url" placeholder="https://.../live.m3u8 或 https://.../embed"></div>
+      <div class="lf-field" style="margin:0"><label>OpenFlow 直播间 ID（可选，用于状态/聊天）</label><input class="lf-inp" data-name="live_room_id" placeholder="room_xxx"></div>
       <div class="lf-field" style="margin:0"><label>开播时间</label><input class="lf-inp" type="datetime-local" data-name="live_start"></div>
       <div class="lf-field" style="margin:0"><label>结束时间</label><input class="lf-inp" type="datetime-local" data-name="live_end"></div>
     </div>
@@ -266,6 +268,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
               'content' => (string)($l['content'] ?? ''),
               'quiz_id' => (string)($l['quiz_id'] ?? ''),
               'live_url' => (string)($l['live_url'] ?? ''),
+              'live_room_id' => (string)($l['live_room_id'] ?? ''),
               'live_start' => (string)($l['live_start'] ?? ''),
               'live_end' => (string)($l['live_end'] ?? ''),
               'free' => !empty($l['free']),
@@ -339,7 +342,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     setVal(ls, 'id', data.id); setVal(ls, 'title', data.title); setVal(ls, 'type', data.type || 'article');
     setVal(ls, 'duration', data.duration); setVal(ls, 'video', data.video); setVal(ls, 'content', data.content);
     setVal(ls, 'quiz_id', data.quiz_id); setVal(ls, 'free', data.free); setVal(ls, 'attachments', data.attachments);
-    setVal(ls, 'live_url', data.live_url); setVal(ls, 'live_start', data.live_start); setVal(ls, 'live_end', data.live_end);
+    setVal(ls, 'live_url', data.live_url); setVal(ls, 'live_room_id', data.live_room_id); setVal(ls, 'live_start', data.live_start); setVal(ls, 'live_end', data.live_end);
     setVal(ls, 'en_title', data.en_title); setVal(ls, 'en_content', data.en_content);
     ch.querySelector('.lessons').appendChild(ls);
     bindLesson(ls); syncLesson(ls);

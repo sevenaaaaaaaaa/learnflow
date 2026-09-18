@@ -57,6 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ],
             ]);
             lf_flash('ok', '互通设置已保存。');
+        } elseif ($section === 'openflow') {
+            lf_setting_set('openflow', ['base_url' => rtrim(trim((string)($_POST['openflow_base'] ?? 'https://nownexts.com')), '/')]);
+            lf_flash('ok', 'OpenFlow 联动已保存。');
         } elseif ($section === 'mysql') {
             lf_setting_set('mysql', [
                 'enabled' => !empty($_POST['mysql_enabled']),
@@ -174,6 +177,18 @@ lf_admin_page_start(['title' => '设置 · LearnFlow 讲师后台', 'active' => 
 <div class="lf-form-card" style="max-width:none;margin-bottom:20px">
   <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 10px">无头 API</h2>
   <p class="lf-faint">公开只读接口：<code>GET /api/courses.php</code>（列表）、<code>GET /api/courses.php?slug=xxx</code>（含全文）。课程数据可迁移，不强依赖本前端。</p>
+</div>
+
+<div class="lf-form-card" style="max-width:none;margin-bottom:20px">
+  <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 10px">OpenFlow 联动（直播）</h2>
+  <form method="post">
+    <?= lf_csrf_field() ?><input type="hidden" name="section" value="openflow">
+    <div class="lf-row" style="align-items:flex-end">
+      <div class="lf-field" style="margin:0"><label>OpenFlow Base URL</label><input class="lf-inp" name="openflow_base" value="<?= lf_e((string)((lf_setting_get('openflow') ?: [])['base_url'] ?? 'https://nownexts.com')) ?>"></div>
+      <button class="btn primary sm" type="submit" style="flex:0 0 auto">保存</button>
+    </div>
+    <p class="lf-faint" style="margin-top:8px">直播课时填了 OpenFlow 直播间 ID 后，学习页会读取其状态并给出直播间入口（播放地址仍由 HLS/第三方提供）。</p>
+  </form>
 </div>
 
 <?php $mysql = lf_db_config(); $dbStatus = lf_db_status(); ?>

@@ -108,13 +108,22 @@ lf_page_start([
         $livePath = parse_url($liveUrl, PHP_URL_PATH) ?: $liveUrl;
         $isHls = $liveUrl !== '' && str_ends_with(strtolower($livePath), '.m3u8');
         $isEmbed = $liveUrl !== '' && !$isHls;
+        $liveRoomId = (string)($lesson['live_room_id'] ?? '');
+        $ofRemote = $liveRoomId !== '' ? live_openflow_status($liveRoomId) : null;
+        if (is_array($ofRemote) && ($ofRemote['status'] ?? '') === 'live') $lstate = '直播中';
+        $roomLink = $liveRoomId !== '' ? live_openflow_room_url($liveRoomId) : '';
         ?>
         <div class="lf-player-art" style="min-height:300px">
           <span class="lf-kicker">直播 · <?= lf_e($lstate) ?></span>
           <h1 style="font-family:var(--font-display);margin:10px 0"><?= lf_e((string)$lesson['title']) ?></h1>
           <?php if (!empty($lesson['live_start'])): ?><p class="lf-muted">开播 <?= lf_e((string)$lesson['live_start']) ?><?= !empty($lesson['live_end']) ? ' — ' . lf_e((string)$lesson['live_end']) : '' ?></p><?php endif; ?>
+          <?php if ($roomLink !== ''): ?><p class="lf-muted">OpenFlow 直播间：<span class="lf-cert-no"><?= lf_e($liveRoomId) ?></span><?= is_array($ofRemote) ? ' · 状态 ' . lf_e((string)($ofRemote['status'] ?? '')) : '' ?></p><?php endif; ?>
           <?php if ($liveUrl === ''): ?>
-            <p class="lf-faint">讲师尚未设置直播地址。</p>
+            <?php if ($roomLink !== ''): ?>
+              <a class="btn primary" style="margin-top:12px" href="<?= lf_e($roomLink) ?>" target="_blank">进入 OpenFlow 直播间</a>
+            <?php else: ?>
+              <p class="lf-faint">讲师尚未设置直播地址。</p>
+            <?php endif; ?>
           <?php elseif ($isEmbed): ?>
             <div style="margin-top:14px;border-radius:var(--r-md);overflow:hidden"><iframe src="<?= lf_e($liveUrl) ?>" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0;background:#000"></iframe></div>
           <?php else: ?>

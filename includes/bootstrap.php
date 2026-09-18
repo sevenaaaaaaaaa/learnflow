@@ -34,3 +34,4 @@ require_once LF_ROOT . '/lib/Analytics.php';
 require_once LF_ROOT . '/lib/Gdpr.php';
 require_once LF_ROOT . '/lib/Membership.php';
 require_once LF_ROOT . '/lib/Points.php';
+require_once LF_ROOT . '/lib/Live.php';
