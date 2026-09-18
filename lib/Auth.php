@@ -55,13 +55,52 @@ function lf_admin_current(): ?string
     return $u !== '' ? $u : null;
 }
 
+function lf_throttle(string $key, int $max, int $windowSec): array
+{
+    $now = time();
+    $result = ['allowed' => true, 'retry' => 0];
+    json_update(LF_DATA_DIR . '/throttle.json', function (array $all) use ($key, $max, $windowSec, $now, &$result) {
+        $bucket = array_values(array_filter((array)($all[$key] ?? []), fn($t) => (int)$t > $now - $windowSec));
+        if (count($bucket) >= $max) {
+            $result = ['allowed' => false, 'retry' => max(1, (int)($bucket[0] + $windowSec - $now))];
+        }
+        $bucket[] = $now;
+        $all[$key] = $bucket;
+        if (count($all) > 2000) $all = array_slice($all, -2000, null, true);
+        return $all;
+    });
+    return $result;
+}
+
+function lf_throttle_reset(string $key): void
+{
+    json_update(LF_DATA_DIR . '/throttle.json', function (array $all) use ($key) {
+        unset($all[$key]);
+        return $all;
+    });
+}
+
 function lf_admin_required(): string
 {
     $u = lf_admin_current();
     if ($u === null) {
         $next = urlencode((string)($_SERVER['REQUEST_URI'] ?? '/admin/'));
-        if (!headers_sent()) header('Location: ' . lf_url('/admin/login.php?next=' . $next));
+        if (!headers_sent()) header('Location: /admin/login.php?next=' . $next);
         exit;
+    }
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && defined('LF_DATA_DIR')) {
+        @json_update(LF_DATA_DIR . '/admin-audit.json', function (array $log) use ($u) {
+            $path = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: '');
+            $log[] = [
+                'at' => date('Y-m-d H:i:s'),
+                'admin' => $u,
+                'path' => $path,
+                'action' => (string)($_POST['action'] ?? ''),
+                'ip' => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            ];
+            if (count($log) > 2000) $log = array_slice($log, -2000);
+            return $log;
+        });
     }
     return $u;
 }

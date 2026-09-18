@@ -16,6 +16,8 @@ if (!function_exists('lf_footer')) {
       <a href="<?= lf_url('/courses') ?>">课程</a>
       <a href="<?= lf_url('/camp') ?>">训练营</a>
       <a href="<?= lf_url('/certificate') ?>">证书验证</a>
+      <a href="<?= lf_url('/terms') ?>">服务条款</a>
+      <a href="<?= lf_url('/privacy') ?>">隐私政策</a>
       <a href="<?= lf_url('/admin/') ?>">讲师后台</a>
     </nav>
     <p class="lf-foot-copy">© <?= date('Y') ?> 芭乐派 · LearnFlow</p>

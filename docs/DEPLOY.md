@@ -104,7 +104,11 @@ crontab（以 www 身份执行，已配置）：
 */15 * * * * su -s /bin/sh www -c "/www/server/php/83/bin/php /www/wwwroot/learnflow/bin/drain.php" >> /www/wwwroot/learnflow/data/cron.log 2>&1
 # LearnFlow: 连续学习提醒（每天 09:00）
 0 9 * * * su -s /bin/sh www -c "/www/server/php/83/bin/php /www/wwwroot/learnflow/bin/remind.php" >> /www/wwwroot/learnflow/data/cron.log 2>&1
+# LearnFlow: 自动备份（每天 03:30，逻辑库导出 + JSON 快照，保留最近 14 份）
+30 3 * * * su -s /bin/sh www -c "/www/server/php/83/bin/php /www/wwwroot/learnflow/bin/backup.php" >> /www/wwwroot/learnflow/data/cron.log 2>&1
 ```
+
+备份：`bin/backup.php`（可加 `--with-uploads` 打包上传附件）；输出到 `data/backups/<时间戳>/`（`lf_kv.json` 逻辑库 + `json/` 快照 + `manifest.json`），保留份数由设置 `backup_keep`（默认 14）控制，目录由 `backup_dir` 控制。`data/` 已被 `.htaccess` 拒绝直连。
 
 MySQL 独立实例（systemd）：
 

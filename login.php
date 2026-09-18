@@ -34,14 +34,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 lf_flash('danger', $e->getMessage());
             }
         } else {
-            $student = student_verify($email, $password);
-            if ($student === null) {
-                lf_flash('danger', '邮箱或密码不正确。');
+            $rlKey = 'login:' . (string)($_SERVER['REMOTE_ADDR'] ?? '') . ':' . strtolower($email);
+            $rl = lf_throttle($rlKey, 10, 600);
+            if (empty($rl['allowed'])) {
+                lf_flash('danger', '尝试次数过多，请 ' . (int)ceil($rl['retry'] / 60) . ' 分钟后再试。');
             } else {
-                lf_student_login((string)$student['id']);
-                student_touch_login((string)$student['id']);
-                header('Location: ' . $next);
-                exit;
+                $student = student_verify($email, $password);
+                if ($student === null) {
+                    lf_flash('danger', '邮箱或密码不正确。');
+                } else {
+                    lf_throttle_reset($rlKey);
+                    lf_student_login((string)$student['id']);
+                    student_touch_login((string)$student['id']);
+                    header('Location: ' . $next);
+                    exit;
+                }
             }
         }
     }

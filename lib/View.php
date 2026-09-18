@@ -137,6 +137,7 @@ function lf_admin_page_start(array $opts = []): void
         'notify' => [lf_url('/admin/notify.php'), '通知', 'share'],
         'marketing' => [lf_url('/admin/marketing.php'), '营销', 'share'],
         'apikeys' => [lf_url('/admin/apikeys.php'), 'API/MCP', 'share'],
+        'audit' => [lf_url('/admin/audit.php'), '审计', 'file'],
         'settings' => [lf_url('/admin/settings.php'), '设置', 'chart'],
     ];
     echo '<!doctype html><html lang="zh-CN" data-theme="light"><head>';

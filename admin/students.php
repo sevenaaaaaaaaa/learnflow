@@ -27,6 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'group') {
             enroll_set_group((string)($_POST['course_id'] ?? ''), (string)($_POST['student_id'] ?? ''), (string)($_POST['group'] ?? ''));
             lf_flash('ok', '分组已更新。');
+        } elseif ($action === 'export') {
+            $sid = (string)($_POST['student_id'] ?? '');
+            $data = gdpr_student_export($sid);
+            header('Content-Type: application/json; charset=utf-8');
+            header('Content-Disposition: attachment; filename="student-' . preg_replace('/[^a-z0-9_]/i', '', $sid) . '.json"');
+            echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            exit;
+        } elseif ($action === 'erase') {
+            gdpr_student_erase((string)($_POST['student_id'] ?? ''));
+            lf_flash('ok', '学员数据已删除（含报名/进度/证书/记录）。');
         }
     }
     header('Location: ' . lf_url('/admin/students.php'));
@@ -63,7 +73,12 @@ lf_admin_page_start(['title' => '学员 · LearnFlow 讲师后台', 'active' => 
           $minutes = 0;
       ?>
         <tr>
-          <td><b><?= lf_e((string)($s['name'] ?? '')) ?></b><br><span class="lf-faint"><?= lf_e((string)($s['email'] ?? '')) ?></span></td>
+          <td><b><?= lf_e((string)($s['name'] ?? '')) ?></b><br><span class="lf-faint"><?= lf_e((string)($s['email'] ?? '')) ?></span>
+            <div class="lf-row" style="gap:6px;margin-top:6px">
+              <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="export"><input type="hidden" name="student_id" value="<?= lf_e((string)$sid) ?>"><button class="btn subtle sm" type="submit" style="height:28px">导出数据</button></form>
+              <form method="post" style="margin:0" onsubmit="return confirm('删除该学员全部数据？不可恢复。')"><?= lf_csrf_field() ?><input type="hidden" name="action" value="erase"><input type="hidden" name="student_id" value="<?= lf_e((string)$sid) ?>"><button class="btn subtle sm" type="submit" style="height:28px;color:var(--danger)">删除</button></form>
+            </div>
+          </td>
           <td>
             <?php if (!$enrolled): ?><span class="lf-faint">—</span><?php else: ?>
               <?php foreach ($enrolled as $cid => $row):

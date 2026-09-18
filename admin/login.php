@@ -26,12 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Throwable $e) {
                 lf_flash('danger', $e->getMessage());
             }
-        } elseif (lf_admin_authenticate($username, $password)) {
-            lf_admin_login($username);
-            header('Location: ' . lf_url('/admin/'));
-            exit;
         } else {
-            lf_flash('danger', '账号或密码错误。');
+            $rlKey = 'adminlogin:' . (string)($_SERVER['REMOTE_ADDR'] ?? '') . ':' . strtolower($username);
+            $rl = lf_throttle($rlKey, 10, 600);
+            if (empty($rl['allowed'])) {
+                lf_flash('danger', '尝试次数过多，请 ' . (int)ceil($rl['retry'] / 60) . ' 分钟后再试。');
+            } elseif (lf_admin_authenticate($username, $password)) {
+                lf_throttle_reset($rlKey);
+                lf_admin_login($username);
+                header('Location: ' . lf_url('/admin/'));
+                exit;
+            } else {
+                lf_flash('danger', '账号或密码错误。');
+            }
         }
     }
 }
