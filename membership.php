@@ -16,8 +16,8 @@ lf_page_start([
 ?>
 <section class="lf-sec" style="padding-top:40px">
   <span class="lf-kicker">Membership</span>
-  <h1 class="lf-sec-title" style="font-size:clamp(28px,4vw,40px);margin-top:10px">会员</h1>
-  <p class="lf-muted" style="max-width:620px">会员可学习「会员专享」课程，并享受专属折扣。订阅收款由 PayFlow 完成。</p>
+  <h1 class="lf-sec-title" style="font-size:clamp(28px,4vw,40px);margin-top:10px"><?= lf_t('会员', 'Membership') ?></h1>
+  <p class="lf-muted" style="max-width:620px"><?= lf_t('会员可学习「会员专享」课程，并享受专属折扣。订阅收款由 PayFlow 完成。', 'Members get access to members-only courses and exclusive discounts. Payment via PayFlow.') ?></p>
 
   <?php if ($current !== null): ?>
     <div class="lf-flash <?= !empty($current['active']) ? 'ok' : 'warn' ?>" style="margin-top:18px;max-width:620px">

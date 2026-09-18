@@ -6,10 +6,10 @@ if (!function_exists('lf_nav')) {
         $active = (string)($opts['active'] ?? '');
         $student = function_exists('lf_student_current') ? lf_student_current() : null;
         $items = [
-            'courses' => [lf_url('/courses'), '课程'],
-            'camp' => [lf_url('/camp'), '训练营'],
-            'membership' => [lf_url('/membership'), '会员'],
-            'dashboard' => [lf_url('/dashboard'), '我的学习'],
+            'courses' => [lf_url('/courses'), lf_t('课程', 'Courses')],
+            'camp' => [lf_url('/camp'), lf_t('训练营', 'Bootcamp')],
+            'membership' => [lf_url('/membership'), lf_t('会员', 'Membership')],
+            'dashboard' => [lf_url('/dashboard'), lf_t('我的学习', 'My Learning')],
         ];
         $siteName = (string)(lf_setting_get('site_name') ?: 'LearnFlow');
         ?>
@@ -35,8 +35,8 @@ if (!function_exists('lf_nav')) {
         </a>
         <a class="btn ghost lf-nav-cta" href="<?= lf_url('/account') ?>"><?= lf_e((string)($student['name'] ?? '我')) ?></a>
       <?php else: ?>
-        <a class="lf-nav-link lf-nav-login" href="<?= lf_url('/login') ?>">登录</a>
-        <a class="btn primary lf-nav-cta" href="<?= lf_url('/courses') ?>">开始学习</a>
+        <a class="lf-nav-link lf-nav-login" href="<?= lf_url('/login') ?>"><?= lf_t('登录', 'Log in') ?></a>
+        <a class="btn primary lf-nav-cta" href="<?= lf_url('/courses') ?>"><?= lf_t('开始学习', 'Start learning') ?></a>
       <?php endif; ?>
     </div>
   </div>

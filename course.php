@@ -141,24 +141,24 @@ lf_page_start([
           <?php endif; ?>
         </div>
         <?php if (!$hasAccess && !empty($course['members_only'])): ?>
-          <div class="lf-flash info" style="margin-top:10px">会员专享课程：开通会员即可学习。</div>
-          <a class="btn primary block" style="margin-top:10px" href="<?= lf_url('/membership') ?>">开通会员</a>
+          <div class="lf-flash info" style="margin-top:10px"><?= lf_t('会员专享课程：开通会员即可学习。', 'Members-only course: join to access.') ?></div>
+          <a class="btn primary block" style="margin-top:10px" href="<?= lf_url('/membership') ?>"><?= lf_t('开通会员', 'Join membership') ?></a>
         <?php endif; ?>
         <?php if ($hasAccess): ?>
           <?php if ($summary): ?><div style="margin:14px 0"><?= lf_progress_bar((int)$summary['percent'], '已完成 ' . (int)$summary['done'] . '/' . (int)$summary['total'] . ' 课时') ?></div><?php endif; ?>
-          <a class="btn primary block" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>"><?= $summary && $summary['percent'] > 0 ? '继续学习' : '开始学习' ?></a>
+          <a class="btn primary block" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>"><?= ($summary && $summary['percent'] > 0) ? lf_t('继续学习', 'Continue') : lf_t('开始学习', 'Start') ?></a>
         <?php elseif ($student === null): ?>
-          <a class="btn primary block" style="margin-top:14px" href="<?= lf_url('/login?next=') ?><?= urlencode('/course/' . (string)$course['slug']) ?>">登录后报名</a>
+          <a class="btn primary block" style="margin-top:14px" href="<?= lf_url('/login?next=') ?><?= urlencode('/course/' . (string)$course['slug']) ?>"><?= lf_t('登录后报名', 'Log in to enroll') ?></a>
         <?php elseif ($discounted > 0 && $payflowUrl !== ''): ?>
-          <a class="btn primary block" style="margin-top:14px" href="<?= lf_e($payflowUrl) ?>">立即购买<?= $discounted < $price ? '（已优惠）' : '' ?></a>
-          <p class="lf-faint" style="margin-top:10px">由 PayFlow 收款，购买后自动入学。</p>
+          <a class="btn primary block" style="margin-top:14px" href="<?= lf_e($payflowUrl) ?>"><?= lf_t('立即购买', 'Buy now') ?><?= $discounted < $price ? lf_t('（已优惠）', ' (discounted)') : '' ?></a>
+          <p class="lf-faint" style="margin-top:10px"><?= lf_t('由 PayFlow 收款，购买后自动入学。', 'Paid via PayFlow; enrolled automatically.') ?></p>
         <?php elseif ($discounted > 0): ?>
-          <p class="lf-faint" style="margin-top:14px">该课程售价 ¥<?= number_format($discounted, 2) ?>，请联系讲师开通或使用邀请码。</p>
+          <p class="lf-faint" style="margin-top:14px"><?= lf_t('该课程售价', 'Price') ?> ¥<?= number_format($discounted, 2) ?>，<?= lf_t('请联系讲师开通或使用邀请码。', 'contact the instructor or use an invite code.') ?></p>
         <?php else: ?>
           <form method="post" style="margin-top:14px">
             <?= lf_csrf_field() ?>
             <input type="hidden" name="action" value="free">
-            <button class="btn primary block" type="submit"><?= $appliedCoupon !== '' ? '用券免费报名' : '免费报名' ?></button>
+            <button class="btn primary block" type="submit"><?= $appliedCoupon !== '' ? lf_t('用券免费报名', 'Enroll free with coupon') : lf_t('免费报名', 'Enroll free') ?></button>
           </form>
         <?php endif; ?>
 
@@ -185,9 +185,9 @@ lf_page_start([
 </section>
 
 <section class="lf-sec" style="padding-top:10px">
-  <div class="lf-sec-head"><h2 class="lf-sec-title" style="font-size:24px">课程大纲</h2></div>
+  <div class="lf-sec-head"><h2 class="lf-sec-title" style="font-size:24px"><?= lf_t('课程大纲', 'Curriculum') ?></h2></div>
   <?php if (!$course['chapters']): ?>
-    <div class="lf-empty">课程大纲尚未发布。</div>
+    <div class="lf-empty"><?= lf_t('课程大纲尚未发布。', 'Curriculum not published yet.') ?></div>
   <?php else: ?>
     <div style="border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)">
       <?php foreach ($course['chapters'] as $ci => $ch): ?>

@@ -66,11 +66,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'payflow_product_id' => (string)($_POST['payflow_product_id'] ?? ''),
         'chapters' => [],
     ];
+    $i18nLessons = [];
+    $chaptersRaw = [];
     foreach ((array)($_POST['chapters'] ?? []) as $ch) {
         $lessons = [];
         foreach ((array)($ch['lessons'] ?? []) as $l) {
+            $lid = (string)($l['id'] ?? '');
+            $enTitle = trim((string)($l['en_title'] ?? ''));
+            $enContent = (string)($l['en_content'] ?? '');
+            if ($lid !== '' && ($enTitle !== '' || $enContent !== '')) $i18nLessons[$lid] = ['title' => $enTitle, 'content' => $enContent];
             $lessons[] = [
-                'id' => (string)($l['id'] ?? ''),
+                'id' => $lid,
                 'type' => (string)($l['type'] ?? 'article'),
                 'title' => (string)($l['title'] ?? ''),
                 'duration' => (int)($l['duration'] ?? 0),
@@ -91,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'lessons' => $lessons,
         ];
     }
+    if ($i18nLessons) $raw['i18n']['en']['lessons'] = $i18nLessons;
     $saved = course_save(course_normalize($raw));
     lf_flash('ok', '课程已保存。');
     header('Location: ' . lf_url('/admin/course-edit.php?id=' . urlencode((string)$saved['id'])));
@@ -232,6 +239,11 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <div class="lf-field" style="margin:0"><label>结束时间</label><input class="lf-inp" type="datetime-local" data-name="live_end"></div>
     </div>
     <div class="lf-field" style="margin-top:10px"><label>附件（每行一个：名称|URL）</label><textarea class="lf-inp" data-name="attachments" style="min-height:56px"></textarea></div>
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer;font-size:13px;color:var(--muted)">英文内容（可选）</summary>
+      <div class="lf-field" style="margin-top:8px"><label>EN Title</label><input class="lf-inp" data-name="en_title"></div>
+      <div class="lf-field"><label>EN Content (HTML)</label><textarea class="lf-inp" data-name="en_content" style="min-height:90px"></textarea></div>
+    </details>
   </div>
 </template>
 
@@ -240,10 +252,13 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
   var chaptersEl = document.getElementById('chapters');
   var tplChapter = document.getElementById('tpl-chapter');
   var tplLesson = document.getElementById('tpl-lesson');
-  var initial = <?= json_encode(array_map(function ($ch) {
-      $lessons = array_map(function ($l) {
+  var initial = <?php
+    $enLessons = (array)($course['i18n']['en']['lessons'] ?? []);
+    echo json_encode(array_map(function ($ch) use ($enLessons) {
+      $lessons = array_map(function ($l) use ($enLessons) {
+          $lid = (string)($l['id'] ?? '');
           return [
-              'id' => (string)($l['id'] ?? ''),
+              'id' => $lid,
               'title' => (string)($l['title'] ?? ''),
               'type' => (string)($l['type'] ?? 'article'),
               'duration' => (int)($l['duration'] ?? 0),
@@ -255,6 +270,8 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
               'live_end' => (string)($l['live_end'] ?? ''),
               'free' => !empty($l['free']),
               'attachments' => lf_attachments_text((array)($l['attachments'] ?? [])),
+              'en_title' => (string)($enLessons[$lid]['title'] ?? ''),
+              'en_content' => (string)($enLessons[$lid]['content'] ?? ''),
           ];
       }, (array)($ch['lessons'] ?? []));
       return ['id' => (string)($ch['id'] ?? ''), 'title' => (string)($ch['title'] ?? ''), 'summary' => (string)($ch['summary'] ?? ''), 'lessons' => $lessons];
@@ -323,6 +340,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     setVal(ls, 'duration', data.duration); setVal(ls, 'video', data.video); setVal(ls, 'content', data.content);
     setVal(ls, 'quiz_id', data.quiz_id); setVal(ls, 'free', data.free); setVal(ls, 'attachments', data.attachments);
     setVal(ls, 'live_url', data.live_url); setVal(ls, 'live_start', data.live_start); setVal(ls, 'live_end', data.live_end);
+    setVal(ls, 'en_title', data.en_title); setVal(ls, 'en_content', data.en_content);
     ch.querySelector('.lessons').appendChild(ls);
     bindLesson(ls); syncLesson(ls);
     return ls;

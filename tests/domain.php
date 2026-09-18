@@ -273,6 +273,13 @@ $liveCourse = course_save(course_normalize(['title' => '直播测试', 'status' 
 $ll = course_lessons($liveCourse)[0] ?? [];
 check('live lesson fields saved', ($ll['live_url'] ?? '') === 'https://cdn.test/live.m3u8' && ($ll['live_start'] ?? '') === '2026-10-01 20:00' && ($ll['live_end'] ?? '') === '2026-10-01 21:00');
 
+$tcLessons = course_lessons(course_find('test-course'));
+$lid = (string)($tcLessons[0]['id'] ?? '');
+course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));
+$lc = lf_localize_course(course_find('test-course'), 'en');
+check('lesson i18n title+content applied', ($lc['chapters'][0]['lessons'][0]['title'] ?? '') === 'Article EN' && ($lc['chapters'][0]['lessons'][0]['content'] ?? '') === '<p>EN</p>');
+check('i18n lf_t fallback', lf_t('x', 'y') === 'x' || lf_t('x', 'y') === 'y');
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

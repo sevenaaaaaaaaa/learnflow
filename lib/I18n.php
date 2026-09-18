@@ -37,9 +37,9 @@ function lf_localize_course(array $course, ?string $lang = null): array
         foreach ((array)($course['chapters'] ?? []) as $ci => $ch) {
             foreach ((array)($ch['lessons'] ?? []) as $li => $l) {
                 $id = (string)($l['id'] ?? '');
-                if ($id !== '' && !empty($lessonMap[$id]['title'])) {
-                    $course['chapters'][$ci]['lessons'][$li]['title'] = $lessonMap[$id]['title'];
-                }
+                if ($id === '') continue;
+                if (!empty($lessonMap[$id]['title'])) $course['chapters'][$ci]['lessons'][$li]['title'] = $lessonMap[$id]['title'];
+                if (!empty($lessonMap[$id]['content'])) $course['chapters'][$ci]['lessons'][$li]['content'] = $lessonMap[$id]['content'];
             }
         }
     }

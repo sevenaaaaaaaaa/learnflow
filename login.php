@@ -63,21 +63,21 @@ lf_page_start([
 <section class="lf-sec" style="padding-top:56px">
   <div class="lf-form-card">
     <div class="lf-tabs">
-      <a class="lf-tab<?= $mode === 'login' ? ' on' : '' ?>" href="<?= lf_url('/login?next=') ?><?= urlencode($next) ?>">登录</a>
-      <a class="lf-tab<?= $mode === 'register' ? ' on' : '' ?>" href="<?= lf_url('/login?mode=register&next=') ?><?= urlencode($next) ?>">注册</a>
+      <a class="lf-tab<?= $mode === 'login' ? ' on' : '' ?>" href="<?= lf_url('/login?next=') ?><?= urlencode($next) ?>"><?= lf_t('登录','Log in') ?></a>
+      <a class="lf-tab<?= $mode === 'register' ? ' on' : '' ?>" href="<?= lf_url('/login?mode=register&next=') ?><?= urlencode($next) ?>"><?= lf_t('注册','Sign up') ?></a>
     </div>
     <form method="post" action="<?= lf_url('/login?mode=') ?><?= lf_e($mode) ?>&next=<?= urlencode($next) ?>">
       <?= lf_csrf_field() ?>
       <input type="hidden" name="action" value="<?= lf_e($mode) ?>">
       <?php if ($mode === 'register'): ?>
-        <div class="lf-field"><label>称呼</label><input class="lf-inp" name="name" placeholder="怎么称呼你"></div>
+        <div class="lf-field"><label><?= lf_t('称呼','Name') ?></label><input class="lf-inp" name="name" placeholder="怎么称呼你"></div>
       <?php endif; ?>
-      <div class="lf-field"><label>邮箱</label><input class="lf-inp" type="email" name="email" required autofocus></div>
-      <div class="lf-field"><label>密码</label><input class="lf-inp" type="password" name="password" required minlength="6"></div>
-      <button class="btn primary block" type="submit"><?= $mode === 'register' ? '注册并进入' : '登录' ?></button>
+      <div class="lf-field"><label><?= lf_t('邮箱','Email') ?></label><input class="lf-inp" type="email" name="email" required autofocus></div>
+      <div class="lf-field"><label><?= lf_t('密码','Password') ?></label><input class="lf-inp" type="password" name="password" required minlength="6"></div>
+      <button class="btn primary block" type="submit"><?= $mode === 'register' ? lf_t('注册并进入','Sign up') : lf_t('登录','Log in') ?></button>
     </form>
     <?php if ($mode === 'login'): ?>
-      <p class="lf-faint" style="margin-top:14px;text-align:center"><a href="<?= lf_url('/forgot-password') ?>">忘记密码？</a></p>
+      <p class="lf-faint" style="margin-top:14px;text-align:center"><a href="<?= lf_url('/forgot-password') ?>"><?= lf_t('忘记密码？','Forgot password?') ?></a></p>
     <?php endif; ?>
     <p class="lf-faint" style="margin-top:10px;text-align:center">购买课程后系统会自动为你开通账号，可直接用下单邮箱登录。</p>
   </div>

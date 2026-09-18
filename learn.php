@@ -155,17 +155,17 @@ lf_page_start([
           <form method="post">
             <?= lf_csrf_field() ?>
             <input type="hidden" name="action" value="done">
-            <button class="btn ghost sm" type="submit"><?= !empty($state['done']) ? '标记为未完成' : '标记完成' ?></button>
+            <button class="btn ghost sm" type="submit"><?= !empty($state['done']) ? lf_t('标记为未完成', 'Mark incomplete') : lf_t('标记完成', 'Mark complete') ?></button>
           </form>
         <?php endif; ?>
-        <?php if ($neighbors['prev']): ?><a class="btn subtle sm" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['prev']['id']) ?>"><?= lf_icon('arrow-left', 16) ?> 上一节</a><?php endif; ?>
-        <?php if ($neighbors['next']): ?><a class="btn primary sm" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['next']['id']) ?>">下一节 <?= lf_icon('arrow-right', 16) ?></a><?php endif; ?>
+        <?php if ($neighbors['prev']): ?><a class="btn subtle sm" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['prev']['id']) ?>"><?= lf_icon('arrow-left', 16) ?> <?= lf_t('上一节', 'Prev') ?></a><?php endif; ?>
+        <?php if ($neighbors['next']): ?><a class="btn primary sm" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>?lesson=<?= rawurlencode((string)$neighbors['next']['id']) ?>"><?= lf_t('下一节', 'Next') ?> <?= lf_icon('arrow-right', 16) ?></a><?php endif; ?>
       </div>
     </div>
     <?php endif; ?>
   <?php if ($hasAccess && ai_enabled()): ?>
     <div class="lf-form-card" style="max-width:none;margin-top:16px">
-      <span class="lf-kicker">AI 答疑</span>
+      <span class="lf-kicker"><?= lf_t('AI 答疑', 'Ask AI') ?></span>
       <div style="display:flex;gap:8px;margin-top:8px">
         <input class="lf-inp" id="ai-q" placeholder="就本课程提问，例如：这一章的核心是什么？" style="flex:1">
         <button class="btn primary sm" type="button" id="ai-ask" style="flex:0 0 auto">提问</button>
