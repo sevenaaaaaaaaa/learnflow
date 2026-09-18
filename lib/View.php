@@ -154,6 +154,13 @@ function lf_admin_page_start(array $opts = []): void
     if ($role !== 'admin') {
         foreach ($adminOnlyKeys as $k) unset($nav[$k]);
     }
+    $navGroups = [
+        '概览' => ['index', 'analytics', 'evolution', 'strategies'],
+        '内容' => ['courses', 'quizzes', 'categories', 'media', 'library', 'ai'],
+        '教学' => ['schedule', 'assignments', 'students', 'invites', 'certificates', 'community'],
+        '运营' => ['notify', 'templates', 'marketing', 'membership', 'commissions'],
+        '系统' => ['apikeys', 'audit', 'users', 'settings'],
+    ];
     echo '<!doctype html><html lang="zh-CN" data-theme="light"><head>';
     lf_head(array_merge([
         'title' => (string)($opts['title'] ?? '讲师后台 · LearnFlow'),
@@ -162,8 +169,14 @@ function lf_admin_page_start(array $opts = []): void
     echo '</head><body><div class="lf-admin"><aside class="lf-admin-side">';
     echo '<a class="lf-brand" href="' . lf_url('/admin/') . '"><span class="lf-brand-ic"><svg viewBox="0 0 32 32" fill="none"><path d="M16 5a11 11 0 1 1-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M11 8.5v15M11 13.6h8.4M11 18.6h8.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span class="lf-brand-tx">LearnFlow<small>讲师后台</small></span></a>';
     echo '<nav class="lf-admin-nav">';
-    foreach ($nav as $key => [$href, $label, $icon]) {
-        echo '<a class="' . ($active === $key ? 'on' : '') . '" href="' . $href . '">' . lf_icon($icon, 17) . lf_e($label) . '</a>';
+    foreach ($navGroups as $groupLabel => $keys) {
+        $visible = array_values(array_filter($keys, fn($k) => isset($nav[$k])));
+        if (!$visible) continue;
+        echo '<div class="lf-nav-group">' . lf_e($groupLabel) . '</div>';
+        foreach ($visible as $key) {
+            [$href, $label, $icon] = $nav[$key];
+            echo '<a class="' . ($active === $key ? 'on' : '') . '" href="' . $href . '">' . lf_icon($icon, 17) . lf_e($label) . '</a>';
+        }
     }
     echo '</nav>';
     $roleLabels = ['admin' => '管理员', 'editor' => '编辑', 'viewer' => '只读'];

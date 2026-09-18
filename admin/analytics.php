@@ -48,7 +48,7 @@ lf_admin_page_start(['title' => '营收看板 · LearnFlow 讲师后台', 'activ
   </div>
 </div>
 
-<div class="lf-grid" style="grid-template-columns:1fr 1fr;align-items:start">
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;margin-top:20px">
   <div class="lf-form-card" style="max-width:none">
     <h2 class="lf-sec-title" style="font-size:16px;margin:0 0 12px">每日营收</h2>
     <?php if (!$ov['revenue_by_day']): ?>
@@ -81,7 +81,7 @@ lf_admin_page_start(['title' => '营收看板 · LearnFlow 讲师后台', 'activ
   </div>
 </div>
 
-<div class="lf-grid" style="grid-template-columns:1fr 1fr;align-items:start;margin-top:20px">
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;align-items:start;margin-top:20px">
   <div class="lf-form-card" style="max-width:none">
     <h2 class="lf-sec-title" style="font-size:16px;margin:0 0 12px">报名来源</h2>
     <?php if (!$ov['sources']): ?><div class="lf-empty">暂无数据。</div><?php else: ?>
@@ -126,7 +126,7 @@ $selCourse = $selId !== '' ? course_find($selId) : null;
   <div class="lf-empty">还没有课程。</div>
 <?php else: ?>
   <?php $drop = lesson_dropoff((string)$selCourse['id']); $qs = quiz_question_stats((string)$selCourse['id']); ?>
-  <div class="lf-grid" style="grid-template-columns:1fr 1fr;align-items:start">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
     <div class="lf-form-card" style="max-width:none">
       <h3 style="margin:0 0 10px;font-size:15px">课时流失（完成/开始，低者优先）</h3>
       <?php if (!$drop): ?><div class="lf-empty">暂无学习数据。</div><?php else: ?>

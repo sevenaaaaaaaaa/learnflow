@@ -89,6 +89,7 @@ img{max-width:100%;display:block}
 .lf-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
 textarea.lf-inp{height:auto;min-height:120px;padding:12px 14px;line-height:1.6;resize:vertical}
 .lf-form-card{max-width:420px;margin:0 auto;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-lg);padding:30px}
+.lf-admin .lf-form-card{margin:0}
 
 .lf-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start;padding:28px 0}
 @media(max-width:900px){.lf-layout{grid-template-columns:1fr}}
@@ -162,11 +163,24 @@ textarea.lf-inp{height:auto;min-height:120px;padding:12px 14px;line-height:1.6;r
 .lf-admin-body{padding:28px 30px;max-width:1000px}
 .lf-admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
 .lf-admin-head h1{font-family:var(--font-display);font-size:26px;margin:0}
-@media(max-width:820px){.lf-admin{grid-template-columns:1fr}.lf-admin-side{border-right:0;border-bottom:1px solid var(--border-soft)}}
+@media(max-width:820px){
+  .lf-admin{display:block}
+  .lf-admin-side{position:sticky;top:0;z-index:40;border-right:0;border-bottom:1px solid var(--border-soft);padding:10px 12px}
+  .lf-admin-side .lf-brand{margin-bottom:10px;padding:0}
+  .lf-admin-nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .lf-admin-nav .lf-nav-group{display:none}
+  .lf-admin-nav a{white-space:nowrap;padding:8px 12px}
+  .lf-admin-body{padding:18px 16px}
+}
 
 .lf-lesson-editor{border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:10px;background:var(--surface)}
 .lf-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .lf-row > *{flex:1;min-width:120px}
+.lf-row > .btn,.lf-row > .btn.sm,.lf-row > a.btn,.lf-row > label,.lf-row > form{flex:0 0 auto;min-width:0}
+.lf-admin-nav .lf-nav-group{margin:16px 12px 4px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.lf-table th,.lf-table td .lf-chip,.lf-table td .lf-chip *{white-space:nowrap}
+.lf-table td{vertical-align:top}
+.lf-empty{padding:34px 20px}
 .lf-hidden{display:none}
 .lf-prose{font-size:16px;line-height:1.85}
 .lf-prose h2{font-family:var(--font-display);margin:1.4em 0 .5em}

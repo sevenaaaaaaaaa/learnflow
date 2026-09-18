@@ -66,7 +66,7 @@ lf_admin_page_start(['title' => '自进化 · LearnFlow 讲师后台', 'active' 
   <div class="lf-empty">还没有体检记录，点「运行体检」。</div>
 <?php else: ?>
   <table class="lf-table">
-    <thead><tr><th>级别</th><th>类别</th><th>建议</th><th>状态</th><th></th></tr></thead>
+    <thead><tr><th style="width:60px">级别</th><th style="width:90px">类别</th><th>建议</th><th style="width:90px">状态</th><th style="width:260px"></th></tr></thead>
     <tbody>
       <?php foreach ($proposals as $p): ?>
         <tr>

@@ -1,6 +1,6 @@
 <?php
 
-if (!defined('LF_SHELL_VER')) define('LF_SHELL_VER', '20260916a');
+if (!defined('LF_SHELL_VER')) define('LF_SHELL_VER', '20260918c');
 
 if (!function_exists('lf_head')) {
     function lf_head(array $opts = []): void
