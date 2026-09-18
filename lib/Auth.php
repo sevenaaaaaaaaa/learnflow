@@ -15,19 +15,69 @@ function lf_admin_count(): int
     return count(lf_admins());
 }
 
-function lf_admin_create(string $username, string $password, string $name = ''): bool
+function lf_admin_create(string $username, string $password, string $name = '', string $role = 'admin'): bool
 {
     $username = trim($username);
     if ($username === '' || strlen($password) < 6) return false;
-    json_update(lf_admins_file(), function (array $admins) use ($username, $password, $name) {
+    if (!in_array($role, ['admin', 'editor', 'viewer'], true)) $role = 'editor';
+    json_update(lf_admins_file(), function (array $admins) use ($username, $password, $name, $role) {
         $admins[$username] = [
             'name' => $name !== '' ? $name : $username,
+            'role' => $role,
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
             'created_at' => date('Y-m-d H:i:s'),
         ];
         return $admins;
     });
     return true;
+}
+
+function lf_admin_set_role(string $username, string $role): void
+{
+    if (!in_array($role, ['admin', 'editor', 'viewer'], true)) return;
+    json_update(lf_admins_file(), function (array $admins) use ($username, $role) {
+        if (isset($admins[$username])) $admins[$username]['role'] = $role;
+        return $admins;
+    });
+}
+
+function lf_admin_set_password(string $username, string $password): void
+{
+    if (strlen($password) < 6) return;
+    json_update(lf_admins_file(), function (array $admins) use ($username, $password) {
+        if (isset($admins[$username])) $admins[$username]['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
+        return $admins;
+    });
+}
+
+function lf_admin_delete(string $username): void
+{
+    json_update(lf_admins_file(), function (array $admins) use ($username) {
+        unset($admins[$username]);
+        return $admins;
+    });
+}
+
+function lf_admin_role(): string
+{
+    $u = lf_admin_current();
+    if ($u === null) return '';
+    $admins = lf_admins();
+    $r = (string)($admins[$u]['role'] ?? 'admin');
+    return in_array($r, ['admin', 'editor', 'viewer'], true) ? $r : 'admin';
+}
+
+function lf_role_can(string $role, string $cap): bool
+{
+    if ($role === 'admin') return true;
+    if ($role === 'editor') return $cap === 'content';
+    return false;
+}
+
+function lf_admin_cap_for_script(string $script): string
+{
+    $adminOnly = ['settings.php', 'apikeys.php', 'audit.php', 'membership.php', 'marketing.php', 'users.php', 'export.php'];
+    return in_array($script, $adminOnly, true) ? 'admin' : 'content';
 }
 
 function lf_admin_authenticate(string $username, string $password): bool
@@ -101,6 +151,18 @@ function lf_admin_required(): string
             if (count($log) > 2000) $log = array_slice($log, -2000);
             return $log;
         });
+    }
+    if (function_exists('lf_admin_role')) {
+        $script = basename((string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: ''));
+        $role = lf_admin_role();
+        $cap = lf_admin_cap_for_script($script);
+        $isPost = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
+        $denied = ($cap === 'admin' && $role !== 'admin') || ($isPost && $role === 'viewer');
+        if ($denied) {
+            if (function_exists('lf_flash')) lf_flash('danger', '没有权限执行该操作。');
+            if (!headers_sent()) header('Location: ' . lf_url('/admin/') . '?denied=1');
+            exit;
+        }
     }
     return $u;
 }

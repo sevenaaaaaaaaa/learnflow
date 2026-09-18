@@ -139,8 +139,14 @@ function lf_admin_page_start(array $opts = []): void
         'membership' => [lf_url('/admin/membership.php'), '会员', 'user'],
         'apikeys' => [lf_url('/admin/apikeys.php'), 'API/MCP', 'share'],
         'audit' => [lf_url('/admin/audit.php'), '审计', 'file'],
+        'users' => [lf_url('/admin/users.php'), '账号', 'user'],
         'settings' => [lf_url('/admin/settings.php'), '设置', 'chart'],
     ];
+    $adminOnlyKeys = ['marketing', 'membership', 'apikeys', 'audit', 'users', 'settings'];
+    $role = function_exists('lf_admin_role') ? lf_admin_role() : 'admin';
+    if ($role !== 'admin') {
+        foreach ($adminOnlyKeys as $k) unset($nav[$k]);
+    }
     echo '<!doctype html><html lang="zh-CN" data-theme="light"><head>';
     lf_head(array_merge([
         'title' => (string)($opts['title'] ?? '讲师后台 · LearnFlow'),
@@ -153,7 +159,9 @@ function lf_admin_page_start(array $opts = []): void
         echo '<a class="' . ($active === $key ? 'on' : '') . '" href="' . $href . '">' . lf_icon($icon, 17) . lf_e($label) . '</a>';
     }
     echo '</nav>';
-    echo '<div style="margin-top:20px;padding:0 8px"><form method="post" action="' . lf_url('/admin/logout.php') . '">' . lf_csrf_field() . '<button class="btn subtle sm block" type="submit">退出后台</button></form></div>';
+    $roleLabels = ['admin' => '管理员', 'editor' => '编辑', 'viewer' => '只读'];
+    echo '<div style="margin:14px 8px 0;font-size:12px;color:var(--faint)">' . lf_e((string)(lf_admin_current() ?? '')) . ' · ' . lf_e($roleLabels[$role] ?? $role) . '</div>';
+    echo '<div style="margin-top:14px;padding:0 8px"><form method="post" action="' . lf_url('/admin/logout.php') . '">' . lf_csrf_field() . '<button class="btn subtle sm block" type="submit">退出后台</button></form></div>';
     echo '</aside><main class="lf-admin-body">';
     echo lf_flash_render();
 }

@@ -280,6 +280,17 @@ $lc = lf_localize_course(course_find('test-course'), 'en');
 check('lesson i18n title+content applied', ($lc['chapters'][0]['lessons'][0]['title'] ?? '') === 'Article EN' && ($lc['chapters'][0]['lessons'][0]['content'] ?? '') === '<p>EN</p>');
 check('i18n lf_t fallback', lf_t('x', 'y') === 'x' || lf_t('x', 'y') === 'y');
 
+$_SESSION = [];
+lf_admin_create('ed', 'secret1', 'Ed', 'editor');
+lf_admin_create('vw', 'secret1', 'Vw', 'viewer');
+$_SESSION['lf_admin'] = 'ed';
+check('admin role editor', lf_admin_role() === 'editor');
+check('role caps', lf_role_can('editor', 'content') && !lf_role_can('editor', 'admin') && !lf_role_can('viewer', 'content') && lf_role_can('admin', 'admin'));
+check('cap map by script', lf_admin_cap_for_script('settings.php') === 'admin' && lf_admin_cap_for_script('courses.php') === 'content');
+$_SESSION['lf_admin'] = 'vw';
+check('viewer role', lf_admin_role() === 'viewer');
+unset($_SESSION['lf_admin']);
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;
