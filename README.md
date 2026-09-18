@@ -1,36 +1,34 @@
-# LearnFlow · 课程与训练营交付引擎
+# LearnFlow · 知识付费内容工作台 + Agent
 
-> 芭乐派产品矩阵成员（P2 候补 → 立项）。定位 brief 见 `docs/POSITIONING.md`，路线图见 `docs/ROADMAP.md`，**平台总览见 `docs/PLATFORM.md`**。
+> 芭乐派产品矩阵成员。定位 brief `docs/POSITIONING.md` · 路线图 `docs/ROADMAP.md` · 平台总览 `docs/PLATFORM.md` · 互通契约 `docs/MATRIX-API.md` · 自我进化 `docs/EVOLUTION.md`。
 
 ## 一句话定位
 
-课程交付 + 学员进度 + 测验证书 + 训练营运营——讲师、教练、训练营主理人的交付工具，不强依赖任何 CMS/CDP。
+给讲师、教练、训练营主理人的**一体化内容工作台 + Agent**：把「内容生产 → 组织上架 → 交付 → 运营 → 复盘」收进一套台子，并通过线上 API/MCP 与矩阵互相赋能；不止交付课程，还能**自我体检与迭代**。
 
-## 独立化三门槛（已过）
+## 面向谁 · 差异化
 
-1. **独立人群**：讲师、教练、训练营主理人（R.B.E 训练营即自家案例）——要交付不不要 OS
-2. **零母体依赖**：内容自带，收款接 PayFlow（API 互通不绑定）
-3. **数据模型级体量**：课程/章节/学员/进度/证书是独立数据域
+- **人群**：知识付费创作者——讲师、教练、训练营主理人（R.B.E 训练营即自家案例）
+- **差异化**：轻、可无头（REST + MCP）、数据可迁移、可自我进化；**不强依赖任何 CMS/CDP**；收款走 PayFlow（互通不绑定）
+- **独立化三门槛（已过）**：独立人群 · 零母体依赖 · 数据模型级体量（课程/学员/进度/证书/订单归因是独立数据域）
 
-## 能力域（OpenFlow 现成底子 → LearnFlow 独立形态）
+## 核心能力（概览）
 
-| 能力 | OpenFlow 来源 | LearnFlow 独立形态 |
-|---|---|---|
-| 课程结构 | CourseSystem | 章节/课时/图文/视频/测验 |
-| 学员管理 | course-students | 报名/名单/分组 |
-| 学习进度 | ProgressSystem | 续播/完成率/学习曲线 |
-| 测验 | quiz 课时 | 章节测验 + 结业测验 |
-| 证书 | CertificateSystem | 结业证书（可分享/防伪） |
-| 视频播放 | course-player + R2 media | HLS/mp4 托管播放（Range 分段） |
-| 训练营 | R.B.E 模式 | 开营节奏/作业提交/打卡 |
-| 社区 | OpenFlow community | 训练营圈子（轻量） |
+- **内容生产**：富文本编辑器 + 素材库（公共图床）+ Markdown 导入 + AI 内容工厂（讲义生成 / 资料成课 / 营销文案）
+- **组织上架**：章节课时（图文/视频/HLS/直播）、分类标签、多语言、模板与跨课程复用、发布审批、定时发布
+- **交付**：播放器（续播/字幕/连播/防盗水印）、测验、结业证书、训练营（每日任务/作业点评/打卡/圈子）、学习笔记与划词标注
+- **运营**：站内通知 + SMTP 邮件与**可编辑文案模板**、优惠券、推荐与归因、**多级分销佣金记录**、会员订阅
+- **增长与复盘**：营收/漏斗/内容分析、试看转化、课程模板与 SEO
+- **平台化**：PWA + 微信小程序、多讲师与角色权限、Agent 接口（`/api/v1` + `/mcp`）
+- **自进化**：自体检 → 提案 → （护栏内）执行 → 验证 → 策略复利；跨产品动作经矩阵 API
+- 完整清单见下方「已实现能力」与 `docs/PLATFORM.md`
 
-## 与矩阵的互通
+## 与矩阵的互通（线上 API/MCP，互相赋能、不共享数据库）
 
-- **PayFlow**：课程售卖与订阅（LearnFlow 调 PayFlow 收款，互通不绑定）
-- **UserLoop**：学习行为（完课/进度）进全域档案
-- **MFlow**：课程更新内容经分发触达学员
-- **inFlow**：课程主题舆情/趋势反哺选题
+- **PayFlow**：收款（购买即入学 / 开通会员）
+- **UserLoop**：学习事件实时进其旅程/Loop 引擎，**私域触达由其编排**
+- **MFlow / inFlow / WebsFlow / OpenFlow**：内容分发 / 选题洞察 / 落地页与权益 / 直播与渠道——按产品对逐项经各自 API 打通，见 `docs/MATRIX-API.md`
+- 原则：一切互通走公开 API/MCP（Bearer/HMAC），拔掉任一其余照常
 
 ## 状态
 
@@ -41,7 +39,8 @@
 - [x] 训练营运营（H3）：开营节奏/每日任务/作业点评/打卡/圈子/完课率看板
 - [x] 触达与 AI：SMTP 邮件+站内通知、DeepSeek（作业点评/测验出题/周报）
 - [x] 视频保护与互通：签名 URL+Range 受控播放、UserLoop/MFlow 出站事件队列、多语言
-- [x] 矩阵互通契约（`docs/MATRIX-API.md`）+ 自我进化 E0 自体检（`docs/EVOLUTION.md`）
+- [x] 矩阵互通契约（`docs/MATRIX-API.md`）+ 跨产品 API 调用层（`lib/Matrix.php`）
+- [x] 自我进化 E0–E4：自体检 / 动作闭环 / 分级自治 / 策略复利 / 跨产品动作（`docs/EVOLUTION.md`）
 - [ ] 首个训练营闭环验证（R.B.E 第 4 期）
 
 ## 已实现能力（H2–H3+）
@@ -91,10 +90,12 @@
 
 ```bash
 php bin/seed.php                              # 生成管理员/示例课程/学员/邀请码
-php tests/domain.php                          # 领域层回归测试（45 项）
+php tests/domain.php                          # 领域层回归测试（154 项）
 php -S 127.0.0.1:8080 bin/router.php          # 本地预览（模拟 .htaccess 路由，根=后台登录）
 php bin/drain.php                             # 手动投递互通事件队列
 php bin/remind.php                            # 手动触发连续学习提醒
+php bin/selfcheck.php                         # 自进化体检
+php bin/autonomy.php                          # 护栏内自动执行（默认 L0 仅提议）
 ```
 
 - 管理员默认 `admin / learnflow123`；演示学员 `demo@learnflow.local / demo123`；邀请码 `RBECAMP4`
