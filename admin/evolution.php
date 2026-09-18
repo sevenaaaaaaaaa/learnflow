@@ -13,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'status') {
             evolution_set_status((string)($_POST['id'] ?? ''), (string)($_POST['status'] ?? 'open'));
             lf_flash('ok', '状态已更新。');
+        } elseif ($action === 'execute') {
+            $res = evolution_execute((string)($_POST['id'] ?? ''));
+            lf_flash(!empty($res['ok']) ? 'ok' : 'danger', (string)($res['result'] ?? '执行失败'));
         } elseif ($action === 'ai') {
             if (!ai_enabled()) {
                 lf_flash('danger', 'AI 未启用（后台 → 设置 → AI）。');
@@ -63,12 +66,15 @@ lf_admin_page_start(['title' => '自进化 · LearnFlow 讲师后台', 'active' 
         <tr>
           <td><span class="lf-chip <?= ($p['severity'] ?? '') === 'high' ? 'danger' : (($p['severity'] ?? '') === 'medium' ? '' : 'soft') ?>"><?= lf_e($sevLabel[$p['severity'] ?? 'low'] ?? '—') ?></span></td>
           <td class="lf-faint"><?= lf_e((string)$p['category']) ?></td>
-          <td><b><?= lf_e((string)$p['title']) ?></b><br><span class="lf-faint"><?= lf_e((string)$p['detail']) ?></span><?php if (!empty($p['hint'])): ?> <a class="lf-faint" href="<?= lf_e(lf_url((string)$p['hint'])) ?>">去处理</a><?php endif; ?></td>
+          <td><b><?= lf_e((string)$p['title']) ?></b><br><span class="lf-faint"><?= lf_e((string)$p['detail']) ?></span><?php if (!empty($p['hint'])): ?> <a class="lf-faint" href="<?= lf_e(lf_url((string)$p['hint'])) ?>">去处理</a><?php endif; ?><?php if (!empty($p['result'])): ?><br><span class="lf-chip soft" style="margin-top:4px"><?= lf_e((string)$p['result']) ?></span><?php endif; ?></td>
           <td>
             <?php $st = (string)($p['status'] ?? 'open'); ?>
-            <span class="lf-chip <?= $st === 'resolved' ? 'ok' : ($st === 'accepted' ? '' : 'soft') ?>"><?= ['open' => '待处理', 'accepted' => '已采纳', 'resolved' => '已解决', 'ignored' => '已忽略'][$st] ?? $st ?></span>
+            <span class="lf-chip <?= in_array($st, ['resolved', 'verified'], true) ? 'ok' : ($st === 'failed' ? 'danger' : ($st === 'executed' ? '' : 'soft')) ?>"><?= ['open' => '待处理', 'accepted' => '已采纳', 'executed' => '已执行', 'verified' => '已验证', 'resolved' => '已解决', 'ignored' => '已忽略', 'failed' => '执行失败'][$st] ?? $st ?></span>
           </td>
           <td class="lf-row" style="flex-wrap:nowrap;gap:6px">
+            <?php if (!empty($p['action']) && in_array($st, ['open', 'accepted', 'failed'], true)): ?>
+              <form method="post" style="margin:0" onsubmit="return confirm('执行该动作？')"><?= lf_csrf_field() ?><input type="hidden" name="action" value="execute"><input type="hidden" name="id" value="<?= lf_e((string)$p['id']) ?>"><button class="btn primary sm" type="submit">执行<?= $st === 'failed' ? '（重试）' : '' ?></button></form>
+            <?php endif; ?>
             <?php foreach ([['accepted', '采纳'], ['resolved', '已解决'], ['ignored', '忽略']] as $b): ?>
               <?php if ($st !== $b[0]): ?>
                 <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="status"><input type="hidden" name="id" value="<?= lf_e((string)$p['id']) ?>"><input type="hidden" name="status" value="<?= lf_e($b[0]) ?>"><button class="btn subtle sm" type="submit"><?= lf_e($b[1]) ?></button></form>

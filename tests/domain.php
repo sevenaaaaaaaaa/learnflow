@@ -365,6 +365,17 @@ if ($evo) {
 }
 check('evolution ai prompt', str_contains(evolution_ai_prompt(), 'LearnFlow'));
 
+$state = evolution_state();
+$state['proposals'][] = ['id' => 'test:action', 'category' => 'business', 'severity' => 'low', 'title' => '测试动作', 'detail' => 'x', 'action' => ['type' => 'marketing', 'mtype' => 'page', 'topic' => 'T'], 'status' => 'open'];
+$state['proposals'][] = ['id' => 'test:verify', 'category' => 'ops', 'severity' => 'low', 'title' => '测试验证', 'detail' => 'x', 'action' => ['type' => 'reminder', 'course_id' => 'x'], 'status' => 'executed'];
+json_write($tmp . '/evolution.json', $state);
+$exec = evolution_execute('test:action');
+check('evolution execute records + fails gracefully (AI off)', empty($exec['ok']) && str_contains((string)$exec['result'], 'AI'));
+evolution_generate();
+$foundVerified = false;
+foreach (evolution_state()['proposals'] as $p) if (($p['id'] ?? '') === 'test:verify' && ($p['status'] ?? '') === 'verified') $foundVerified = true;
+check('evolution executed signal verified when gone', $foundVerified);
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));
