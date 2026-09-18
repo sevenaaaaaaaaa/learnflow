@@ -138,6 +138,8 @@ WantedBy=multi-user.target
 - **数据层（MySQL 独立实例，已启用）**：`learnflow-mysql.service` → `127.0.0.1:3308`，datadir `/www/server/learnflow-mysql/data`，低内存配置（`innodb_buffer_pool_size=64M`，与 UserLoop 的 3307 同模式），库 `learnflow`。应用驱动已切到 MySQL，JSON 集合仍作快照备份。凭据：服务器 `/root/learnflow-mysql-credentials.txt`、本机 `docs/secrets-local.md`。切换/回退：后台「设置 → 数据层」改驱动（SQLite 文件 `data/db/learnflow.db`），改动后用 `php bin/migrate.php` 补导入。
 - **SMTP**：启用后邮件直发（SSL 465 / STARTTLS 587）；未启用时邮件落 `data/mail-log.json`
 - **AI（DeepSeek）**：OpenAI 兼容协议，Key 存服务器 `data/settings.json`（勿入库），带 `daily_limit` 额度保险丝
+- **向量检索（可选）**：`embedding` 配置（OpenAI 兼容 embeddings，如通义/硅基流动）；未配置时课程问答自动用 BM25
+- **视频封面/转码**：`bin/transcode.php`（需服务器安装 ffmpeg，本地已支持；宝塔可在软件商店安装）。为 `upload:` 视频生成封面；未装 ffmpeg 时脚本安全跳过
 - **互通（出站事件）**：学习行为/课程事件实时投递给 **UserLoop**（其旅程/Loop 引擎据此私域触达）—— `POST http://127.0.0.1:8600/userloop/api/v1/ingest`，头 `X-UserLoop-Token`，体 `{distinct_id(邮箱),event,email,name,props,event_id,timestamp}`；事件名映射 `student.registered→signup`、`enrollment.created→purchase`、`course.completed→course_completed`、`certificate.issued→certificate_issued`、`assignment.graded→assignment_graded`。发送失败自动入队，`bin/drain.php` 重试。MFlow 走通用 webhook（HMAC `X-LF-Signature`）。
 - **上传**：`uploads/` 禁止直连（`.htaccess`），仅经 `/file`（HMAC 签名 + 报名校验 + Range 206）受控下载
 

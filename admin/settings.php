@@ -43,6 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'daily_limit' => (int)($_POST['ai_daily_limit'] ?? 200),
             ]);
             lf_flash('ok', 'AI 设置已保存。');
+        } elseif ($section === 'embedding') {
+            lf_setting_set('embedding', [
+                'enabled' => !empty($_POST['embedding_enabled']),
+                'base_url' => rtrim(trim((string)($_POST['embedding_base_url'] ?? '')), '/'),
+                'api_key' => trim((string)($_POST['embedding_api_key'] ?? '')),
+                'model' => trim((string)($_POST['embedding_model'] ?? '')),
+            ]);
+            lf_flash('ok', '向量检索设置已保存。');
         } elseif ($section === 'integrations') {
             lf_setting_set('integrations', [
                 'userloop' => [
@@ -152,6 +160,22 @@ lf_admin_page_start(['title' => '设置 · LearnFlow 讲师后台', 'active' => 
       <div class="lf-field" style="margin:0"><label>每日调用上限</label><input class="lf-inp" type="number" min="0" name="ai_daily_limit" value="<?= (int)$ai['daily_limit'] ?>"></div>
     </div>
     <button class="btn primary sm" type="submit" style="margin-top:12px">保存 AI 设置</button>
+  </div>
+</form>
+
+<form method="post" style="margin-bottom:20px">
+  <?= lf_csrf_field() ?><input type="hidden" name="section" value="embedding">
+  <div class="lf-form-card" style="max-width:none">
+    <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 12px">向量检索（可选，RAG 升级）</h2>
+    <p class="lf-faint" style="margin:0 0 12px">配置任意 OpenAI 兼容的 embeddings 服务（如通义/百度/硅基流动）。未配置时课程问答自动使用 BM25 检索。</p>
+    <?php $emb = embedding_config(); ?>
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="checkbox" name="embedding_enabled" <?= !empty($emb['enabled']) ? 'checked' : '' ?>> 启用向量检索</label>
+    <div class="lf-row">
+      <div class="lf-field" style="margin:0"><label>Base URL</label><input class="lf-inp" name="embedding_base_url" value="<?= lf_e((string)$emb['base_url']) ?>" placeholder="https://api.xxx.com/v1"></div>
+      <div class="lf-field" style="margin:0"><label>API Key</label><input class="lf-inp" type="password" name="embedding_api_key" value="<?= lf_e((string)$emb['api_key']) ?>"></div>
+      <div class="lf-field" style="margin:0"><label>模型</label><input class="lf-inp" name="embedding_model" value="<?= lf_e((string)$emb['model']) ?>" placeholder="text-embedding-v3"></div>
+    </div>
+    <button class="btn primary sm" type="submit" style="margin-top:12px">保存向量设置</button>
   </div>
 </form>
 

@@ -350,6 +350,10 @@ check('team comment add/list', count(team_comments('test-course')) >= 1);
 team_comment_resolve('test-course', (string)$tc['id']);
 check('team comment resolve', !empty(team_comments('test-course')[0]['resolved']));
 
+check('embedding disabled by default', !embedding_enabled());
+$rbm = ai_retrieve(course_find('test-course'), '图文');
+check('ai_retrieve falls back to BM25 when no embeddings', count($rbm['sources']) >= 1);
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

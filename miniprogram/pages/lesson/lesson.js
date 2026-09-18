@@ -14,5 +14,9 @@ Page({
       .catch((e) => wx.showToast({ title: e.error || '失败', icon: 'none' }));
   },
   courseId() { return this.data.lesson && this.data.lesson.course_id ? this.data.lesson.course_id : ''; },
+  openWeb(){
+    var u = getApp().globalData.baseUrl + '/learn/' + this.slug + '?lesson=' + this.lessonId + '&st=' + getApp().globalData.token;
+    wx.navigateTo({ url: '/pages/webview/webview?url=' + encodeURIComponent(u) });
+  },
   copyLink() { wx.setClipboardData({ data: getApp().globalData.baseUrl + '/learn/' + this.slug }); }
 });

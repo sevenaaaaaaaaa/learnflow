@@ -19,6 +19,10 @@ function ai_tokens(string $text): array
 
 function ai_retrieve(array $course, string $question, int $top = 5): array
 {
+    if (function_exists('embedding_search') && embedding_enabled()) {
+        $vec = embedding_search($course, $question, $top);
+        if ($vec !== null) return $vec;
+    }
     $qTokens = ai_tokens($question);
     if (!$qTokens) return ['sources' => [], 'contexts' => []];
     $qCounts = array_count_values($qTokens);

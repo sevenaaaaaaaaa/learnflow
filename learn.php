@@ -12,6 +12,15 @@ if ($course === null) {
 }
 
 $student = lf_student_current();
+if (lf_student_current() === null && !empty($_GET['st'])) {
+    require_once LF_ROOT . '/lib/StudentToken.php';
+    $sid = student_token_verify((string)$_GET['st']);
+    if ($sid !== null) lf_student_login($sid);
+    $clean = lf_url('/learn/' . rawurlencode((string)$course['slug']) . (!empty($_GET['lesson']) ? '?lesson=' . rawurlencode((string)$_GET['lesson']) : ''));
+    header('Location: ' . $clean);
+    exit;
+}
+$student = lf_student_current();
 $isAdmin = lf_admin_current() !== null;
 $studentId = $student ? (string)$student['id'] : '';
 
