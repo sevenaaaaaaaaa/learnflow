@@ -146,7 +146,7 @@ function evolution_run_action(array $action): array
     return ['ok' => false, 'result' => '该建议暂无自动动作'];
 }
 
-function evolution_execute(string $id): array
+function evolution_execute(string $id, bool $auto = false): array
 {
     $proposal = null;
     foreach (evolution_state()['proposals'] as $p) if (($p['id'] ?? '') === $id) { $proposal = $p; break; }
@@ -154,12 +154,13 @@ function evolution_execute(string $id): array
     $action = (array)($proposal['action'] ?? []);
     $res = evolution_run_action($action);
     $status = !empty($res['ok']) ? 'executed' : 'failed';
-    json_update(evolution_file(), function (array $s) use ($id, $status, $res) {
+    json_update(evolution_file(), function (array $s) use ($id, $status, $res, $auto) {
         foreach (($s['proposals'] ?? []) as $i => $p) {
             if (($p['id'] ?? '') === $id) {
                 $s['proposals'][$i]['status'] = $status;
                 $s['proposals'][$i]['result'] = (string)($res['result'] ?? '');
                 $s['proposals'][$i]['executed_at'] = date('Y-m-d H:i:s');
+                $s['proposals'][$i]['auto'] = $auto;
             }
         }
         return $s;

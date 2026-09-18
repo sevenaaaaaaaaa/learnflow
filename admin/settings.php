@@ -43,6 +43,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'daily_limit' => (int)($_POST['ai_daily_limit'] ?? 200),
             ]);
             lf_flash('ok', 'AI 设置已保存。');
+        } elseif ($section === 'autonomy') {
+            lf_setting_set('autonomy', [
+                'level' => in_array(($_POST['level'] ?? 'propose'), ['propose','guarded','goal'], true) ? $_POST['level'] : 'propose',
+                'daily_limit' => (int)($_POST['daily_limit'] ?? 5),
+                'quiet_start' => (int)($_POST['quiet_start'] ?? 22),
+                'quiet_end' => (int)($_POST['quiet_end'] ?? 8),
+                'per_type' => array_filter(array_map('intval', (array)($_POST['per_type'] ?? [])), fn($v) => $v !== 0),
+            ]);
+            lf_flash('ok', '自治设置已保存。');
         } elseif ($section === 'embedding') {
             lf_setting_set('embedding', [
                 'enabled' => !empty($_POST['embedding_enabled']),
@@ -201,6 +210,27 @@ lf_admin_page_start(['title' => '设置 · LearnFlow 讲师后台', 'active' => 
 <div class="lf-form-card" style="max-width:none;margin-bottom:20px">
   <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 10px">无头 API</h2>
   <p class="lf-faint">公开只读接口：<code>GET /api/courses.php</code>（列表）、<code>GET /api/courses.php?slug=xxx</code>（含全文）。课程数据可迁移，不强依赖本前端。</p>
+</div>
+
+<div class="lf-form-card" style="max-width:none;margin-bottom:20px">
+  <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 10px">自我进化 · 自治护栏（AutonomyGuard）</h2>
+  <?php $auto = autonomy_settings(); $used = autonomy_usage_today(); ?>
+  <p class="lf-faint" style="margin:0 0 12px">当前级别 <b><?= lf_e((string)$auto['level']) ?></b> · 今日自动执行 <?= (int)$used['total'] ?>/<?= (int)$auto['daily_limit'] ?>。高风险（发钱/群发/改价/发布）任何级别都需人工确认。</p>
+  <form method="post">
+    <?= lf_csrf_field() ?><input type="hidden" name="section" value="autonomy">
+    <div class="lf-row" style="align-items:flex-end">
+      <div class="lf-field" style="margin:0"><label>级别</label><select class="lf-inp" name="level">
+        <option value="propose" <?= $auto['level'] === 'propose' ? 'selected' : '' ?>>L0 propose（仅提议）</option>
+        <option value="guarded" <?= $auto['level'] === 'guarded' ? 'selected' : '' ?>>L1 guarded（仅低风险自动）</option>
+        <option value="goal" <?= $auto['level'] === 'goal' ? 'selected' : '' ?>>L2 goal（低+中风险自动）</option>
+      </select></div>
+      <div class="lf-field" style="margin:0"><label>每日自动上限</label><input class="lf-inp" type="number" min="0" name="daily_limit" value="<?= (int)$auto['daily_limit'] ?>"></div>
+      <div class="lf-field" style="margin:0"><label>静默开始（时）</label><input class="lf-inp" type="number" min="0" max="23" name="quiet_start" value="<?= (int)$auto['quiet_start'] ?>"></div>
+      <div class="lf-field" style="margin:0"><label>静默结束（时）</label><input class="lf-inp" type="number" min="0" max="23" name="quiet_end" value="<?= (int)$auto['quiet_end'] ?>"></div>
+      <div class="lf-field" style="margin:0"><label>提醒类每日上限</label><input class="lf-inp" type="number" min="0" name="per_type[reminder]" value="<?= (int)($auto['per_type']['reminder'] ?? 1) ?>"></div>
+      <button class="btn primary sm" type="submit" style="flex:0 0 auto">保存自治设置</button>
+    </div>
+  </form>
 </div>
 
 <div class="lf-form-card" style="max-width:none;margin-bottom:20px">

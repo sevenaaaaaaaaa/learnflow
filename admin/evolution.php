@@ -16,6 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'execute') {
             $res = evolution_execute((string)($_POST['id'] ?? ''));
             lf_flash(!empty($res['ok']) ? 'ok' : 'danger', (string)($res['result'] ?? '执行失败'));
+        } elseif ($action === 'autorun') {
+            $r = autonomy_run(10);
+            lf_flash('ok', '自动执行完成：执行 ' . (int)$r['executed'] . ' 条。');
         } elseif ($action === 'ai') {
             if (!ai_enabled()) {
                 lf_flash('danger', 'AI 未启用（后台 → 设置 → AI）。');
@@ -35,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $state = evolution_state();
 $proposals = evolution_proposals();
+$auto = autonomy_settings();
+$used = autonomy_usage_today();
 $sevLabel = ['high' => '高', 'medium' => '中', 'low' => '低'];
 
 lf_admin_page_start(['title' => '自进化 · LearnFlow 讲师后台', 'active' => 'evolution']);
@@ -42,8 +47,9 @@ lf_admin_page_start(['title' => '自进化 · LearnFlow 讲师后台', 'active' 
 <div class="lf-admin-head">
   <h1>自进化 · 体检与改进</h1>
   <div class="lf-row" style="flex:0 0 auto;gap:8px">
-    <span class="lf-faint" style="align-self:center">上次体检：<?= lf_e((string)($state['at'] ?: '未运行')) ?></span>
+    <span class="lf-faint" style="align-self:center">上次体检：<?= lf_e((string)($state['at'] ?: '未运行')) ?> · 自治 <?= lf_e((string)$auto['level']) ?>（今日自动 <?= (int)$used['total'] ?>/<?= (int)$auto['daily_limit'] ?>）</span>
     <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="run"><button class="btn primary sm" type="submit">运行体检</button></form>
+    <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="autorun"><button class="btn ghost sm" type="submit">运行自动执行</button></form>
     <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="ai"><button class="btn ghost sm" type="submit">AI 改进计划</button></form>
   </div>
 </div>
@@ -69,7 +75,7 @@ lf_admin_page_start(['title' => '自进化 · LearnFlow 讲师后台', 'active' 
           <td><b><?= lf_e((string)$p['title']) ?></b><br><span class="lf-faint"><?= lf_e((string)$p['detail']) ?></span><?php if (!empty($p['hint'])): ?> <a class="lf-faint" href="<?= lf_e(lf_url((string)$p['hint'])) ?>">去处理</a><?php endif; ?><?php if (!empty($p['result'])): ?><br><span class="lf-chip soft" style="margin-top:4px"><?= lf_e((string)$p['result']) ?></span><?php endif; ?></td>
           <td>
             <?php $st = (string)($p['status'] ?? 'open'); ?>
-            <span class="lf-chip <?= in_array($st, ['resolved', 'verified'], true) ? 'ok' : ($st === 'failed' ? 'danger' : ($st === 'executed' ? '' : 'soft')) ?>"><?= ['open' => '待处理', 'accepted' => '已采纳', 'executed' => '已执行', 'verified' => '已验证', 'resolved' => '已解决', 'ignored' => '已忽略', 'failed' => '执行失败'][$st] ?? $st ?></span>
+            <span class="lf-chip <?= in_array($st, ['resolved', 'verified'], true) ? 'ok' : ($st === 'failed' ? 'danger' : ($st === 'executed' ? '' : 'soft')) ?>"><?= ['open' => '待处理', 'accepted' => '已采纳', 'executed' => '已执行', 'verified' => '已验证', 'resolved' => '已解决', 'ignored' => '已忽略', 'failed' => '执行失败'][$st] ?? $st ?><?= !empty($p['auto']) ? ' · 自动' : '' ?></span>
           </td>
           <td class="lf-row" style="flex-wrap:nowrap;gap:6px">
             <?php if (!empty($p['action']) && in_array($st, ['open', 'accepted', 'failed'], true)): ?>

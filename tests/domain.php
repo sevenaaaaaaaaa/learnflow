@@ -376,6 +376,16 @@ $foundVerified = false;
 foreach (evolution_state()['proposals'] as $p) if (($p['id'] ?? '') === 'test:verify' && ($p['status'] ?? '') === 'verified') $foundVerified = true;
 check('evolution executed signal verified when gone', $foundVerified);
 
+check('autonomy risk mapping', autonomy_risk('marketing') === 'low' && autonomy_risk('reminder') === 'medium');
+lf_setting_set('autonomy', ['level' => 'propose', 'daily_limit' => 5]);
+check('autonomy propose does not auto-run', !empty(autonomy_reason('marketing')) && empty(autonomy_reason('marketing')['ok']));
+check('autonomy propose run executes nothing', (int)autonomy_run(5)['executed'] === 0);
+lf_setting_set('autonomy', ['level' => 'guarded', 'daily_limit' => 1, 'quiet_start' => 0, 'quiet_end' => 0, 'per_type' => []]);
+check('autonomy guarded allows low-risk', !empty(autonomy_reason('marketing')['ok']));
+check('autonomy guarded blocks medium', empty(autonomy_reason('reminder')['ok']));
+autonomy_record('marketing');
+check('autonomy daily cap enforced', empty(autonomy_reason('marketing')['ok']));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));
