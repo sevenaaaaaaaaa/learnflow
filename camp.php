@@ -55,6 +55,10 @@ $isAdmin = lf_admin_current() !== null;
 $sid = $student ? (string)$student['id'] : '';
 $course = lf_localize_course($course);
 $hasAccess = $isAdmin || ($sid !== '' && enroll_is_active((string)$course['id'], $sid));
+if (!$hasAccess && $student !== null) {
+    lf_ensure_member_access($course, $student);
+    $hasAccess = $isAdmin || ($sid !== '' && enroll_is_active((string)$course['id'], $sid));
+}
 
 if (!$hasAccess) {
     lf_flash('warn', '请先报名该训练营。');

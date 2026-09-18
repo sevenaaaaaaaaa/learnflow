@@ -20,6 +20,11 @@ if (course_lesson_find($course, $lessonId) === null) lf_json_out(['ok' => false,
 
 $studentId = (string)$student['id'];
 if (!enroll_is_active((string)$course['id'], $studentId)) {
+    if (function_exists('lf_ensure_member_access')) {
+        lf_ensure_member_access($course, $student);
+    }
+}
+if (!enroll_is_active((string)$course['id'], $studentId)) {
     lf_json_out(['ok' => false, 'error' => '未报名该课程'], 403);
 }
 

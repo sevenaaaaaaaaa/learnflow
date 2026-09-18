@@ -227,6 +227,7 @@ function lf_emit(string $event, array $payload): void
     require_once LF_ROOT . '/lib/Mailer.php';
 
     lf_event_log($event, $payload);
+    if (function_exists('points_for_event')) points_for_event($event, $payload);
     $integrations = array_filter(integrations_config(), fn($c) => !empty($c['enabled']) && ($c['url'] ?? '') !== '');
     foreach ($integrations as $key => $cfg) {
         if ($key === 'userloop') {

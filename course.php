@@ -17,6 +17,7 @@ $isAdmin = lf_admin_current() !== null;
 $course = lf_localize_course($course);
 $lessons = course_lessons($course);
 $price = (float)($course['price'] ?? 0);
+if ($student !== null) lf_ensure_member_access($course, $student);
 $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
 $summary = $studentId !== '' ? progress_summary($studentId, (string)$course['id'], $course) : null;
 
@@ -24,6 +25,9 @@ $refIn = strtoupper(trim((string)($_GET['ref'] ?? ($_GET['code'] ?? ''))));
 if ($refIn !== '' && referral_find($refIn) !== null) $_SESSION['lf_ref'] = $refIn;
 $appliedCoupon = (string)($_SESSION['lf_coupon'][(string)$course['id']] ?? '');
 $couponInfo = $appliedCoupon !== '' ? coupon_validate($appliedCoupon, (string)$course['id'], $price) : null;
+$memberDiscount = $studentId !== '' ? membership_discount($course, $studentId) : 0.0;
+$memberFinal = max(0, $price - $memberDiscount);
+$discounted = ($couponInfo && !empty($couponInfo['ok'])) ? min((float)$couponInfo['final'], $memberFinal) : $memberFinal;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if (!lf_csrf_check()) {
@@ -57,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header('Location: ' . lf_url('/course/' . rawurlencode((string)$course['slug'])));
         exit;
     } elseif ($_POST['action'] === 'free') {
-        $final = $couponInfo && !empty($couponInfo['ok']) ? (float)$couponInfo['final'] : $price;
+        $final = $discounted;
         if ($student === null) {
             lf_flash('warn', '请先登录后再报名。');
         } elseif ($final > 0) {
@@ -76,9 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
     $summary = $studentId !== '' ? progress_summary($studentId, (string)$course['id'], $course) : null;
     $couponInfo = $appliedCoupon !== '' ? coupon_validate($appliedCoupon, (string)$course['id'], $price) : null;
+    $memberDiscount = $studentId !== '' ? membership_discount($course, $studentId) : 0.0;
+    $memberFinal = max(0, $price - $memberDiscount);
+    $discounted = ($couponInfo && !empty($couponInfo['ok'])) ? min((float)$couponInfo['final'], $memberFinal) : $memberFinal;
 }
 
-$discounted = ($couponInfo && !empty($couponInfo['ok'])) ? (float)$couponInfo['final'] : $price;
 $refCode = (string)($_SESSION['lf_ref'] ?? '');
 $payflowUrl = payflow_checkout_url($course, (string)($student['email'] ?? ''), lf_abs_url('/course/' . rawurlencode((string)$course['slug']) . '?enrolled=1'), $appliedCoupon, $refCode);
 
@@ -129,10 +135,15 @@ lf_page_start([
             <span style="color:var(--faint);text-decoration:line-through;font-size:17px;margin-right:8px"><?= lf_e(course_price_label($course)) ?></span>
             ¥<?= lf_e(rtrim(rtrim(number_format($discounted, 2, '.', ''), '0'), '.')) ?>
             <?php if ($couponInfo && !empty($couponInfo['ok'])): ?><span class="lf-chip ok" style="margin-left:6px">券 -¥<?= number_format((float)$couponInfo['discount'], 2) ?></span><?php endif; ?>
+            <?php if ($memberDiscount > 0): ?><span class="lf-chip" style="margin-left:6px">会员 -¥<?= number_format($memberDiscount, 2) ?></span><?php endif; ?>
           <?php else: ?>
             <?= lf_e(course_price_label($course)) ?>
           <?php endif; ?>
         </div>
+        <?php if (!$hasAccess && !empty($course['members_only'])): ?>
+          <div class="lf-flash info" style="margin-top:10px">会员专享课程：开通会员即可学习。</div>
+          <a class="btn primary block" style="margin-top:10px" href="<?= lf_url('/membership') ?>">开通会员</a>
+        <?php endif; ?>
         <?php if ($hasAccess): ?>
           <?php if ($summary): ?><div style="margin:14px 0"><?= lf_progress_bar((int)$summary['percent'], '已完成 ' . (int)$summary['done'] . '/' . (int)$summary['total'] . ' 课时') ?></div><?php endif; ?>
           <a class="btn primary block" href="<?= lf_url('/learn/') ?><?= rawurlencode((string)$course['slug']) ?>"><?= $summary && $summary['percent'] > 0 ? '继续学习' : '开始学习' ?></a>

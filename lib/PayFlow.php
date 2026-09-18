@@ -31,6 +31,15 @@ function payflow_checkout_url(array $course, string $email = '', string $returnT
     return rtrim($cfg['base_url'], '/') . '/checkout?' . http_build_query($params);
 }
 
+function payflow_product_checkout(string $productId, string $email = '', string $returnTo = ''): string
+{
+    $cfg = payflow_config();
+    if ($productId === '') return '';
+    $params = ['product' => $productId, 'success' => $returnTo !== '' ? $returnTo : lf_abs_url('/membership?joined=1')];
+    if ($email !== '') $params['email'] = $email;
+    return rtrim($cfg['base_url'], '/') . '/checkout?' . http_build_query($params);
+}
+
 function payflow_sign(string $payload): string
 {
     $cfg = payflow_config();
@@ -60,9 +69,23 @@ function payflow_handle_order(array $order): array
 {
     $product = (string)($order['product_id'] ?? $order['product'] ?? '');
     $course = payflow_map_product_to_course($product);
-    if ($course === null) return ['ok' => false, 'error' => 'product 未映射到任何课程', 'product' => $product];
-
     $email = mb_strtolower(trim((string)($order['email'] ?? '')));
+
+    require_once __DIR__ . '/Membership.php';
+    if ($course === null) {
+        $tier = tier_by_product($product);
+        if ($tier !== null) {
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return ['ok' => false, 'error' => '订单缺少有效邮箱'];
+            }
+            require_once __DIR__ . '/Student.php';
+            $student = student_find_or_create(['email' => $email, 'name' => (string)($order['name'] ?? ''), 'phone' => (string)($order['phone'] ?? ''), 'source' => 'payflow']);
+            $grant = membership_grant((string)$student['id'], (string)$tier['id']);
+            return ['ok' => true, 'type' => 'membership', 'tier_id' => $tier['id'], 'student_id' => $student['id'], 'membership' => $grant];
+        }
+        return ['ok' => false, 'error' => 'product 未映射到任何课程/会员', 'product' => $product];
+    }
+
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return ['ok' => false, 'error' => '订单缺少有效邮箱'];
     }

@@ -8,6 +8,7 @@ if (!function_exists('lf_nav')) {
         $items = [
             'courses' => [lf_url('/courses'), '课程'],
             'camp' => [lf_url('/camp'), '训练营'],
+            'membership' => [lf_url('/membership'), '会员'],
             'dashboard' => [lf_url('/dashboard'), '我的学习'],
         ];
         $siteName = (string)(lf_setting_get('site_name') ?: 'LearnFlow');

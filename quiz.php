@@ -19,6 +19,10 @@ if ($student === null && !$isAdmin) {
 }
 $studentId = $student ? (string)$student['id'] : '';
 $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
+if (!$hasAccess && $student !== null) {
+    lf_ensure_member_access($course, $student);
+    $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
+}
 
 $quizId = (string)($_GET['quiz'] ?? '');
 $quiz = $quizId !== '' ? quiz_find($quizId) : null;

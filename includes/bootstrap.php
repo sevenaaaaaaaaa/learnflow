@@ -31,3 +31,5 @@ require_once LF_ROOT . '/lib/Coupon.php';
 require_once LF_ROOT . '/lib/Referral.php';
 require_once LF_ROOT . '/lib/Analytics.php';
 require_once LF_ROOT . '/lib/Gdpr.php';
+require_once LF_ROOT . '/lib/Membership.php';
+require_once LF_ROOT . '/lib/Points.php';

@@ -56,6 +56,7 @@ $routes = [
     '#^/reset-password/?$#' => '/reset-password.php',
     '#^/terms/?$#' => '/terms.php',
     '#^/privacy/?$#' => '/privacy.php',
+    '#^/membership/?$#' => '/membership.php',
     '#^/robots\.txt$#' => '/robots.php',
     '#^/sitemap\.xml$#' => '/sitemap.php',
     '#^/mcp/?$#' => '/mcp.php',

@@ -279,6 +279,33 @@ function lf_api_tools(): array
                 return ['referrals' => $out, 'count' => count($out)];
             },
         ],
+        'membership.list' => [
+            'scope' => 'read', 'description' => '列出会员等级与当前会员',
+            'schema' => $obj([]),
+            'handler' => function () {
+                $tiers = [];
+                foreach (membership_tiers() as $t) $tiers[] = ['id' => $t['id'], 'name' => $t['name'], 'price' => (float)$t['price'], 'duration_days' => (int)$t['duration_days'], 'discount_percent' => (float)$t['discount_percent'], 'members_only' => !empty($t['members_only'])];
+                return ['tiers' => $tiers];
+            },
+        ],
+        'membership.grant' => [
+            'scope' => 'write', 'description' => '给学员开通/续期会员',
+            'schema' => $obj(['email' => $str(), 'tier_id' => $str(), 'days' => ['type' => 'integer'], 'name' => $str()], ['email', 'tier_id']),
+            'handler' => function (array $p) {
+                $s = student_find_or_create(['email' => (string)$p['email'], 'name' => (string)($p['name'] ?? ''), 'source' => 'api']);
+                $days = (int)($p['days'] ?? 0);
+                $r = membership_grant((string)$s['id'], (string)$p['tier_id'], $days > 0 ? $days : null);
+                return ['student_id' => $s['id'], 'expires_at' => $r['expires_at']];
+            },
+        ],
+        'points.balance' => [
+            'scope' => 'read', 'description' => '查询学员积分与成就',
+            'schema' => $obj(['student_id' => $str()], ['student_id']),
+            'handler' => function (array $p) {
+                $sid = (string)$p['student_id'];
+                return ['points' => points_balance($sid), 'achievements' => (array)(points_of($sid)['achievements'] ?? [])];
+            },
+        ],
         'analytics.overview' => [
             'scope' => 'read', 'description' => '营收与转化漏斗总览（营收/付费/客单价/漏斗/来源/推荐）',
             'schema' => $obj(['days' => ['type' => 'integer', 'description' => '统计天数，默认 30']]),

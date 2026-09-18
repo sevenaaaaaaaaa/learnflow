@@ -136,6 +136,7 @@ function lf_admin_page_start(array $opts = []): void
         'community' => [lf_url('/admin/community.php'), '圈子', 'share'],
         'notify' => [lf_url('/admin/notify.php'), '通知', 'share'],
         'marketing' => [lf_url('/admin/marketing.php'), '营销', 'share'],
+        'membership' => [lf_url('/admin/membership.php'), '会员', 'user'],
         'apikeys' => [lf_url('/admin/apikeys.php'), 'API/MCP', 'share'],
         'audit' => [lf_url('/admin/audit.php'), '审计', 'file'],
         'settings' => [lf_url('/admin/settings.php'), '设置', 'chart'],

@@ -243,6 +243,26 @@ check('analytics overview structure', isset($an['revenue'], $an['paid'], $an['co
 check('analytics counts paid + revenue', (int)$an['paid'] >= 1 && (float)$an['revenue'] > 0);
 check('api analytics.overview', !empty(lf_api_call('analytics.overview', ['days' => 30], ['scopes' => ['read']])['ok']));
 
+$tier = tier_save(['name' => '年费会员', 'price' => 199, 'duration_days' => 365, 'discount_percent' => 10, 'members_only' => true, 'payflow_product_id' => 'mem-year']);
+check('tier saved', tier_find((string)$tier['id']) !== null);
+membership_grant((string)$student['id'], (string)$tier['id']);
+check('membership active', membership_active((string)$student['id']));
+check('membership discount', membership_discount($course, (string)$student['id']) === 10.0);
+$memberCourse = course_save(course_normalize(array_merge(course_find('test-course'), ['members_only' => true])));
+lf_ensure_member_access($memberCourse, student_get((string)$student['id']));
+check('member auto-enrolled to members-only course', enroll_is_active((string)$memberCourse['id'], (string)$student['id']));
+
+$ptsBefore = points_balance((string)$student['id']);
+lf_emit('lesson.completed', ['student_id' => (string)$student['id'], 'course_id' => (string)$course['id'], 'lesson_id' => 'pt_test_1']);
+check('points earned on lesson completed', points_balance((string)$student['id']) > $ptsBefore);
+check('achievement first_checkin', points_has_achievement((string)$student['id'], 'first_checkin'));
+check('achievement first_lesson', points_has_achievement((string)$student['id'], 'first_lesson'));
+
+$order = payflow_handle_order(['product_id' => 'mem-year', 'email' => 'member@pay.com', 'name' => 'M', 'order_id' => 'ord_mem']);
+check('payflow membership order grants', !empty($order['ok']) && ($order['type'] ?? '') === 'membership');
+check('api membership.list', !empty(lf_api_call('membership.list', [], ['scopes' => ['read']])['ok']));
+check('api points.balance', !empty(lf_api_call('points.balance', ['student_id' => (string)$student['id']], ['scopes' => ['read']])['ok']));
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

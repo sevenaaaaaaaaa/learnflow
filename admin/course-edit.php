@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'status' => (string)($_POST['status'] ?? 'draft'),
         'certificate' => !empty($_POST['certificate']),
         'allow_invite' => !empty($_POST['allow_invite']),
+        'members_only' => !empty($_POST['members_only']),
         'categories' => array_values((array)($_POST['categories'] ?? [])),
         'tags' => array_filter(array_map('trim', explode(',', (string)($_POST['tags'] ?? '')))),
         'i18n' => [
@@ -145,6 +146,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <div class="lf-field" style="justify-content:flex-end;flex-direction:row;gap:20px;align-items:center">
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="certificate" <?= !empty($course['certificate']) ? 'checked' : '' ?>> 颁发结业证书</label>
         <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="allow_invite" <?= !empty($course['allow_invite']) ? 'checked' : '' ?>> 允许邀请码</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="members_only" <?= !empty($course['members_only']) ? 'checked' : '' ?>> 会员专享</label>
       </div>
     </div>
     <div class="lf-field"><label>标签（逗号分隔）</label><input class="lf-inp" name="tags" value="<?= lf_e(implode(', ', (array)($course['tags'] ?? []))) ?>" placeholder="训练营, 增长"></div>

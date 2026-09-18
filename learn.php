@@ -16,6 +16,10 @@ $isAdmin = lf_admin_current() !== null;
 $studentId = $student ? (string)$student['id'] : '';
 
 $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
+if (!$hasAccess && $student !== null) {
+    lf_ensure_member_access($course, $student);
+    $hasAccess = $isAdmin || ($studentId !== '' && enroll_is_active((string)$course['id'], $studentId));
+}
 $lessons = course_lessons($course);
 $lessonId = (string)($_GET['lesson'] ?? '');
 $lesson = $lessonId !== '' ? course_lesson_find($course, $lessonId) : null;

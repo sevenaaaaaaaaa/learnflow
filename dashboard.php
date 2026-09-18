@@ -49,6 +49,39 @@ lf_page_start([
     </div>
   </div>
 
+  <?php
+  $mem = membership_for_student($studentId);
+  $pts = points_balance($studentId);
+  $achAll = points_achievements();
+  $achMine = array_map('strval', (array)(points_of($studentId)['achievements'] ?? []));
+  ?>
+  <div class="lf-form-card" style="max-width:none;margin-bottom:20px">
+    <div class="lf-row" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <span class="lf-kicker">Membership</span>
+        <div style="font-size:16px;margin-top:6px">
+          <?php if ($mem !== null && !empty($mem['active'])): ?>
+            会员：<b><?= lf_e((string)($mem['tier']['name'] ?? '会员')) ?></b> · 有效期至 <?= lf_e(date('Y-m-d', (int)$mem['expires_at'])) ?>
+          <?php else: ?>
+            还不是会员 · <a href="<?= lf_url('/membership') ?>">了解并开通</a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <div>
+        <span class="lf-kicker">Points</span>
+        <div style="font-size:16px;margin-top:6px"><b><?= (int)$pts ?></b> 积分</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <span class="lf-kicker">Achievements</span>
+        <div class="lf-row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+          <?php foreach ($achAll as $aid => $aname): ?>
+            <span class="lf-chip <?= in_array($aid, $achMine, true) ? 'ok' : 'soft' ?>" title="<?= lf_e($aname) ?>"><?= lf_e($aname) ?></span>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <?php if (!$courses): ?>
     <div class="lf-empty">你还没有加入任何课程。<a href="<?= lf_url('/courses') ?>">去看看课程</a> 或使用邀请码 <a href="<?= lf_url('/join') ?>">兑换入学</a>。</div>
   <?php else: ?>
