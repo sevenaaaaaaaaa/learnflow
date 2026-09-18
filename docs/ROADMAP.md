@@ -37,3 +37,18 @@
 - 数据层：当前为 JSON；生产已具备 MySQL（PDO mysql 驱动 + openflow 库），可按需升级为主存储
 - 域名：nownexts.com/learnflow（子路径部署，服务器 `/www/wwwroot/learnflow` + Alias）
 - 部署/CF/AI 配置见 `docs/` 同名文档（OpenFlow 同步副本）
+
+## H4 · 矩阵互通织物（API / MCP）
+
+- [x] 事件出站（LearnFlow → UserLoop 实时 ingest）；PayFlow webhook 入站
+- [ ] 按 `docs/MATRIX-API.md` 打通：inFlow 洞察→选题、MFlow 分发、OpenFlow 直播/渠道桥接
+- [ ] MCP 联邦编排样例（跨产品 agent 工作流）
+
+## H5 · 自我进化（对标 OpenFlow）
+
+- [x] E0 自体检：`lib/SelfEvolve.php` + `/admin/evolution.php` + `bin/selfcheck.php`（cron）
+- [ ] E1 动作闭环：提案→批准→执行→验证（含跨产品 MCP 调用）
+- [ ] E2 分级自治：propose / guarded / goal（高风险人工确认，预算+频控）
+- [ ] E3 策略复利：策略库 + 效果回流 + A/B
+
+> 详见 `docs/EVOLUTION.md`；互通契约见 `docs/MATRIX-API.md`。

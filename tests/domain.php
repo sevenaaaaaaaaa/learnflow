@@ -354,6 +354,17 @@ check('embedding disabled by default', !embedding_enabled());
 $rbm = ai_retrieve(course_find('test-course'), '图文');
 check('ai_retrieve falls back to BM25 when no embeddings', count($rbm['sources']) >= 1);
 
+$evo = evolution_generate();
+check('evolution generate returns list', is_array($evo));
+check('evolution state persisted', (evolution_state()['at'] ?? '') !== '');
+if ($evo) {
+    evolution_set_status((string)$evo[0]['id'], 'accepted');
+    $found = false;
+    foreach (evolution_proposals() as $p) if (($p['id'] ?? '') === $evo[0]['id'] && ($p['status'] ?? '') === 'accepted') $found = true;
+    check('evolution set status', $found);
+}
+check('evolution ai prompt', str_contains(evolution_ai_prompt(), 'LearnFlow'));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

@@ -137,7 +137,7 @@ function quiz_question_stats(string $courseId): array
         foreach ((array)($q['questions'] ?? []) as $qq) {
             $qid = (string)($qq['id'] ?? '');
             $c = $counts[$qid] ?? ['total' => 0, 'correct' => 0];
-            $out[] = ['quiz' => (string)($q['title'] ?? ''), 'question' => (string)($qq['title'] ?? ''), 'total' => (int)$c['total'], 'correct' => (int)$c['correct'], 'rate' => $c['total'] > 0 ? (int)round($c['correct'] / $c['total'] * 100) : 0];
+            $out[] = ['quiz' => (string)($q['title'] ?? ''), 'question' => (string)($qq['title'] ?? ''), 'total' => (int)$c['total'], 'correct' => (int)($c['correct'] ?? 0), 'rate' => $c['total'] > 0 ? (int)round(((int)($c['correct'] ?? 0)) / $c['total'] * 100) : 0];
         }
     }
     usort($out, fn($a, $b) => $a['rate'] <=> $b['rate']);

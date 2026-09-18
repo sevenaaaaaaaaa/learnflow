@@ -48,3 +48,4 @@ require_once LF_ROOT . '/lib/Highlight.php';
 require_once LF_ROOT . '/lib/Revision.php';
 require_once LF_ROOT . '/lib/Presence.php';
 require_once LF_ROOT . '/lib/TeamComment.php';
+require_once LF_ROOT . '/lib/SelfEvolve.php';
