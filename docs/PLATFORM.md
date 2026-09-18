@@ -37,6 +37,13 @@
 接口：`/api/v1`（API Key RPC）｜`/mcp`（MCP JSON-RPC）｜`/api/student.php` `/api/auth.php`（学员令牌）｜`/api/progress.php` `/api/upload.php` `/api/ai.php` `/api/ai-qa.php` `/api/note.php` `/api/highlight.php` `/api/markdown.php` `/api/presence.php` `/api/payflow-webhook.php`
 后台：`/admin/` 及 `/admin/{page}.php`
 
+入口逻辑：
+- 根 `/learnflow` 渲染**后台登录**；`/index.php` 统一跳 `/admin/`
+- **未登录**访问任意 `/admin/*` → 登录页并携带 `next`，登录后**回到原目标**（`next` 经 `lf_safe_next` 校验，拒绝站外/`//`/登录页自身）
+- **已登录**访问登录页或根 → 跳 `/admin/`
+- 登录页含「学员入口 →」（`/courses`）；登出后访问 `/admin/*` 会再次带上 `next`
+- 角色越权 → 跳 `/admin/?denied=1` 并提示
+
 ## 五、数据与存储
 
 - 集合（KV）：`courses / categories / students / enrollments / progress / quizzes / quiz-attempts / certificates / assignments / assignment-submissions / schedule / task-completions / checkins / community / notifications / coupons / referrals / referral-attributions / commissions / membership-tiers / points / notes / highlights / media / course-templates / course-revisions / team-comments / presence / templates / api-keys / events / webhook-queue / ai-qa / ai-drafts / embeddings / settings …`

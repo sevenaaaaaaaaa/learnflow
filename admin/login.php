@@ -1,8 +1,11 @@
 <?php
 require_once dirname(__DIR__) . '/includes/bootstrap.php';
 
+$next = lf_safe_next((string)($_REQUEST['next'] ?? ''), '/admin/');
+if (str_contains($next, '/admin/login.php') || str_contains($next, '/logout')) $next = lf_url('/admin/');
+
 if (lf_admin_current() !== null) {
-    header('Location: ' . lf_url('/admin/'));
+    header('Location: ' . $next);
     exit;
 }
 
@@ -21,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 lf_admin_create($username, $password, (string)($_POST['name'] ?? ''));
                 lf_admin_login($username);
                 lf_flash('ok', '管理员创建成功。');
-                header('Location: ' . lf_url('/admin/'));
+                header('Location: ' . $next);
                 exit;
             } catch (Throwable $e) {
                 lf_flash('danger', $e->getMessage());
@@ -34,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (lf_admin_authenticate($username, $password)) {
                 lf_throttle_reset($rlKey);
                 lf_admin_login($username);
-                header('Location: ' . lf_url('/admin/'));
+                header('Location: ' . $next);
                 exit;
             } else {
                 lf_flash('danger', '账号或密码错误。');
@@ -43,18 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$siteName = (string)(lf_setting_get('site_name') ?: 'LearnFlow');
 lf_page_start([
-    'title' => '讲师登录 · LearnFlow',
+    'title' => '讲师登录 · ' . $siteName,
+    'description' => $siteName . ' 讲师后台登录',
     'container' => true,
     'bare' => true,
 ]);
 ?>
 <section class="lf-sec" style="padding-top:64px">
   <div class="lf-form-card">
-    <span class="lf-kicker"><?= $needsSetup ? 'Setup' : 'Admin' ?></span>
+    <div class="lf-sec-head" style="margin-bottom:6px">
+      <span class="lf-kicker"><?= $needsSetup ? 'Setup' : 'Admin' ?></span>
+      <a class="lf-faint" href="<?= lf_url('/courses') ?>">学员入口 →</a>
+    </div>
     <h2 class="lf-sec-title" style="font-size:26px;margin:8px 0 18px"><?= $needsSetup ? '创建管理员' : '讲师后台登录' ?></h2>
     <form method="post">
       <?= lf_csrf_field() ?>
+      <input type="hidden" name="next" value="<?= lf_e($next) ?>">
       <?php if ($needsSetup): ?>
         <div class="lf-field"><label>称呼</label><input class="lf-inp" name="name" placeholder="可选"></div>
       <?php endif; ?>
@@ -62,6 +71,9 @@ lf_page_start([
       <div class="lf-field"><label>密码</label><input class="lf-inp" type="password" name="password" required minlength="6"></div>
       <button class="btn primary block" type="submit"><?= $needsSetup ? '创建并进入' : '登录' ?></button>
     </form>
+    <?php if (!$needsSetup): ?>
+      <p class="lf-faint" style="margin-top:14px;text-align:center"><a href="<?= lf_url('/') ?>">← 返回首页入口</a></p>
+    <?php endif; ?>
   </div>
 </section>
 <?php lf_page_end(); ?>
