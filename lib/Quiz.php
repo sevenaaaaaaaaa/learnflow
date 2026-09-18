@@ -146,6 +146,16 @@ function quiz_submit(string $studentId, string $quizId, array $answers): array
         $all[$studentId][$quizId][] = $attempt;
         return $all;
     });
+    if (function_exists('lf_emit')) {
+        lf_emit('quiz.result', lf_emit_context($studentId, [
+            'course_id' => (string)($quiz['course_id'] ?? ''),
+            'quiz_id' => $quizId,
+            'quiz_title' => (string)($quiz['title'] ?? ''),
+            'passed' => !empty($result['passed']),
+            'score' => (int)$result['score'],
+            'total' => (int)$result['total'],
+        ]));
+    }
     return ['ok' => true, 'result' => $result, 'attempt' => $attempt];
 }
 

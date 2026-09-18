@@ -81,6 +81,14 @@ function cert_revoke(string $certNo): void
         if (isset($all[$certNo])) $all[$certNo]['revoked'] = true;
         return $all;
     });
+    $c = cert_get($certNo);
+    if ($c !== null && function_exists('lf_emit')) {
+        lf_emit('certificate.revoked', lf_emit_context((string)($c['student_id'] ?? ''), [
+            'cert_no' => $certNo,
+            'course_id' => (string)($c['course_id'] ?? ''),
+            'course_title' => (string)($c['course_title'] ?? ''),
+        ]));
+    }
 }
 
 function cert_share_url(string $certNo): string

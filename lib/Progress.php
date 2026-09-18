@@ -43,7 +43,19 @@ function progress_set(string $studentId, string $courseId, string $lessonId, arr
 
 function progress_done(string $studentId, string $courseId, string $lessonId): array
 {
-    return progress_set($studentId, $courseId, $lessonId, ['done' => true]);
+    $state = progress_set($studentId, $courseId, $lessonId, ['done' => true]);
+    if (function_exists('lf_emit')) {
+        $course = function_exists('course_find') ? course_find($courseId) : null;
+        $lesson = $course ? course_lesson_find($course, $lessonId) : null;
+        lf_emit('lesson.completed', lf_emit_context($studentId, [
+            'course_id' => $courseId,
+            'course_title' => (string)($course['title'] ?? ''),
+            'lesson_id' => $lessonId,
+            'lesson_title' => (string)($lesson['title'] ?? ''),
+            'type' => (string)($lesson['type'] ?? ''),
+        ]));
+    }
+    return $state;
 }
 
 function progress_undone(string $studentId, string $courseId, string $lessonId): array

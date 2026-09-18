@@ -230,6 +230,14 @@ check('api coupon.create', !empty($rc['ok']) && !empty($rc['data']['code']));
 check('api coupon.list', !empty(lf_api_call('coupon.list', [], ['scopes' => ['read']])['ok']));
 check('api referral.list', !empty(lf_api_call('referral.list', [], ['scopes' => ['read']])['ok']));
 
+$eventNames = array_column(json_read($tmp . '/events.json'), 'event');
+check('fine-grained events emitted', in_array('lesson.completed', $eventNames, true)
+    && in_array('assignment.submitted', $eventNames, true)
+    && in_array('checkin.done', $eventNames, true)
+    && in_array('quiz.result', $eventNames, true)
+    && in_array('certificate.revoked', $eventNames, true));
+check('userloop event mapping', userloop_event_name('lesson.completed') === 'lesson_completed' && userloop_event_name('checkin.done') === 'checkin_done');
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

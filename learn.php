@@ -52,6 +52,18 @@ $lessonType = (string)($lesson['type'] ?? 'article');
 $course = lf_localize_course($course);
 $lesson = lf_localize_lesson($lesson, $course);
 
+if (!$hasAccess && $isFreePreview && $student !== null && function_exists('lf_emit')) {
+    $pvKey = 'lf_pv_' . (string)$course['id'] . '_' . (string)$lesson['id'];
+    if (empty($_SESSION[$pvKey])) {
+        $_SESSION[$pvKey] = 1;
+        lf_emit('preview.viewed', lf_emit_context($studentId, [
+            'course_id' => (string)$course['id'],
+            'course_title' => (string)$course['title'],
+            'lesson_id' => (string)$lesson['id'],
+        ]));
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'done' && $studentId !== '' && $hasAccess) {
     if (lf_csrf_check()) {
         progress_done($studentId, (string)$course['id'], (string)$lesson['id']);

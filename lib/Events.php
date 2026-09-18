@@ -18,7 +18,23 @@ function userloop_event_name(string $event): string
         'assignment.graded' => 'assignment_graded',
         'study.reminder' => 'study_reminder_sent',
         'course.updated' => 'course_updated',
+        'lesson.completed' => 'lesson_completed',
+        'assignment.submitted' => 'assignment_submitted',
+        'checkin.done' => 'checkin_done',
+        'quiz.result' => 'quiz_result',
+        'preview.viewed' => 'preview_viewed',
+        'certificate.revoked' => 'certificate_revoked',
     ][$event] ?? str_replace('.', '_', $event);
+}
+
+function lf_emit_context(string $studentId, array $extra = []): array
+{
+    $student = (function_exists('student_get') && $studentId !== '') ? student_get($studentId) : null;
+    return array_merge([
+        'student_id' => $studentId,
+        'name' => (string)($student['name'] ?? ''),
+        'email' => (string)($student['email'] ?? ''),
+    ], $extra);
 }
 
 function userloop_payload(string $event, array $data): array

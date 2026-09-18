@@ -86,6 +86,14 @@ function assignment_submit(string $assignmentId, string $studentId, string $cont
         $all[$assignmentId][$studentId] = $row;
         return $all;
     });
+    $assignment = assignment_find($assignmentId);
+    if ($assignment !== null && function_exists('lf_emit')) {
+        lf_emit('assignment.submitted', lf_emit_context($studentId, [
+            'assignment_id' => $assignmentId,
+            'title' => (string)($assignment['title'] ?? ''),
+            'course_id' => (string)($assignment['course_id'] ?? ''),
+        ]));
+    }
     return $row;
 }
 

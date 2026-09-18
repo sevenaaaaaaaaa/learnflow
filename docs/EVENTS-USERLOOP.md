@@ -14,6 +14,12 @@
 | `assignment.graded` | `assignment_graded` | 邮箱 | `title, feedback, course_id` | 讲师/AI 点评作业 |
 | `study.reminder` | `study_reminder_sent` | 邮箱 | `course_title, course_id` | 连续未学习提醒（cron） |
 | `course.updated` | `course_updated` | —（系统事件） | `course_id, title, status` | 课程更新（可驱动 MFlow/学员通知） |
+| `lesson.completed` | `lesson_completed` | 邮箱 | `course_id, course_title, lesson_id, lesson_title, type` | 课时标记完成 |
+| `assignment.submitted` | `assignment_submitted` | 邮箱 | `assignment_id, title, course_id` | 学员提交作业 |
+| `checkin.done` | `checkin_done` | 邮箱 | `course_id, streak` | 每日打卡 |
+| `quiz.result` | `quiz_result` | 邮箱 | `quiz_id, quiz_title, passed, score, total, course_id` | 提交测验（含通过/未过） |
+| `preview.viewed` | `preview_viewed` | 邮箱 | `course_id, course_title, lesson_id` | 已登录用户试看免费课时（每课一次/会话） |
+| `certificate.revoked` | `certificate_revoked` | 邮箱 | `cert_no, course_id, course_title` | 证书撤销 |
 
 `props` 统一附加 `learnflow_event`（原始事件名）与 `source: learnflow`；`distinct_id` 用邮箱，同时带 `user_id`（学员 id）。
 
@@ -35,20 +41,20 @@
 
 推荐码分享链接由 LearnFlow 提供：学员在「我的学习」获取 `https://nownexts.com/learnflow/courses?ref=<CODE>`，报名时自动归因（`referral-attributions.json`），可配推荐奖励券。
 
-## 三、建议 LearnFlow 补发的事件（按需，我可随时加）
+## 三、细粒度事件（已补齐）
 
-现有事件偏“关键节点”，要做「作业未交 / 未打卡 / 试看次数」这类触发，需要更细粒度事件：
+以下事件已实现并接入（见第一节表），可支撑「作业未交 / 未打卡 / 试看未购 / 挂科召回」等触发：
 
-| 建议事件 | UserLoop event | props | 用途 |
-|---|---|---|---|
-| 课时完成 | `lesson_completed` | `course_id, lesson_id, title` | 学习曲线触发、中断检测更准 |
-| 作业提交 | `assignment_submitted` | `assignment_id, title, course_id` | 未批改提醒、提交即触发 |
-| 打卡完成 | `checkin_done` | `course_id, streak` | 连续打卡激励 |
-| 测验通过/未过 | `quiz_result` | `quiz_id, passed, score` | 挂科召回 |
-| 试看发生 | `preview_viewed` | `course_id, lesson_id` | 高意向未购识别 |
-| 证书撤销 | `certificate_revoked` | `cert_no` | 合规/风控 |
+| 事件 | UserLoop event | 用途 |
+|---|---|---|
+| `lesson.completed` | `lesson_completed` | 学习曲线触发、中断检测更准 |
+| `assignment.submitted` | `assignment_submitted` | 未批改提醒、提交即触发 |
+| `checkin.done` | `checkin_done` | 连续打卡激励 |
+| `quiz.result` | `quiz_result` | 挂科召回 |
+| `preview.viewed` | `preview_viewed` | 高意向未购识别 |
+| `certificate.revoked` | `certificate_revoked` | 合规/风控 |
 
-> 目前仅 `assignment.graded`、`course.completed` 等已发；“未交/未打卡/试看”类触发在补齐上述事件前，可在 UserLoop 用「时间窗 + 已有事件」近似实现。
+> 说明：`preview.viewed` 对同一课同会话只发一次；`checkin.done` 带 `streak`（连续天数）。
 
 ## 四、身份映射（跨渠道触达前置）
 

@@ -19,7 +19,11 @@ function checkin_do(string $courseId, string $studentId, string $note = ''): arr
         $all[$courseId][$studentId][$day] = $row;
         return $all;
     });
-    return ['day' => $day, 'streak' => checkin_streak($courseId, $studentId)];
+    $streak = checkin_streak($courseId, $studentId);
+    if (function_exists('lf_emit')) {
+        lf_emit('checkin.done', lf_emit_context($studentId, ['course_id' => $courseId, 'streak' => $streak]));
+    }
+    return ['day' => $day, 'streak' => $streak];
 }
 
 function checkin_today(string $courseId, string $studentId): bool
