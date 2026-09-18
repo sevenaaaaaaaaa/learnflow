@@ -24,6 +24,7 @@ function userloop_event_name(string $event): string
         'quiz.result' => 'quiz_result',
         'preview.viewed' => 'preview_viewed',
         'certificate.revoked' => 'certificate_revoked',
+        'live.reminder' => 'live_reminder_sent',
     ][$event] ?? str_replace('.', '_', $event);
 }
 
@@ -279,6 +280,13 @@ function lf_emit(string $event, array $payload): void
             $link = lf_url((string)($payload['link'] ?? '/dashboard'));
             notify_add($studentId, 'reminder', '继续学习：' . $course, '还有进度未完成。', $link);
             if ($email !== '') lf_mail_template_send($email, 'reminder', ['course' => $course, 'url' => lf_abs_url($link)], $name);
+            break;
+
+        case 'live.reminder':
+            $title = (string)($payload['title'] ?? '直播');
+            $link = lf_url((string)($payload['link'] ?? '/dashboard'));
+            notify_add($studentId, 'reminder', '直播提醒：' . $title, '即将开播，记得进入直播间。', $link);
+            if ($email !== '') lf_mail_template_send($email, 'reminder', ['course' => $title, 'url' => lf_abs_url($link)], $name);
             break;
     }
 }

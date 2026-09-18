@@ -269,6 +269,10 @@ check('ai_retrieve structure + match', isset($ret['sources'], $ret['contexts']) 
 check('api ai.ask scope ok (AI disabled error)', empty(lf_api_call('ai.ask', ['course_id' => 'test-course', 'question' => 'x'], ['scopes' => ['ai']])['ok']));
 check('api ai.ask read scope denied', (lf_api_call('ai.ask', ['course_id' => 'x', 'question' => 'y'], ['scopes' => ['read']])['code'] ?? 0) === 403);
 
+$liveCourse = course_save(course_normalize(['title' => '直播测试', 'status' => 'draft', 'chapters' => [['title' => '第一章', 'lessons' => [['type' => 'live', 'title' => '开班直播', 'live_url' => 'https://cdn.test/live.m3u8', 'live_start' => '2026-10-01 20:00', 'live_end' => '2026-10-01 21:00']]]]]));
+$ll = course_lessons($liveCourse)[0] ?? [];
+check('live lesson fields saved', ($ll['live_url'] ?? '') === 'https://cdn.test/live.m3u8' && ($ll['live_start'] ?? '') === '2026-10-01 20:00' && ($ll['live_end'] ?? '') === '2026-10-01 21:00');
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

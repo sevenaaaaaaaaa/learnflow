@@ -177,6 +177,9 @@ function course_normalize(array $input): array
                 'content' => (string)($l['content'] ?? ''),
                 'quiz_id' => (string)($l['quiz_id'] ?? ''),
                 'attachments' => array_values(array_filter((array)($l['attachments'] ?? []))),
+                'live_url' => trim((string)($l['live_url'] ?? '')),
+                'live_start' => trim((string)($l['live_start'] ?? '')),
+                'live_end' => trim((string)($l['live_end'] ?? '')),
                 'free' => !empty($l['free']),
                 'published' => !isset($l['published']) || !empty($l['published']),
             ];

@@ -77,6 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'video' => (string)($l['video'] ?? ''),
                 'content' => (string)($l['content'] ?? ''),
                 'quiz_id' => (string)($l['quiz_id'] ?? ''),
+                'live_url' => (string)($l['live_url'] ?? ''),
+                'live_start' => (string)($l['live_start'] ?? ''),
+                'live_end' => (string)($l['live_end'] ?? ''),
                 'free' => !empty($l['free']),
                 'attachments' => lf_parse_attachments((string)($l['attachments'] ?? '')),
             ];
@@ -223,6 +226,11 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
       <label style="flex:0 0 auto;display:flex;gap:8px;align-items:center;margin-top:20px"><input type="checkbox" data-name="free"> 试看</label>
     </div>
     <div class="lf-field" style="margin-top:10px" data-field="content"><label>图文内容（支持 HTML）</label><textarea class="lf-inp" data-name="content" style="min-height:110px"></textarea></div>
+    <div class="lf-row" data-field="live" style="margin-top:10px">
+      <div class="lf-field" style="margin:0;flex:2"><label>直播地址（HLS .m3u8 或嵌入 URL）</label><input class="lf-inp" data-name="live_url" placeholder="https://.../live.m3u8 或 https://.../embed"></div>
+      <div class="lf-field" style="margin:0"><label>开播时间</label><input class="lf-inp" type="datetime-local" data-name="live_start"></div>
+      <div class="lf-field" style="margin:0"><label>结束时间</label><input class="lf-inp" type="datetime-local" data-name="live_end"></div>
+    </div>
     <div class="lf-field" style="margin-top:10px"><label>附件（每行一个：名称|URL）</label><textarea class="lf-inp" data-name="attachments" style="min-height:56px"></textarea></div>
   </div>
 </template>
@@ -242,6 +250,9 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
               'video' => (string)($l['video'] ?? ''),
               'content' => (string)($l['content'] ?? ''),
               'quiz_id' => (string)($l['quiz_id'] ?? ''),
+              'live_url' => (string)($l['live_url'] ?? ''),
+              'live_start' => (string)($l['live_start'] ?? ''),
+              'live_end' => (string)($l['live_end'] ?? ''),
               'free' => !empty($l['free']),
               'attachments' => lf_attachments_text((array)($l['attachments'] ?? [])),
           ];
@@ -271,6 +282,8 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     ls.querySelector('[data-field="video"]').style.display = type === 'video' ? '' : 'none';
     ls.querySelector('[data-field="quiz"]').style.display = type === 'quiz' ? '' : 'none';
     ls.querySelector('[data-field="content"]').style.display = type === 'article' ? '' : 'none';
+    var liveEl = ls.querySelector('[data-field="live"]');
+    if (liveEl) liveEl.style.display = type === 'live' ? '' : 'none';
   }
   var LF_CSRF = '<?= lf_csrf_token() ?>';
   var LF_UPLOAD = '<?= lf_url('/api/upload.php') ?>';
@@ -309,6 +322,7 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     setVal(ls, 'id', data.id); setVal(ls, 'title', data.title); setVal(ls, 'type', data.type || 'article');
     setVal(ls, 'duration', data.duration); setVal(ls, 'video', data.video); setVal(ls, 'content', data.content);
     setVal(ls, 'quiz_id', data.quiz_id); setVal(ls, 'free', data.free); setVal(ls, 'attachments', data.attachments);
+    setVal(ls, 'live_url', data.live_url); setVal(ls, 'live_start', data.live_start); setVal(ls, 'live_end', data.live_end);
     ch.querySelector('.lessons').appendChild(ls);
     bindLesson(ls); syncLesson(ls);
     return ls;

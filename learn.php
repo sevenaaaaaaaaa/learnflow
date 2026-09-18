@@ -99,6 +99,30 @@ lf_page_start([
         <?php if ($videoKind === 'hls'): ?>
           <script>document.addEventListener('DOMContentLoaded',function(){var v=document.querySelector('[data-hls]');if(v&&window.Hls&&window.Hls.isSupported()){var h=new window.Hls();h.loadSource(v.getAttribute('src'));h.attachMedia(v);}else if(v){v.play&&0;}});</script>
         <?php endif; ?>
+      <?php elseif ($lessonType === 'live'): ?>
+        <?php
+        $liveUrl = (string)($lesson['live_url'] ?? '');
+        $ls = strtotime((string)($lesson['live_start'] ?? '')) ?: 0;
+        $le = strtotime((string)($lesson['live_end'] ?? '')) ?: 0;
+        $lstate = !$ls ? '未排期' : (time() < $ls ? '未开始' : (($le && time() > $le) ? '已结束' : '直播中'));
+        $livePath = parse_url($liveUrl, PHP_URL_PATH) ?: $liveUrl;
+        $isHls = $liveUrl !== '' && str_ends_with(strtolower($livePath), '.m3u8');
+        $isEmbed = $liveUrl !== '' && !$isHls;
+        ?>
+        <div class="lf-player-art" style="min-height:300px">
+          <span class="lf-kicker">直播 · <?= lf_e($lstate) ?></span>
+          <h1 style="font-family:var(--font-display);margin:10px 0"><?= lf_e((string)$lesson['title']) ?></h1>
+          <?php if (!empty($lesson['live_start'])): ?><p class="lf-muted">开播 <?= lf_e((string)$lesson['live_start']) ?><?= !empty($lesson['live_end']) ? ' — ' . lf_e((string)$lesson['live_end']) : '' ?></p><?php endif; ?>
+          <?php if ($liveUrl === ''): ?>
+            <p class="lf-faint">讲师尚未设置直播地址。</p>
+          <?php elseif ($isEmbed): ?>
+            <div style="margin-top:14px;border-radius:var(--r-md);overflow:hidden"><iframe src="<?= lf_e($liveUrl) ?>" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0;background:#000"></iframe></div>
+          <?php else: ?>
+            <?php if ($lstate !== '直播中'): ?><p class="lf-faint">当前<?= lf_e($lstate) ?>，开播后可直接观看。</p><?php endif; ?>
+            <video class="lf-player-video" controls playsinline src="<?= lf_e($liveUrl) ?>" data-live-hls="<?= $isHls ? '1' : '0' ?>"></video>
+            <?php if ($isHls): ?><script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script><script>document.addEventListener('DOMContentLoaded',function(){var v=document.querySelector('[data-live-hls="1"]');if(v&&window.Hls&&window.Hls.isSupported()){var h=new window.Hls();h.loadSource(v.getAttribute('src'));h.attachMedia(v);}});</script><?php endif; ?>
+          <?php endif; ?>
+        </div>
       <?php elseif ($lessonType === 'quiz'): ?>
         <div class="lf-player-art">
           <span class="lf-kicker">测验</span>

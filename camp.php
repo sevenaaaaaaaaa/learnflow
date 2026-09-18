@@ -188,6 +188,28 @@ lf_page_start([
             <?php endforeach; ?>
           </div>
         <?php endif; ?>
+
+        <?php $lives = array_values(array_filter(course_lessons($course), fn($l) => ($l['type'] ?? '') === 'live')); ?>
+        <?php if ($lives): ?>
+          <h2 class="lf-sec-title" style="font-size:20px;margin:24px 0 14px">直播日程</h2>
+          <div style="display:grid;gap:10px">
+            <?php foreach ($lives as $l):
+              $ls = strtotime((string)($l['live_start'] ?? '')) ?: 0;
+              $le = strtotime((string)($l['live_end'] ?? '')) ?: 0;
+              $st = !$ls ? '未排期' : (time() < $ls ? '未开始' : (($le && time() > $le) ? '已结束' : '直播中'));
+            ?>
+              <div class="lf-stat" style="display:flex;gap:14px;align-items:center">
+                <span class="lf-brand-ic" style="background:var(--accent-soft);color:var(--accent)"><?= lf_icon('live', 17) ?></span>
+                <div style="flex:1">
+                  <b><?= lf_e((string)($l['title'] ?? '')) ?></b>
+                  <span class="lf-faint" style="display:block"><?= !empty($l['live_start']) ? lf_e((string)$l['live_start']) : '待定' ?><?= !empty($l['live_end']) ? ' — ' . lf_e((string)$l['live_end']) : '' ?></span>
+                </div>
+                <span class="lf-chip <?= $st === '直播中' ? 'ok' : 'soft' ?>"><?= lf_e($st) ?></span>
+                <a class="btn ghost sm" href="<?= lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$l['id'])) ?>">进入</a>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
       </div>
 
       <aside>
