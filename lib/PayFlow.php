@@ -40,11 +40,6 @@ function payflow_product_checkout(string $productId, string $email = '', string 
     return rtrim($cfg['base_url'], '/') . '/checkout?' . http_build_query($params);
 }
 
-function payflow_sign(string $payload): string
-{
-    $cfg = payflow_config();
-    return hash_hmac('sha256', $payload, (string)$cfg['secret']);
-}
 
 function payflow_verify(string $payload, string $signature): bool
 {

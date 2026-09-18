@@ -65,15 +65,6 @@ function enroll_add(string $courseId, string $studentId, array $data = []): arra
     return $row;
 }
 
-function enroll_set_status(string $courseId, string $studentId, string $status): void
-{
-    json_update(enrollments_file(), function (array $all) use ($courseId, $studentId, $status) {
-        if (isset($all[$courseId][$studentId])) {
-            $all[$courseId][$studentId]['status'] = $status;
-        }
-        return $all;
-    });
-}
 
 function enroll_remove(string $courseId, string $studentId): bool
 {
@@ -98,16 +89,6 @@ function enroll_set_group(string $courseId, string $studentId, string $group): v
     });
 }
 
-function enroll_groups(string $courseId): array
-{
-    $out = [];
-    foreach (enroll_students($courseId) as $row) {
-        $g = trim((string)($row['group'] ?? ''));
-        if ($g !== '') $out[$g] = ($out[$g] ?? 0) + 1;
-    }
-    ksort($out);
-    return $out;
-}
 
 function enroll_students(string $courseId): array
 {

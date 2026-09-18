@@ -77,11 +77,17 @@ if (!$hasAccess && $isFreePreview && $student !== null && function_exists('lf_em
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'done' && $studentId !== '' && $hasAccess) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array(($_POST['action'] ?? ''), ['done', 'undone'], true) && $studentId !== '' && $hasAccess) {
+    $mkAction = (string)$_POST['action'];
     if (lf_csrf_check()) {
-        progress_done($studentId, (string)$course['id'], (string)$lesson['id']);
-        cert_maybe_issue($studentId, $course, (string)($student['name'] ?? ''));
-        lf_flash('ok', '已标记完成。');
+        if ($mkAction === 'done') {
+            progress_done($studentId, (string)$course['id'], (string)$lesson['id']);
+            cert_maybe_issue($studentId, $course, (string)($student['name'] ?? ''));
+            lf_flash('ok', '已标记完成。');
+        } else {
+            progress_undone($studentId, (string)$course['id'], (string)$lesson['id']);
+            lf_flash('ok', '已标记为未完成。');
+        }
     }
     header('Location: ' . lf_url('/learn/' . rawurlencode((string)$course['slug']) . '?lesson=' . rawurlencode((string)$lesson['id'])));
     exit;
@@ -181,7 +187,7 @@ lf_page_start([
         <?php if ($hasAccess): ?>
           <form method="post">
             <?= lf_csrf_field() ?>
-            <input type="hidden" name="action" value="done">
+            <input type="hidden" name="action" value="<?= !empty($state['done']) ? 'undone' : 'done' ?>">
             <button class="btn ghost sm" type="submit"><?= !empty($state['done']) ? lf_t('标记为未完成', 'Mark incomplete') : lf_t('标记完成', 'Mark complete') ?></button>
           </form>
         <?php endif; ?>

@@ -19,16 +19,30 @@ function student_get(string $id): ?array
     return array_merge(['id' => $id], $all[$id]);
 }
 
+function student_index_reset(): void
+{
+    $GLOBALS['__lf_student_email_index'] = null;
+}
+
+function student_email_index(): array
+{
+    if (!isset($GLOBALS['__lf_student_email_index']) || !is_array($GLOBALS['__lf_student_email_index'])) {
+        $m = [];
+        foreach (student_all() as $id => $s) {
+            $e = mb_strtolower((string)($s['email'] ?? ''));
+            if ($e !== '') $m[$e] = (string)$id;
+        }
+        $GLOBALS['__lf_student_email_index'] = $m;
+    }
+    return $GLOBALS['__lf_student_email_index'];
+}
+
 function student_by_email(string $email): ?array
 {
     $email = mb_strtolower(trim($email));
     if ($email === '') return null;
-    foreach (student_all() as $id => $s) {
-        if (mb_strtolower((string)($s['email'] ?? '')) === $email) {
-            return array_merge(['id' => (string)$id], $s);
-        }
-    }
-    return null;
+    $id = student_email_index()[$email] ?? null;
+    return $id !== null ? student_get($id) : null;
 }
 
 function student_is_email_taken(string $email, string $exceptId = ''): bool
@@ -57,6 +71,7 @@ function student_create(array $data): array
         'created_at' => date('Y-m-d H:i:s'),
         'last_login_at' => '',
     ];
+    student_index_reset();
     json_update(students_file(), function (array $all) use ($id, $row) {
         $all[$id] = $row;
         return $all;
@@ -67,6 +82,7 @@ function student_create(array $data): array
 
 function student_update(string $id, array $patch): ?array
 {
+    student_index_reset();
     $updated = null;
     json_update(students_file(), function (array $all) use ($id, $patch, &$updated) {
         if (!isset($all[$id])) return $all;

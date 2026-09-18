@@ -1,6 +1,6 @@
 # LearnFlow · 课程与训练营交付引擎
 
-> 芭乐派产品矩阵成员（P2 候补 → 立项）。定位 brief 见 `docs/POSITIONING.md`，路线图见 `docs/ROADMAP.md`。
+> 芭乐派产品矩阵成员（P2 候补 → 立项）。定位 brief 见 `docs/POSITIONING.md`，路线图见 `docs/ROADMAP.md`，**平台总览见 `docs/PLATFORM.md`**。
 
 ## 一句话定位
 

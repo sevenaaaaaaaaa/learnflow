@@ -159,19 +159,3 @@ function quiz_submit(string $studentId, string $quizId, array $answers): array
     return ['ok' => true, 'result' => $result, 'attempt' => $attempt];
 }
 
-function quiz_course_progress(string $studentId, string $courseId): array
-{
-    $quizzes = quiz_for_course($courseId);
-    $out = [];
-    foreach ($quizzes as $q) {
-        $best = quiz_best($studentId, (string)$q['id']);
-        $out[(string)$q['id']] = [
-            'title' => (string)($q['title'] ?? ''),
-            'kind' => (string)($q['kind'] ?? 'chapter'),
-            'best_score' => $best ? (int)$best['score'] : null,
-            'total' => quiz_total_score($q),
-            'passed' => $best ? !empty($best['passed']) : false,
-        ];
-    }
-    return $out;
-}

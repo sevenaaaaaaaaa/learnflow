@@ -21,11 +21,6 @@ function note_save(string $studentId, string $courseId, string $lessonId, string
     return $row;
 }
 
-function note_course(string $studentId, string $courseId): array
-{
-    $all = json_read(notes_file());
-    return $all[$studentId][$courseId] ?? [];
-}
 
 function course_attachments(array $course): array
 {

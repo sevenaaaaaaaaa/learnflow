@@ -18,13 +18,30 @@ function course_all(bool $publishedOnly = false): array
     return array_values($all);
 }
 
+function course_index_reset(): void
+{
+    $GLOBALS['__lf_course_index'] = null;
+}
+
+function course_index(): array
+{
+    if (!isset($GLOBALS['__lf_course_index']) || !is_array($GLOBALS['__lf_course_index'])) {
+        $byId = [];
+        $bySlug = [];
+        foreach (course_all() as $c) {
+            $byId[(string)($c['id'] ?? '')] = $c;
+            if (($c['slug'] ?? '') !== '') $bySlug[(string)$c['slug']] = $c;
+        }
+        $GLOBALS['__lf_course_index'] = ['id' => $byId, 'slug' => $bySlug];
+    }
+    return $GLOBALS['__lf_course_index'];
+}
+
 function course_find(string $idOrSlug): ?array
 {
     if ($idOrSlug === '') return null;
-    foreach (course_all() as $c) {
-        if (($c['id'] ?? '') === $idOrSlug || ($c['slug'] ?? '') === $idOrSlug) return $c;
-    }
-    return null;
+    $idx = course_index();
+    return $idx['id'][$idOrSlug] ?? $idx['slug'][$idOrSlug] ?? null;
 }
 
 function course_save(array $course): array
@@ -38,6 +55,7 @@ function course_save(array $course): array
     if (!isset($course['status'])) $course['status'] = 'draft';
     if (!isset($course['chapters']) || !is_array($course['chapters'])) $course['chapters'] = [];
 
+    course_index_reset();
     json_update(courses_file(), function (array $all) use (&$course) {
         $all = array_values($all);
         $found = false;
@@ -66,6 +84,7 @@ function course_save(array $course): array
 
 function course_delete(string $id): bool
 {
+    course_index_reset();
     $removed = false;
     json_update(courses_file(), function (array $all) use ($id, &$removed) {
         $out = [];

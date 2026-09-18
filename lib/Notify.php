@@ -26,15 +26,6 @@ function notify_add(string $studentId, string $type, string $title, string $body
     return $row;
 }
 
-function notify_broadcast(array $studentIds, string $type, string $title, string $body = '', string $link = ''): int
-{
-    $n = 0;
-    foreach (array_unique(array_filter($studentIds)) as $sid) {
-        notify_add((string)$sid, $type, $title, $body, $link);
-        $n++;
-    }
-    return $n;
-}
 
 function notify_list(string $studentId, int $limit = 50): array
 {

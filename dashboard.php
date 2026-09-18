@@ -80,6 +80,16 @@ lf_page_start([
         </div>
       </div>
     </div>
+    <?php $plog = points_log($studentId, 6); if ($plog): ?>
+      <div style="margin-top:12px;border-top:1px solid var(--border-soft);padding-top:10px">
+        <span class="lf-kicker">积分明细</span>
+        <div style="display:grid;gap:2px;margin-top:6px">
+          <?php foreach ($plog as $p): ?>
+            <div class="lf-faint" style="display:flex;justify-content:space-between;font-size:12.5px"><span><?= lf_e((string)($p['reason'] ?? '')) ?> · <?= lf_e(substr((string)($p['at'] ?? ''), 0, 16)) ?></span><b style="color:var(--ok)">+<?= (int)($p['delta'] ?? 0) ?></b></div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endif; ?>
   </div>
 
   <?php if (!$courses): ?>

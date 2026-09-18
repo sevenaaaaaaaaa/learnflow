@@ -24,8 +24,3 @@ function media_is_protected(array $lesson): bool
     return str_starts_with(trim((string)($lesson['video'] ?? '')), 'upload:');
 }
 
-function media_upload_rel(array $lesson): string
-{
-    $video = trim((string)($lesson['video'] ?? ''));
-    return str_starts_with($video, 'upload:') ? substr($video, 7) : '';
-}
