@@ -1,0 +1,10 @@
+page { background: #0f0f12; color: #f4f4f6; }
+.wrap { padding: 24rpx; }
+.card { background: #17171c; border: 1rpx solid #26262e; border-radius: 20rpx; padding: 24rpx; margin-bottom: 20rpx; }
+.title { font-size: 34rpx; font-weight: 700; }
+.sub { color: #9a9aa2; font-size: 24rpx; margin-top: 8rpx; }
+.price { color: #7c9dff; font-weight: 700; margin-top: 12rpx; }
+.btn { background: #2f6bff; color: #fff; border-radius: 999rpx; padding: 20rpx; text-align: center; margin-top: 20rpx; }
+.btn.ghost { background: transparent; border: 1rpx solid #3a3a44; color: #d8d8dd; }
+.inp { background: #101015; border: 1rpx solid #2a2a33; border-radius: 14rpx; padding: 22rpx; margin-top: 16rpx; color: #f4f4f6; }
+.muted { color: #8a8a92; font-size: 24rpx; }

@@ -1,0 +1,11 @@
+<view class="wrap">
+  <view class="card">
+    <view class="title">{{mode === 'login' ? '登录' : '注册'}}</view>
+    <input class="inp" placeholder="邮箱" value="{{email}}" bindinput="onEmail" />
+    <input class="inp" placeholder="密码" password value="{{password}}" bindinput="onPass" />
+    <input wx:if="{{mode === 'register'}}" class="inp" placeholder="称呼（可选）" value="{{name}}" bindinput="onName" />
+    <view class="btn" bindtap="submit">{{mode === 'login' ? '登录' : '注册并进入'}}</view>
+    <view class="muted" style="margin-top:16rpx" bindtap="toggle">{{mode === 'login' ? '没有账号？去注册' : '已有账号？去登录'}}</view>
+    <view class="muted" style="color:#ff6b6b;margin-top:10rpx">{{err}}</view>
+  </view>
+</view>

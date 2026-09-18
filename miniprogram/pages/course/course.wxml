@@ -1,0 +1,14 @@
+<view class="wrap" wx:if="{{course}}">
+  <view class="card">
+    <view class="title">{{course.title}}</view>
+    <view class="sub">{{course.subtitle}}</view>
+    <view class="price">{{course.price > 0 ? '¥' + course.price : '免费'}}</view>
+    <view wx:if="{{!course.has_access}}" class="sub">报名后即可学习{{course.members_only ? '（会员专享）' : ''}}；可在网页端购买或使用邀请码</view>
+  </view>
+  <view wx:for="{{chapters}}" wx:key="title" class="card">
+    <view class="title" style="font-size:30rpx">{{item.title}}</view>
+    <view wx:for="{{item.lessons}}" wx:for-item="l" wx:key="id" class="sub" bindtap="openLesson" data-id="{{l.id}}" data-locked="{{l.locked}}">
+      {{l.done ? '✓ ' : ''}}{{l.title}}{{l.locked ? ' 🔒' : ''}}
+    </view>
+  </view>
+</view>

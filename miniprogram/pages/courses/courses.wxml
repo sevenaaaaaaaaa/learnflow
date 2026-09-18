@@ -1,0 +1,10 @@
+<view class="wrap">
+  <view class="title">课程</view>
+  <view wx:for="{{courses}}" wx:key="id" class="card" bindtap="open" data-slug="{{item.slug}}">
+    <view class="title">{{item.title}}</view>
+    <view class="sub">{{item.subtitle}}</view>
+    <view class="price">{{item.price > 0 ? '¥' + item.price : '免费'}} · {{item.lessons}} 课时</view>
+    <view wx:if="{{item.enrolled}}" class="muted">已报名 · 进度 {{item.percent}}%</view>
+  </view>
+  <view wx:if="{{!loading && courses.length === 0}}" class="muted">暂无课程</view>
+</view>

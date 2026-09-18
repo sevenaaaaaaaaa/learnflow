@@ -1,0 +1,7 @@
+{
+  "miniprogramRoot": "./",
+  "appid": "填入你的小程序 AppID",
+  "projectname": "learnflow",
+  "setting": { "urlCheck": false, "es6": true, "minified": true },
+  "compileType": "miniprogram"
+}

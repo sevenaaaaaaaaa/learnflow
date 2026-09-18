@@ -1,0 +1,12 @@
+<view class="wrap">
+  <view class="card" wx:if="{{profile}}">
+    <view class="title">{{profile.student.name || profile.student.email}}</view>
+    <view class="sub">积分 {{profile.points}} · 成就 {{profile.achievements.length}}</view>
+    <view class="sub" wx:if="{{profile.membership && profile.membership.active}}">会员：{{profile.membership.tier}}</view>
+  </view>
+  <view class="card" wx:for="{{courses}}" wx:key="id" bindtap="open" data-slug="{{item.slug}}">
+    <view class="title" style="font-size:30rpx">{{item.title}}</view>
+    <view class="sub">进度 {{item.percent}}%（{{item.done}}/{{item.total}}）</view>
+  </view>
+  <view class="btn ghost" bindtap="logout">退出登录</view>
+</view>

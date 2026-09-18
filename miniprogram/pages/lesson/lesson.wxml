@@ -1,0 +1,10 @@
+<view class="wrap" wx:if="{{lesson}}">
+  <view class="card">
+    <view class="title">{{lesson.title}}</view>
+    <video wx:if="{{isVideo && isMp4}}" src="{{lesson.video}}" style="width:100%;margin-top:16rpx" controls></video>
+    <view wx:elif="{{isVideo}}" class="muted" style="margin-top:16rpx">HLS 直播/视频请在网页端观看</view>
+    <rich-text wx:elif="{{lesson.content}}" nodes="{{lesson.content}}" style="margin-top:16rpx"></rich-text>
+    <view class="btn" wx:if="{{!done}}" bindtap="markDone">标记完成</view>
+    <view class="btn ghost" bindtap="copyLink">复制网页学习链接</view>
+  </view>
+</view>
