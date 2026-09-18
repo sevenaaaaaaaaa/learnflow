@@ -386,6 +386,26 @@ function lf_api_tools(): array
                 return $r;
             },
         ],
+        'ai.ask' => [
+            'scope' => 'ai', 'description' => '基于课程资料的问答（RAG，返回答案与引用课时）',
+            'schema' => $obj(['course_id' => $str(), 'question' => $str()], ['course_id', 'question']),
+            'handler' => function (array $p) {
+                if (!ai_enabled()) throw new RuntimeException('AI 未启用');
+                $course = course_find((string)$p['course_id']);
+                if ($course === null) throw new RuntimeException('课程不存在');
+                return ai_course_ask($course, (string)$p['question']);
+            },
+        ],
+        'ai.outline' => [
+            'scope' => 'ai', 'description' => '根据标题/简介生成课程大纲（章节与课时）',
+            'schema' => $obj(['title' => $str(), 'summary' => $str(), 'requirements' => $str()], ['title']),
+            'handler' => function (array $p) {
+                if (!ai_enabled()) throw new RuntimeException('AI 未启用');
+                $data = ai_course_outline((string)$p['title'], (string)($p['summary'] ?? ''), (string)($p['requirements'] ?? ''));
+                if ($data === null) throw new RuntimeException('AI 生成失败');
+                return ['chapters' => $data['chapters']];
+            },
+        ],
         'ai.weekly_report' => [
             'scope' => 'ai', 'description' => '生成课程运营周报（文本）',
             'schema' => $obj(['course_id' => $str()], ['course_id']),

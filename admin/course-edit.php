@@ -172,7 +172,14 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
     <?php endif; ?>
   </div>
 
-  <div class="lf-admin-head"><h2 class="lf-sec-title" style="font-size:18px">章节与课时</h2><button class="btn ghost sm" type="button" id="add-chapter">+ 添加章节</button></div>
+  <div class="lf-admin-head">
+    <h2 class="lf-sec-title" style="font-size:18px">章节与课时</h2>
+    <div class="lf-row" style="flex:0 0 auto;gap:6px">
+      <input class="lf-inp" id="ai-outline-topic" placeholder="AI 大纲主题" value="<?= lf_e((string)($course['title'] ?? '')) ?>" style="height:38px;width:200px">
+      <button class="btn ghost sm" type="button" id="ai-outline">AI 生成大纲</button>
+      <button class="btn ghost sm" type="button" id="add-chapter">+ 添加章节</button>
+    </div>
+  </div>
   <div id="chapters"></div>
 
   <div style="margin-top:20px;position:sticky;bottom:0;background:var(--bg);padding:14px 0;border-top:1px solid var(--border)">
@@ -322,6 +329,29 @@ lf_admin_page_start(['title' => '编辑课程 · LearnFlow 讲师后台', 'activ
   initial.forEach(function (ch) { addChapter(ch); });
   if (!initial.length) addChapter({});
   reindex();
+
+  var aiBtn = document.getElementById('ai-outline');
+  if (aiBtn) aiBtn.addEventListener('click', function () {
+    var topic = document.getElementById('ai-outline-topic').value.trim();
+    if (!topic) { alert('请填写大纲主题'); return; }
+    var old = aiBtn.textContent; aiBtn.textContent = '生成中…'; aiBtn.disabled = true;
+    var fd = new FormData();
+    fd.append('_token', '<?= lf_csrf_token() ?>');
+    fd.append('action', 'outline');
+    fd.append('title', topic);
+    fetch('<?= lf_url('/api/ai.php') ?>', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+      aiBtn.textContent = old; aiBtn.disabled = false;
+      if (!d.ok) { alert(d.error || 'AI 失败'); return; }
+      (d.chapters || []).forEach(function (ch) {
+        addChapter({
+          title: ch.title || '',
+          summary: ch.summary || '',
+          lessons: (ch.lessons || []).map(function (l) { return { title: l.title || '', type: l.type || 'article', duration: l.duration || 0 }; })
+        });
+      });
+      reindex();
+    }).catch(function () { aiBtn.textContent = old; aiBtn.disabled = false; alert('网络错误'); });
+  });
 })();
 </script>
 <?php lf_admin_page_end(); ?>

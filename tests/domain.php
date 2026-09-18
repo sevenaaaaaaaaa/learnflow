@@ -263,6 +263,12 @@ check('payflow membership order grants', !empty($order['ok']) && ($order['type']
 check('api membership.list', !empty(lf_api_call('membership.list', [], ['scopes' => ['read']])['ok']));
 check('api points.balance', !empty(lf_api_call('points.balance', ['student_id' => (string)$student['id']], ['scopes' => ['read']])['ok']));
 
+$tc = course_find('test-course');
+$ret = ai_retrieve($tc, '图文');
+check('ai_retrieve structure + match', isset($ret['sources'], $ret['contexts']) && count($ret['sources']) >= 1);
+check('api ai.ask scope ok (AI disabled error)', empty(lf_api_call('ai.ask', ['course_id' => 'test-course', 'question' => 'x'], ['scopes' => ['ai']])['ok']));
+check('api ai.ask read scope denied', (lf_api_call('ai.ask', ['course_id' => 'x', 'question' => 'y'], ['scopes' => ['read']])['code'] ?? 0) === 403);
+
 $dbStatus = lf_db_status();
 check('dual-driver connected (sqlite)', !empty($dbStatus['connected']) && ($dbStatus['driver'] ?? '') === 'sqlite');
 $kvCount = 0;

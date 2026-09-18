@@ -139,6 +139,33 @@ lf_page_start([
       </div>
     </div>
     <?php endif; ?>
+  <?php if ($hasAccess && ai_enabled()): ?>
+    <div class="lf-form-card" style="max-width:none;margin-top:16px">
+      <span class="lf-kicker">AI 答疑</span>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="lf-inp" id="ai-q" placeholder="就本课程提问，例如：这一章的核心是什么？" style="flex:1">
+        <button class="btn primary sm" type="button" id="ai-ask" style="flex:0 0 auto">提问</button>
+      </div>
+      <div id="ai-a" class="lf-flash info" style="display:none;margin-top:10px;white-space:pre-wrap"></div>
+    </div>
+    <script>
+    (function () {
+      var t = '<?= lf_csrf_token() ?>', c = '<?= lf_e((string)$course['id']) ?>', api = '<?= lf_url('/api/ai-qa.php') ?>';
+      var btn = document.getElementById('ai-ask'), q = document.getElementById('ai-q'), a = document.getElementById('ai-a');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var v = (q.value || '').trim(); if (!v) return;
+        btn.disabled = true; btn.textContent = '思考中…'; a.style.display = 'block'; a.textContent = '正在检索课程资料…';
+        var fd = new FormData(); fd.append('_token', t); fd.append('course_id', c); fd.append('question', v);
+        fetch(api, { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+          btn.disabled = false; btn.textContent = '提问';
+          if (!d.ok) { a.textContent = d.error || 'AI 失败'; return; }
+          a.textContent = d.answer + (d.sources && d.sources.length ? '\n\n—— 参考课时：' + d.sources.join('、') : '');
+        }).catch(function () { btn.disabled = false; btn.textContent = '提问'; a.textContent = '网络错误'; });
+      });
+    })();
+    </script>
+  <?php endif; ?>
   </div>
 
   <aside class="lf-sidebar">

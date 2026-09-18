@@ -60,4 +60,12 @@ if ($action === 'weekly_report') {
     lf_json_out(['ok' => true, 'report' => $text, 'stats' => $stats]);
 }
 
+if ($action === 'outline') {
+    $title = trim((string)($_POST['title'] ?? ''));
+    if ($title === '') lf_json_out(['ok' => false, 'error' => '请填写课程标题'], 400);
+    $data = ai_course_outline($title, (string)($_POST['summary'] ?? ''), (string)($_POST['requirements'] ?? ''));
+    if ($data === null) lf_json_out(['ok' => false, 'error' => 'AI 生成失败，请稍后重试'], 502);
+    lf_json_out(['ok' => true, 'chapters' => $data['chapters']]);
+}
+
 lf_json_out(['ok' => false, 'error' => '未知操作'], 400);
