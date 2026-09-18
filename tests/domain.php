@@ -276,6 +276,13 @@ check('live lesson fields saved', ($ll['live_url'] ?? '') === 'https://cdn.test/
 check('live lesson state', live_lesson_state(['live_start' => '2030-01-01 20:00', 'live_end' => '2030-01-01 21:00']) === '未开始' && live_lesson_state(['live_start' => '2020-01-01 20:00', 'live_end' => '2020-01-01 21:00']) === '已结束');
 check('openflow live room url', str_contains(live_openflow_room_url('room_1'), '/live?room=room_1'));
 
+$cm = commission_summary();
+check('commission recorded from referral', (int)$cm['count'] >= 1 && (float)$cm['pending'] > 0);
+$firstCm = commission_all()[0] ?? [];
+commission_mark_settled((string)($firstCm['id'] ?? ''));
+check('commission settled', (commission_all()[0]['status'] ?? '') === 'settled');
+check('api commission.list', !empty(lf_api_call('commission.list', [], ['scopes' => ['read']])['ok']));
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

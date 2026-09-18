@@ -66,8 +66,10 @@ function referral_attribute(string $code, string $buyerId, string $courseId, str
         return $all;
     });
 
-    $reward = (float)(lf_setting_get('referral_reward', 0) ?: 0);
-    $rewardCoupon = '';
+    require_once __DIR__ . '/Commission.php';
+    commission_record($buyerId, $courseId, $orderId, $amount);
+
+    $reward = (float)(lf_setting_get('referral_reward', 0) ?: 0);    $rewardCoupon = '';
     if ($reward > 0) {
         $coupon = coupon_save([
             'code' => 'RW' . strtoupper(bin2hex(random_bytes(3))),

@@ -60,6 +60,7 @@
 | 多语言 | 公域 UI 文案中英切换（`?lang=en`）、课程与课时标题/内容 EN |
 | 多讲师与权限 | 管理员 / 编辑 / 只读 三角色，敏感页仅管理员 |
 | 移动端 | PWA（可安装、离线壳）；学员 API + 微信小程序工程（`miniprogram/`，见 `docs/MINIPROGRAM.md`） |
+| 分销与拼团 | 多级分销佣金**记录/归因/待结算汇总**（不动资金）；拼团属资金域，交 PayFlow |
 | AI（DeepSeek） | 作业点评、测验出题、学习周报、**课程资料 RAG 问答**、课程大纲生成（每日额度保险丝） |
 | 互通 | PayFlow 购买即入学；**事件实时投递 UserLoop 旅程/Loop 引擎**（私域触达与自动化由 UserLoop 承载）；MFlow 走通用 webhook（HMAC） |
 | Agent 接口 | API Key（read/write/ai 作用域 + 限流 + 审计）、REST `/api/v1`、**MCP server `/mcp`**（26 个工具，见 `docs/API-MCP.md`） |

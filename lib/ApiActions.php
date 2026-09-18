@@ -306,6 +306,13 @@ function lf_api_tools(): array
                 return ['points' => points_balance($sid), 'achievements' => (array)(points_of($sid)['achievements'] ?? [])];
             },
         ],
+        'commission.list' => [
+            'scope' => 'read', 'description' => '分销佣金记录与汇总',
+            'schema' => $obj([]),
+            'handler' => function () {
+                return ['summary' => commission_summary(), 'commissions' => array_slice(array_reverse(commission_all()), 0, 100)];
+            },
+        ],
         'analytics.overview' => [
             'scope' => 'read', 'description' => '营收与转化漏斗总览（营收/付费/客单价/漏斗/来源/推荐）',
             'schema' => $obj(['days' => ['type' => 'integer', 'description' => '统计天数，默认 30']]),

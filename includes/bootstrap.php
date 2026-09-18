@@ -30,6 +30,7 @@ require_once LF_ROOT . '/lib/ApiKey.php';
 require_once LF_ROOT . '/lib/ApiActions.php';
 require_once LF_ROOT . '/lib/Coupon.php';
 require_once LF_ROOT . '/lib/Referral.php';
+require_once LF_ROOT . '/lib/Commission.php';
 require_once LF_ROOT . '/lib/Analytics.php';
 require_once LF_ROOT . '/lib/Gdpr.php';
 require_once LF_ROOT . '/lib/Membership.php';
