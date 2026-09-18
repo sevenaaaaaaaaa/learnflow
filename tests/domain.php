@@ -391,6 +391,16 @@ check('strategy recorded from execute', $strat !== null && (int)$strat['runs'] >
 check('strategy stats', isset(strategy_stats()['success_rate']) && strategy_stats()['count'] >= 1);
 check('api strategy.list', !empty(lf_api_call('strategy.list', [], ['scopes' => ['read']])['ok']));
 
+$mc = matrix_config();
+check('matrix config defaults', isset($mc['userloop'], $mc['mflow'], $mc['inflow']));
+check('matrix call unconfigured skipped', empty(matrix_call('inflow', '/api/v1/insights', [], 'GET')['ok']));
+$ulAction = evolution_run_action(['type' => 'userloop_signal', 'course_id' => (string)$course['id']]);
+check('cross-product action userloop_signal runs', !empty($ulAction['ok']));
+$mfAction = evolution_run_action(['type' => 'mflow_distribute', 'topic' => 'x']);
+check('matrix action mflow unconfigured skipped', empty($mfAction['ok']));
+check('api matrix.status', !empty(lf_api_call('matrix.status', [], ['scopes' => ['read']])['ok']));
+check('autonomy risk for cross actions', autonomy_risk('userloop_signal') === 'medium' && autonomy_risk('mflow_distribute') === 'low');
+
 $tcLessons = course_lessons(course_find('test-course'));
 $lid = (string)($tcLessons[0]['id'] ?? '');
 course_save(course_normalize(array_merge(course_find('test-course'), ['i18n' => ['en' => ['title' => 'Test Course EN', 'lessons' => [$lid => ['title' => 'Article EN', 'content' => '<p>EN</p>']]]]])));

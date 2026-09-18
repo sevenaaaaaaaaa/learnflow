@@ -70,7 +70,7 @@ function evolution_signals(): array
         }
 
         $risk = progress_at_risk($cid);
-        if (count($risk) > 0) $add('ops:at_risk:' . $cid, 'ops', 'medium', '风险学员 ' . count($risk) . ' 名：' . $title, '进度低且近 7 天不活跃，建议触达（可经 UserLoop）。', '/admin/analytics.php?course=' . urlencode($cid), ['type' => 'reminder', 'course_id' => $cid]);
+        if (count($risk) > 0) $add('ops:at_risk:' . $cid, 'ops', 'medium', '风险学员 ' . count($risk) . ' 名：' . $title, '进度低且近 7 天不活跃，建议触达（可经 UserLoop）。', '/admin/analytics.php?course=' . urlencode($cid), ['type' => 'userloop_signal', 'course_id' => $cid]);
     }
 
     $pendingGrade = 0;
@@ -142,6 +142,29 @@ function evolution_run_action(array $action): array
             $n++;
         }
         return ['ok' => true, 'result' => '已向 ' . $n . ' 名风险学员发送学习提醒'];
+    }
+    if ($type === 'userloop_signal') {
+        $course = course_find((string)($action['course_id'] ?? ''));
+        if ($course === null) return ['ok' => false, 'result' => '课程不存在'];
+        $n = 0;
+        foreach (progress_at_risk((string)$course['id']) as $r) {
+            matrix_reengage((string)$r['student_id'], (string)$course['id'], 'at_risk');
+            $n++;
+        }
+        return ['ok' => true, 'result' => '已向 UserLoop 发出 ' . $n . ' 条再激活请求（reengage_requested），由其编排触达'];
+    }
+    if ($type === 'mflow_distribute') {
+        $topic = (string)($action['topic'] ?? '');
+        $res = matrix_call('mflow', (string)($action['path'] ?? '/api/batch/create'), ['type' => 'content', 'topic' => $topic, 'source' => 'learnflow']);
+        return ['ok' => !empty($res['ok']), 'result' => !empty($res['ok']) ? '已提交 MFlow 分发' : ('MFlow 未就绪/未配置：' . (string)($res['error'] ?? ('HTTP ' . (int)($res['code'] ?? 0))))];
+    }
+    if ($type === 'inflo_topics') {
+        $res = matrix_call('inflow', (string)($action['path'] ?? '/api/v1/insights'), [], 'GET');
+        if (empty($res['ok'])) return ['ok' => false, 'result' => 'inFlow 未就绪/未配置：' . (string)($res['error'] ?? ('HTTP ' . (int)($res['code'] ?? 0)))];
+        $text = (string)$res['body'];
+        if (!ai_enabled()) return ['ok' => true, 'result' => '已取回 inFlow 洞察（' . mb_strlen($text) . ' 字节），AI 未开启未生成选题'];
+        $draft = ai_draft_save('topic', 'inFlow 选题灵感', mb_substr($text, 0, 4000));
+        return ['ok' => true, 'result' => '已基于 inFlow 洞察生成选题草稿：' . $draft['id']];
     }
     return ['ok' => false, 'result' => '该建议暂无自动动作'];
 }

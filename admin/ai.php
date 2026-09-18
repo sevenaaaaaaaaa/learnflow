@@ -2,6 +2,21 @@
 require_once dirname(__DIR__) . '/includes/bootstrap.php';
 lf_admin_required();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'inflo') {
+    if (!lf_csrf_check()) { lf_flash('danger', '请求已失效。'); }
+    else {
+        $res = matrix_call('inflow', '/api/v1/insights', [], 'GET');
+        if (empty($res['ok'])) {
+            lf_flash('danger', 'inFlow 未就绪/未配置：' . (string)($res['error'] ?? ('HTTP ' . (int)($res['code'] ?? 0))));
+        } else {
+            $body = (string)$res['body'];
+            $draft = ai_draft_save('topic', 'inFlow 选题灵感', mb_substr($body, 0, 4000));
+            lf_flash('ok', '已取回 inFlow 洞察并存入草稿库（' . $draft['id'] . '）。');
+        }
+    }
+    header('Location: ' . lf_url('/admin/ai.php'));
+    exit;
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'course_from_outline') {
     if (!lf_csrf_check()) {
         lf_flash('danger', '请求已失效。');
@@ -68,6 +83,20 @@ lf_admin_page_start(['title' => 'AI 工作台 · LearnFlow 讲师后台', 'activ
     <button class="btn primary sm" type="button" id="mat-go" style="flex:0 0 auto">生成大纲</button>
   </div>
   <div id="mat-out" style="display:none;margin-top:14px"></div>
+</div>
+
+<?php $ms = matrix_status(); ?>
+<div class="lf-form-card" style="max-width:none;margin-top:20px">
+  <div class="lf-row" style="justify-content:space-between">
+    <h3 style="margin:0;font-size:16px">矩阵联动</h3>
+    <form method="post" style="margin:0"><?= lf_csrf_field() ?><input type="hidden" name="action" value="inflo"><button class="btn ghost sm" type="submit">从 inFlow 取选题</button></form>
+  </div>
+  <div class="lf-row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+    <?php foreach ($ms as $pk => $st): ?>
+      <span class="lf-chip <?= empty($st['enabled']) ? 'soft' : (!empty($st['ok']) ? 'ok' : 'danger') ?>"><?= lf_e($pk) ?>：<?= empty($st['enabled']) ? '未启用' : lf_e((string)$st['detail']) ?></span>
+    <?php endforeach; ?>
+  </div>
+  <p class="lf-faint" style="margin-top:8px">在「设置 → 矩阵互通」配置各产品 Base URL 与 Token。</p>
 </div>
 
 <?php if ($drafts): ?>

@@ -52,6 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'per_type' => array_filter(array_map('intval', (array)($_POST['per_type'] ?? [])), fn($v) => $v !== 0),
             ]);
             lf_flash('ok', '自治设置已保存。');
+        } elseif ($section === 'matrix') {
+            $m = [];
+            foreach (['userloop', 'mflow', 'inflow', 'openflow', 'websflow', 'payflow'] as $pk) {
+                $m[$pk] = [
+                    'enabled' => !empty($_POST['matrix_enabled'][$pk]),
+                    'base_url' => rtrim(trim((string)($_POST['matrix_base'][$pk] ?? '')), '/'),
+                    'token' => trim((string)($_POST['matrix_token'][$pk] ?? '')),
+                ];
+            }
+            lf_setting_set('matrix', $m);
+            lf_flash('ok', '矩阵互通设置已保存。');
         } elseif ($section === 'embedding') {
             lf_setting_set('embedding', [
                 'enabled' => !empty($_POST['embedding_enabled']),
@@ -230,6 +241,30 @@ lf_admin_page_start(['title' => '设置 · LearnFlow 讲师后台', 'active' => 
       <div class="lf-field" style="margin:0"><label>提醒类每日上限</label><input class="lf-inp" type="number" min="0" name="per_type[reminder]" value="<?= (int)($auto['per_type']['reminder'] ?? 1) ?>"></div>
       <button class="btn primary sm" type="submit" style="flex:0 0 auto">保存自治设置</button>
     </div>
+  </form>
+</div>
+
+<div class="lf-form-card" style="max-width:none;margin-bottom:20px">
+  <h2 class="lf-sec-title" style="font-size:17px;margin:0 0 10px">矩阵互通（跨产品 API）</h2>
+  <p class="lf-faint" style="margin:0 0 12px">配置各产品的线上 API 地址与令牌；进化的跨产品动作（再激活请求/内容分发/选题）经此调用，未配置则安全跳过。</p>
+  <?php $mx = matrix_config(); $mstat = matrix_status(); ?>
+  <form method="post">
+    <?= lf_csrf_field() ?><input type="hidden" name="section" value="matrix">
+    <table class="lf-table">
+      <thead><tr><th>产品</th><th>启用</th><th>Base URL</th><th>Token</th><th>状态</th></tr></thead>
+      <tbody>
+      <?php foreach (['userloop' => 'UserLoop', 'mflow' => 'MFlow', 'inflow' => 'inFlow', 'openflow' => 'OpenFlow', 'websflow' => 'WebsFlow', 'payflow' => 'PayFlow'] as $pk => $pn): ?>
+        <tr>
+          <td><b><?= lf_e($pn) ?></b></td>
+          <td><input type="checkbox" name="matrix_enabled[<?= $pk ?>]" <?= !empty($mx[$pk]['enabled']) ? 'checked' : '' ?>></td>
+          <td><input class="lf-inp" name="matrix_base[<?= $pk ?>]" value="<?= lf_e((string)$mx[$pk]['base_url']) ?>" style="height:34px;min-width:200px"></td>
+          <td><input class="lf-inp" type="password" name="matrix_token[<?= $pk ?>]" value="<?= lf_e((string)$mx[$pk]['token']) ?>" style="height:34px;min-width:140px"></td>
+          <td class="lf-faint"><?= empty($mx[$pk]['enabled']) ? '未启用' : (!empty($mstat[$pk]['ok']) ? '<span class="lf-chip ok">通</span>' : '<span class="lf-chip danger">' . lf_e((string)($mstat[$pk]['detail'] ?? '不通')) . '</span>') ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+    <button class="btn primary sm" type="submit" style="margin-top:12px">保存矩阵设置</button>
   </form>
 </div>
 

@@ -25,6 +25,7 @@ function userloop_event_name(string $event): string
         'preview.viewed' => 'preview_viewed',
         'certificate.revoked' => 'certificate_revoked',
         'live.reminder' => 'live_reminder_sent',
+        'reengage.requested' => 'reengage_requested',
     ][$event] ?? str_replace('.', '_', $event);
 }
 

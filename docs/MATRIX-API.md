@@ -67,3 +67,13 @@
 | inFlow → LearnFlow | ❌ | 接 `insights`：选题/大纲参考 |
 | LearnFlow ↔ OpenFlow | ⏳ 直播状态已接 | 直播房间/渠道桥接（OpenFlow 出 API） |
 | MCP 联邦 | ✅ 各产品均有 MCP | 统一 MCP 描述与跨产品编排样例 |
+
+## 七、LearnFlow 侧已实现的调用入口
+
+- **配置**：后台「设置 → 矩阵互通（跨产品 API）」—— 每个产品可配 `启用 / Base URL / Token`，含连通状态自检（`matrix_status()`）
+- **调用层**：`lib/Matrix.php` 的 `matrix_call($product,$path,$payload,$method)`（UserLoop 用 `X-UserLoop-Token`，其余 `Authorization: Bearer`）；未配置即安全跳过
+- **进化的跨产品动作**（自进化 E1/E2 可执行）：
+  - `userloop_signal` → 对风险学员发 `reengage.requested`（→ UserLoop `reengage_requested`），由其编排触达
+  - `mflow_distribute` → 调 MFlow API 提交内容分发（未配置则跳过）
+  - `inflo_topics` → 拉 inFlow 洞察（`/api/v1/insights`）→ 生成选题草稿；后台 AI 工作台亦有「从 inFlow 取选题」
+- **Agent 接口**：`matrix.status`（读，各产品连通状态）

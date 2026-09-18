@@ -306,6 +306,11 @@ function lf_api_tools(): array
                 return ['points' => points_balance($sid), 'achievements' => (array)(points_of($sid)['achievements'] ?? [])];
             },
         ],
+        'matrix.status' => [
+            'scope' => 'read', 'description' => '矩阵各产品 API 连通状态',
+            'schema' => $obj([]),
+            'handler' => function () { return ['products' => matrix_status()]; },
+        ],
         'strategy.list' => [
             'scope' => 'read', 'description' => '自进化策略库与效果统计',
             'schema' => $obj([]),

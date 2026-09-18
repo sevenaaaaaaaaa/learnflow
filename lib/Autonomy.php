@@ -18,12 +18,15 @@ function autonomy_risk(string $type): string
         'improve_hint' => 'low',
         'lesson_content' => 'low',
         'reminder' => 'medium',
+        'userloop_signal' => 'medium',
+        'mflow_distribute' => 'low',
+        'inflo_topics' => 'low',
     ][$type] ?? 'high';
 }
 
 function autonomy_sends_outbound(string $type): bool
 {
-    return in_array($type, ['reminder'], true);
+    return in_array($type, ['reminder', 'userloop_signal'], true);
 }
 
 function autonomy_usage_file(): string
