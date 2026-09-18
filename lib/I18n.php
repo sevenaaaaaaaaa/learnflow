@@ -10,10 +10,17 @@ function lf_lang(): string
     static $lang = null;
     if ($lang !== null) return $lang;
     $langs = lf_langs();
-    $candidate = (string)($_GET['lang'] ?? ($_COOKIE['lf_lang'] ?? 'zh'));
+
+    $path = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: '');
+    $base = function_exists('lf_base_path') ? lf_base_path() : '';
+    $rel = ($base !== '' && str_starts_with($path, $base)) ? substr($path, strlen($base)) : $path;
+    $prefixLang = preg_match('#^/en(/|$)#', $rel) ? 'en' : '';
+
+    $candidate = (string)($_GET['lang'] ?? ($prefixLang !== '' ? $prefixLang : ($_COOKIE['lf_lang'] ?? 'zh')));
     if (!in_array($candidate, $langs, true)) $candidate = 'zh';
-    if (isset($_GET['lang']) && in_array((string)$_GET['lang'], $langs, true) && PHP_SAPI !== 'cli' && !headers_sent()) {
-        setcookie('lf_lang', $candidate, ['expires' => time() + 31536000, 'path' => lf_base_path() . '/', 'samesite' => 'Lax']);
+    $shouldSet = (isset($_GET['lang']) || $prefixLang !== '') && PHP_SAPI !== 'cli' && !headers_sent();
+    if ($shouldSet) {
+        setcookie('lf_lang', $candidate, ['expires' => time() + 31536000, 'path' => ($base !== '' ? $base : '') . '/', 'samesite' => 'Lax']);
     }
     return $lang = $candidate;
 }

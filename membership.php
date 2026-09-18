@@ -8,7 +8,7 @@ $current = $student ? membership_for_student((string)$student['id']) : null;
 if (isset($_GET['joined'])) lf_flash('ok', '支付完成后会员将自动开通，请稍后刷新查看。');
 
 lf_page_start([
-    'title' => '会员 · LearnFlow',
+    'title' => lf_t('会员', 'Membership') . ' · LearnFlow',
     'description' => '开通会员，畅学会员专享课程与专属折扣。',
     'active' => 'membership',
     'container' => true,

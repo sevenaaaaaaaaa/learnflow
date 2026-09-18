@@ -26,7 +26,15 @@ if (!function_exists('lf_nav')) {
     </nav>
     <div class="lf-nav-actions">
       <?= lf_theme_toggle() ?>
-      <a class="lf-nav-link" href="?lang=<?= lf_lang() === 'en' ? 'zh' : 'en' ?>" style="height:38px"><?= lf_lang() === 'en' ? '中文' : 'EN' ?></a>
+      <?php
+      $reqPath = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+      $b = lf_base_path();
+      $relPath = ($b !== '' && str_starts_with($reqPath, $b)) ? substr($reqPath, strlen($b)) : $reqPath;
+      $relPath = preg_replace('#^/en(?=/|$)#', '', $relPath);
+      if ($relPath === '') $relPath = '/';
+      $switchHref = lf_lang() === 'en' ? lf_url($relPath) : lf_url('/en' . ($relPath === '/' ? '' : $relPath));
+      ?>
+      <a class="lf-nav-link" href="<?= lf_e($switchHref) ?>" style="height:38px"><?= lf_lang() === 'en' ? '中文' : 'EN' ?></a>
       <?php if ($student): ?>
         <?php $unread = function_exists('notify_unread_count') ? notify_unread_count((string)$student['id']) : 0; ?>
         <a class="icon-btn lf-bell" href="<?= lf_url('/notifications') ?>" aria-label="通知">

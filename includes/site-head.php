@@ -15,6 +15,16 @@ if (!function_exists('lf_head')) {
         echo '<title>' . lf_e($title) . '</title>' . "\n";
         echo '<meta name="description" content="' . lf_e($desc) . '">' . "\n";
         echo '<link rel="canonical" href="' . lf_e($canonical) . '">' . "\n";
+        $reqPath = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+        $base = lf_base_path();
+        $rel = ($base !== '' && str_starts_with($reqPath, $base)) ? substr($reqPath, strlen($base)) : $reqPath;
+        $rel = preg_replace('#^/en(?=/|$)#', '', $rel);
+        if ($rel === '') $rel = '/';
+        $zhUrl = lf_abs_url($rel);
+        $enUrl = lf_abs_url('/en' . ($rel === '/' ? '' : $rel));
+        echo '<link rel="alternate" hreflang="zh-CN" href="' . lf_e($zhUrl) . '">' . "\n";
+        echo '<link rel="alternate" hreflang="en" href="' . lf_e($enUrl) . '">' . "\n";
+        echo '<link rel="alternate" hreflang="x-default" href="' . lf_e($zhUrl) . '">' . "\n";
         echo '<meta property="og:title" content="' . lf_e($title) . '">' . "\n";
         echo '<meta property="og:description" content="' . lf_e($desc) . '">' . "\n";
         echo '<meta property="og:type" content="website">' . "\n";

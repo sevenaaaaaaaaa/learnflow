@@ -11,7 +11,7 @@ $student = lf_student_current();
 $enrolled = $student ? enroll_by_student((string)$student['id']) : [];
 
 lf_page_start([
-    'title' => '课程 · LearnFlow',
+    'title' => lf_t('课程', 'Courses') . ' · LearnFlow',
     'description' => '在架课程列表：课程结构、章节课时、报名入口。',
     'active' => 'courses',
     'container' => true,

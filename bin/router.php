@@ -12,6 +12,13 @@ if ($base !== '') {
 $root = dirname(__DIR__);
 $path = $root . $uri;
 
+if (preg_match('#^/en(/.*)?$#', $uri, $m)) {
+    $_GET['lang'] = 'en';
+    $uri = $m[1] ?? '/';
+    if ($uri === '') $uri = '/';
+    $path = $root . $uri;
+}
+
 $mimes = [
     'css' => 'text/css', 'js' => 'application/javascript', 'mjs' => 'application/javascript',
     'json' => 'application/json', 'svg' => 'image/svg+xml', 'png' => 'image/png',

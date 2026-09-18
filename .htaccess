@@ -8,6 +8,10 @@ RewriteBase /learnflow/
 RewriteCond %{HTTP:Authorization} .
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+# 站点级多语言：/en/... 剥离语言前缀（语言由 REQUEST_URI 检测）
+RewriteRule ^en/?$ index.php [L,QSA]
+RewriteRule ^en/(.*)$ $1 [L,QSA]
+
 RewriteRule ^data(/|$) - [F,L]
 RewriteRule ^uploads(/|$) - [F,L]
 RewriteRule ^(includes|lib)(/|$) - [F,L]

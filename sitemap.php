@@ -12,6 +12,13 @@ $urls = [
 foreach (course_all(true) as $c) {
     $urls[] = ['loc' => $base . lf_url('/course/' . rawurlencode((string)($c['slug'] ?? $c['id']))), 'priority' => '0.8', 'lastmod' => substr((string)($c['updated_at'] ?? ''), 0, 10)];
 }
+$rootZh = $base . lf_url('/');
+$rootEn = $base . lf_url('/en/');
+$enUrls = [];
+foreach ($urls as $u) {
+    $enUrls[] = ['loc' => str_replace($rootZh, $rootEn, $u['loc']), 'priority' => $u['priority'], 'lastmod' => $u['lastmod'] ?? ''];
+}
+$urls = array_merge($urls, $enUrls);
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 foreach ($urls as $u) {

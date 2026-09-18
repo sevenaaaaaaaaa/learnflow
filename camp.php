@@ -9,7 +9,7 @@ if ($slug === '') {
     }));
     $student = lf_student_current();
     lf_page_start([
-        'title' => '训练营 · LearnFlow',
+        'title' => lf_t('训练营', 'Bootcamp') . ' · LearnFlow',
         'description' => '开营节奏、每日任务、作业提交、打卡与圈子。',
         'active' => 'camp',
         'container' => true,
