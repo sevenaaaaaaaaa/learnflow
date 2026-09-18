@@ -135,7 +135,7 @@ function lf_admin_required(): string
     $u = lf_admin_current();
     if ($u === null) {
         $next = urlencode((string)($_SERVER['REQUEST_URI'] ?? '/admin/'));
-        if (!headers_sent()) header('Location: /admin/login.php?next=' . $next);
+        if (!headers_sent()) header('Location: ' . lf_url('/admin/login.php?next=' . $next));
         exit;
     }
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && defined('LF_DATA_DIR')) {
