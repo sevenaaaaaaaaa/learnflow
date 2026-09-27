@@ -88,6 +88,9 @@ foreach ($routes as $pattern => $target) {
             $qs = preg_replace_callback('/\$(\d)/', fn($x) => rawurlencode($m[(int)$x[1]] ?? ''), $qs);
             $qs = '?' . $qs;
         }
+        // 目标路径里的 $1 同样要替换(如 /admin/([a-z0-9-]+) → /admin/students.php),
+        // 只对查询串替换会让 php -S 下所有带捕获组的路由 Fatal
+        $target = preg_replace_callback('/\$(\d)/', fn($x) => $m[(int)$x[1]] ?? '', $target);
         $_SERVER['SCRIPT_NAME'] = $target;
         $_SERVER['SCRIPT_FILENAME'] = $root . $target;
         if ($qs !== '') {
