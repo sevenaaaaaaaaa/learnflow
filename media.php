@@ -7,6 +7,12 @@ if ($m === null) {
     http_response_code(404);
     exit('not found');
 }
+require_once __DIR__ . '/lib/R2.php';
+// 公共层：R2 有副本，直接边缘分发（减轻服务器 IO/带宽）
+if (!empty($m['on_r2']) && function_exists('r2_url')) {
+    header('Location: ' . r2_url((string)$m['rel']), true, 302);
+    exit;
+}
 $path = lf_file_path((string)$m['rel']);
 if ($path === null) {
     http_response_code(404);

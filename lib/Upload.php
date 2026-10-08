@@ -27,12 +27,19 @@ function lf_upload_save(array $file, string $subdir = 'misc', int $maxBytes = 52
         throw new RuntimeException('保存文件失败');
     }
     @chmod($target, 0644);
-    return [
+    $meta = [
         'rel' => $subdir . '/' . $name,
         'name' => mb_substr((string)$file['name'], 0, 120),
         'size' => (int)filesize($target),
         'ext' => $ext,
     ];
+    // 双写：同步托管 R2（边缘分发），本地副本兜底
+    if (function_exists('r2_put')) {
+        $r2Err = '';
+        if (r2_put($meta['rel'], $target, $r2Err)) $meta['on_r2'] = true;
+        else $meta['r2_note'] = $r2Err;
+    }
+    return $meta;
 }
 
 function lf_file_sign(string $rel, string $scope = '', int $expires = 0): string

@@ -39,6 +39,7 @@ function media_add(array $saved, array $extra = []): array
         'kind' => media_kind_of((string)($saved['ext'] ?? '')),
         'created_at' => date('Y-m-d H:i:s'),
     ], $extra);
+    foreach (['on_r2', 'r2_note'] as $k) if (isset($saved[$k])) $row[$k] = $saved[$k];
     json_update(media_index_file(), function (array $all) use ($row) {
         $all[] = $row;
         return $all;

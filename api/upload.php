@@ -28,6 +28,8 @@ try {
         'name' => $saved['name'],
         'size' => $saved['size'],
         'kind' => $media['kind'],
+        'on_r2' => !empty($media['on_r2']),
+        'r2_note' => $media['r2_note'] ?? null,
         'url' => media_public_url((string)$media['id']),
         'play' => lf_file_url($saved['rel'], '', 3600),
     ]);
