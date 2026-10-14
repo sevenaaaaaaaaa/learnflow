@@ -4,7 +4,8 @@
 #   服务器轨：rsync 工作区 → /www/wwwroot/learnflow/（排除运行时数据与密钥，服务器为源）→ 清缓存 + chown www:www
 # 用法：bash deploy/sync.sh [-m "提交信息"] [--server-only] [--dry-run]
 #   --server-only  跳过 git，只同步服务器
-#   --dry-run      rsync -n 预演；不 commit/push、不清缓存/chown
+#   --dry-run      rsync -n 预演；不 commit/push、不清缓存/chown（任意分支可跑，非 main 仅警告）
+#   正式部署只允许在 main 分支；ops/（gitignored）若非空，另行 rsync --update 到 /www/ops/learnflow/（Web 根之外，不删远端）
 # 参数来源：docs/DEPLOY.md「二、代码同步（rsync）」
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -12,6 +13,7 @@ cd "$(dirname "$0")/.."
 HOST=172.96.253.73
 SSH_PORT=28766
 APP_DIR=/www/wwwroot/learnflow
+OPS_DIR=/www/ops/learnflow   # tool-usage workspace; must stay outside the web root
 SITE=https://nownexts.com/learnflow
 GITLEAKS="${GITLEAKS:-$HOME/.local/bin/gitleaks}"
 
@@ -22,13 +24,23 @@ while [ $# -gt 0 ]; do
     --server-only) SERVER_ONLY=1 ;;
     --dry-run) DRY_RUN=1 ;;
     -m) shift; MSG="${1:?-m 需要提交信息}" ;;
-    -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
     *) echo "未知参数: $1（用法见 --help）"; exit 1 ;;
   esac
   shift
 done
 
 step() { printf "\n\033[1;36m=== %s ===\033[0m\n" "$*"; }
+
+# ─── 0. 只允许从 main 部署（--dry-run 任意分支可跑，仅警告） ───
+CUR_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$CUR_BRANCH" != main ]; then
+  if [ "$DRY_RUN" = 1 ]; then
+    echo "⚠ 当前分支 ${CUR_BRANCH}，非 main：dry-run 仅预演，正式部署只允许从 main 进行"
+  else
+    echo "✗ 当前分支 ${CUR_BRANCH}，部署只允许从 main 进行；功能分支请先合并"; exit 1
+  fi
+fi
 
 # ─── 1. GitHub 轨 ───
 if [ "$SERVER_ONLY" = 1 ]; then
@@ -63,7 +75,17 @@ rsync $RSYNC_FLAGS --delete -e "ssh -p ${SSH_PORT}" \
   --exclude='deploy/' \
   --exclude='CLAUDE.md' --exclude='AGENTS.md' --exclude='.gitleaksignore' \
   --exclude='tests/' --exclude='docs/' \
+  --exclude=/ops/ \
   ./ "root@${HOST}:${APP_DIR}/"
+
+# ─── 2b. ops/ → 服务器 Web 根之外（--update，只增不删；空则跳过） ───
+if [ -d ops ] && [ -n "$(find ops -mindepth 1 ! -name .DS_Store -print -quit)" ]; then
+  step "ops/ → ${HOST}:${OPS_DIR}/（--update，只增不删）"
+  OPS_FLAGS="-az"; [ "$DRY_RUN" = 1 ] && OPS_FLAGS="-azn --itemize-changes"
+  rsync $OPS_FLAGS --update --exclude='.DS_Store' -e "ssh -p ${SSH_PORT}" \
+    --rsync-path="mkdir -p ${OPS_DIR} && rsync" \
+    ops/ "root@${HOST}:${OPS_DIR}/"
+fi
 
 if [ "$DRY_RUN" = 1 ]; then
   echo "dry-run 完成：未清缓存、未 chown"; exit 0

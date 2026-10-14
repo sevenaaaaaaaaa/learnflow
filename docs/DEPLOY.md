@@ -28,8 +28,11 @@ rsync -az --delete -e "ssh -p 28766" \
   --exclude='.env*' --exclude='.user.ini' \
   --exclude='secrets*' --exclude='docs/secrets-local.md' \
   --exclude='.DS_Store' --exclude='*.bak*' \
+  --exclude=/ops/ \
   ./ "root@172.96.253.73:/www/wwwroot/learnflow/"
 ```
+
+`ops/`（使用工具的产物，gitignored）绝不进 Web 根，由 `deploy/sync.sh` 单独 `rsync --update`（不删）到 `/www/ops/learnflow/`。
 
 约定：`data/` 与 `.env` 是运行时数据（服务器为源），`--exclude` 保证部署永不删除；缓存清理
 `rm -f /www/wwwroot/learnflow/data/cache/*.cache`。部署后属主回 `www:www`：

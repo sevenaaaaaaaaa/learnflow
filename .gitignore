@@ -11,3 +11,7 @@ node_modules/
 *.db
 *.sqlite*
 uploads/
+
+# Tool-usage workspace (scripts/batches/data made while *using* LearnFlow).
+# Never on GitHub; deploy/sync.sh pushes it to the server at /www/ops/learnflow/ (outside the web root).
+/ops/

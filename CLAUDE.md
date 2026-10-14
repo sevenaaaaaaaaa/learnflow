@@ -47,11 +47,24 @@ build / lint：无。
   - GitHub 轨（公开仓库，只放干净代码）：gitleaks 扫描暂存区 → `git add -A`（`.gitignore` 已排除 `data/`、`uploads/`、`.env*`、`secrets*`）→ commit → `git push origin main`；无变更则跳过 commit
   - 服务器轨：从工作区 rsync 到 `/www/wwwroot/learnflow/`（排除项同 `docs/DEPLOY.md`：`data/`、`uploads/`、`.env*`、`.user.ini`、`secrets*` 等服务器运行时数据永不覆盖/删除；另排除 `deploy/`）→ 清 `data/cache/*.cache` → `chown -R www:www` → 线上 HTTP 验收
   - `--server-only` 跳过 git；`--dry-run` 只做 `rsync -n` 预演，不提交/推送/清缓存/chown
+  - 只允许从 `main` 部署（含 `--server-only`）；`--dry-run` 任意分支可跑，非 main 仅警告
   - 本地 `.git/hooks/pre-commit` 会跑 gitleaks，发现密钥即阻止提交
   - 注意：脚本会 `git add -A` 自动提交所有改动，运行前确认工作区
 
 - 分支：`main`（`git push origin main` 仅推 GitHub `sevenaaaaaaaaa/learnflow`，不触发部署）
 - 服务器 crontab：`bin/drain.php`（每 15 分钟）、`bin/remind.php`（09:00）、`bin/backup.php`（03:30）
+
+## 开发工具 vs 使用工具（硬性规则）
+
+LearnFlow 既是在开发的产品，也是每天在用的工具。两类产物必须分开：
+
+| 类别 | 例子 | 放哪 | GitHub | 服务器 |
+|---|---|---|---|---|
+| 开发工具（产品代码） | `admin/`、`api/`、`lib/`、`includes/`、`bin/` 等 | 原目录 | ✅ | ✅（Web 根 `/www/wwwroot/learnflow`） |
+| 使用工具的产物 | 运营/内容批处理脚本、批次文件、一次性修复脚本、导出数据 | **`ops/`** | ❌ | ✅ 仅 `/www/ops/learnflow/`（Web 根之外，只增不删） |
+
+- `/ops/` 已 gitignore，且在 Web 根的 `rsync --delete` 中显式 `--exclude=/ops/`；`deploy/sync.sh` 单独用 `rsync --update` 把它送到 `/www/ops/learnflow/`（`--dry-run` 只预览）。
+- 拿不准时按第二类处理（放 `ops/`，不进 GitHub），再问用户。
 
 ## 注意事项
 
