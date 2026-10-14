@@ -61,6 +61,8 @@ rsync $RSYNC_FLAGS --delete -e "ssh -p ${SSH_PORT}" \
   --exclude='secrets*' --exclude='docs/secrets-local.md' \
   --exclude='.DS_Store' --exclude='*.bak*' \
   --exclude='deploy/' \
+  --exclude='CLAUDE.md' --exclude='AGENTS.md' --exclude='.gitleaksignore' \
+  --exclude='tests/' --exclude='docs/' \
   ./ "root@${HOST}:${APP_DIR}/"
 
 if [ "$DRY_RUN" = 1 ]; then
